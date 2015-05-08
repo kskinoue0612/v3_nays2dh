@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<VisualStudioUserFile ProjectCreator="Intel Fortran" Keyword="Console Application" Version="11.0" ProjectIdGuid="{338062A0-42CD-40D2-A5BE-25AF84DAC8C6}">
+	<Configurations>
+		<Configuration Name="Debug|Win32"/>
+		<Configuration Name="Release|Win32"/>
+		<Configuration Name="Debug|x64" CommandArguments="case1.cgn" WorkingDirectory="D:\99_desktop\aaa2" Environment="PATH=C:\Users\kazutake\iRIC\solvers\nays2dh"/>
+		<Configuration Name="Release|x64"/></Configurations></VisualStudioUserFile>
