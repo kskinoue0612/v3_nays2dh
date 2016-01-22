@@ -1053,119 +1053,119 @@ contains
 			dnx(i, 0) = dnx(i,   1) * 0.5d0
 			dnx(i,ny) = dnx(i,ny-1) * 0.5d0
 		end do
-    !
-    do i=1,nx
-       do j=1,ny
-          x_xi(i,j) = (x(i,j)+x(i,j-1)-x(i-1,j)-x(i-1,j-1))/(2.d0*dxi)
-          x_et(i,j) = (x(i,j)+x(i-1,j)-x(i,j-1)-x(i-1,j-1))/(2.d0*det)
-          y_xi(i,j) = (y(i,j)+y(i,j-1)-y(i-1,j)-y(i-1,j-1))/(2.d0*dxi)
-          y_et(i,j) = (y(i,j)+y(i-1,j)-y(i,j-1)-y(i-1,j-1))/(2.d0*det)
-          sj(i,j) = 1.d0 / ( x_xi(i,j)*y_et(i,j) - x_et(i,j)*y_xi(i,j) )
-          xi_x(i,j)=   sj(i,j) * y_et(i,j)
-          xi_y(i,j)= - sj(i,j) * x_et(i,j)
-          et_x(i,j)= - sj(i,j) * y_xi(i,j)
-          et_y(i,j)=   sj(i,j) * x_xi(i,j)
-       end do
-    end do
-    !
-    if(jrep == 1) then
-       do j = 1, ny
-          sj(   0,j)=sj(nx-3,j)
-          sj(nx+1,j)=sj(   4,j)
-          xi_x(   0,j)=xi_x(nx-3,j)
-          xi_x(nx+1,j)=xi_x(   4,j)
-          xi_y(   0,j)=xi_y(nx-3,j)
-          xi_y(nx+1,j)=xi_y(   4,j)
-          et_x(   0,j)=et_x(nx-3,j)
-          et_x(nx+1,j)=et_x(   4,j)
-          et_y(   0,j)=et_y(nx-3,j)
-          et_y(nx+1,j)=et_y(   4,j)
-       end do
-    else
-       do j = 1, ny
-          sj(   0,j)=sj( 1,j)
-          sj(nx+1,j)=sj(nx,j)
-          xi_x(   0,j)=xi_x( 1,j)
-          xi_x(nx+1,j)=xi_x(nx,j)
-          xi_y(   0,j)=xi_y( 1,j)
-          xi_y(nx+1,j)=xi_y(nx,j)
-          et_x(   0,j)=et_x( 1,j)
-          et_x(nx+1,j)=et_x(nx,j)
-          et_y(   0,j)=et_y( 1,j)
-          et_y(nx+1,j)=et_y(nx,j)
-       end do
-    end if
-    do i = 0, nx+1
-       sj(i,   0)=sj(i, 1)
-       sj(i,ny+1)=sj(i,ny)
-       xi_x(i,   0)=xi_x(i, 1)
-       xi_x(i,ny+1)=xi_x(i,ny)
-       xi_y(i,   0)=xi_y(i, 1)
-       xi_y(i,ny+1)=xi_y(i,ny)
-       et_x(i,   0)=et_x(i, 1)
-       et_x(i,ny+1)=et_x(i,ny)
-       et_y(i,   0)=et_y(i, 1)
-       et_y(i,ny+1)=et_y(i,ny)
-    end do
-    !
-    do i=0,nx
-       do j=0,ny
-          if(i == 0) then
-             x_xi0 = (x(i+1,j)-x(i,j))/dxi
-             y_xi0 = (y(i+1,j)-y(i,j))/dxi
-          else if(i == nx) then
-             x_xi0 = (x(i,j)-x(i-1,j))/dxi
-             y_xi0 = (y(i,j)-y(i-1,j))/dxi
-          else
-             x_xi0 = (x(i+1,j)-x(i-1,j))/(2.d0*dxi)
-             y_xi0 = (y(i+1,j)-y(i-1,j))/(2.d0*dxi)
-          end if
-          if(     j ==  0) then
-             x_et0 = (x(i,j+1)-x(i,j))/det
-             y_et0 = (y(i,j+1)-y(i,j))/det
-          else if(j == ny) then
-             x_et0 = (x(i,j)-x(i,j-1))/det
-             y_et0 = (y(i,j)-y(i,j-1))/det
-          else
-             x_et0 = (x(i,j+1)-x(i,j-1))/(2.d0*det)
-             y_et0 = (y(i,j+1)-y(i,j-1))/(2.d0*det)
-          end if
-          sj0(i,j)=1.d0 / ( x_xi0*y_et0 - x_et0*y_xi0 )
-          xi_x0(i,j) =  sj0(i,j)*y_et0
-          xi_y0(i,j) = -sj0(i,j)*x_et0
-          et_x0(i,j) = -sj0(i,j)*y_xi0
-          et_y0(i,j) =  sj0(i,j)*x_xi0
-       end do
-    end do
-    !
-    ! ---- coefs at u grid point ------
-    do i=1,nx-1
-       do j=1,ny
-          xi_x_up(i,j) = (xi_x(i,j)+xi_x(i+1,j))*.5d0
-          et_x_up(i,j) = (et_x(i,j)+et_x(i+1,j))*.5d0
-          xi_y_up(i,j) = (xi_y(i,j)+xi_y(i+1,j))*.5d0
-          et_y_up(i,j) = (et_y(i,j)+et_y(i+1,j))*.5d0
-          beta(1,i,j)=xi_x_up(i,j)**2+xi_y_up(i,j)**2
-          beta(2,i,j)=xi_x_up(i,j)*et_x_up(i,j)+xi_y_up(i,j)*et_y_up(i,j)
-          x_xixi=(x_xi(i+1,j)-x_xi(i,j))/dxi
-          y_xixi=(y_xi(i+1,j)-y_xi(i,j))/dxi
-          x_xiet=(x_et(i+1,j)-x_et(i,j))/dxi
-          y_xiet=(y_et(i+1,j)-y_et(i,j))/dxi
-          if(     j ==  1) then
-             x_etet=(x_et(i+1,j+1)+x_et(i,j+1)-x_et(i+1,j)-x_et(i,j))/(2.d0*det)
-             y_etet=(y_et(i+1,j+1)+y_et(i,j+1)-y_et(i+1,j)-y_et(i,j))/(2.d0*det)
-          else if(j == ny) then
-             x_etet=(x_et(i+1,j)+x_et(i,j)-x_et(i+1,j-1)-x_et(i,j-1))/(2.d0*det)
-             y_etet=(y_et(i+1,j)+y_et(i,j)-y_et(i+1,j-1)-y_et(i,j-1))/(2.d0*det)
-          else
-             x_etet=(x_et(i+1,j+1)+x_et(i,j+1)-x_et(i+1,j-1)-x_et(i,j-1))/(4.d0*det)
-             y_etet=(y_et(i+1,j+1)+y_et(i,j+1)-y_et(i+1,j-1)-y_et(i,j-1))/(4.d0*det)
-          end if
-          alpha(1,i,j)=    xi_x_up(i,j)*x_xixi+xi_y_up(i,j)*y_xixi
-          alpha(2,i,j)=2.d0*(xi_x_up(i,j)*x_xiet+xi_y_up(i,j)*y_xiet)
-          alpha(3,i,j)=    xi_x_up(i,j)*x_etet+xi_y_up(i,j)*y_etet
-       end do
-    end do
+		!
+		do i=1,nx
+			do j=1,ny
+				x_xi(i,j) = (x(i,j)+x(i,j-1)-x(i-1,j)-x(i-1,j-1))/(2.d0*dxi)
+				x_et(i,j) = (x(i,j)+x(i-1,j)-x(i,j-1)-x(i-1,j-1))/(2.d0*det)
+				y_xi(i,j) = (y(i,j)+y(i,j-1)-y(i-1,j)-y(i-1,j-1))/(2.d0*dxi)
+				y_et(i,j) = (y(i,j)+y(i-1,j)-y(i,j-1)-y(i-1,j-1))/(2.d0*det)
+				sj(i,j) = 1.d0 / ( x_xi(i,j)*y_et(i,j) - x_et(i,j)*y_xi(i,j) )
+				xi_x(i,j)=   sj(i,j) * y_et(i,j)
+				xi_y(i,j)= - sj(i,j) * x_et(i,j)
+				et_x(i,j)= - sj(i,j) * y_xi(i,j)
+				et_y(i,j)=   sj(i,j) * x_xi(i,j)
+			end do
+		end do
+		!
+		if(jrep == 1) then
+			do j = 1, ny
+				sj(   0,j)=sj(nx-3,j)
+				sj(nx+1,j)=sj(   4,j)
+				xi_x(   0,j)=xi_x(nx-3,j)
+				xi_x(nx+1,j)=xi_x(   4,j)
+				xi_y(   0,j)=xi_y(nx-3,j)
+				xi_y(nx+1,j)=xi_y(   4,j)
+				et_x(   0,j)=et_x(nx-3,j)
+				et_x(nx+1,j)=et_x(   4,j)
+				et_y(   0,j)=et_y(nx-3,j)
+				et_y(nx+1,j)=et_y(   4,j)
+			end do
+		else
+			do j = 1, ny
+				sj(   0,j)=sj( 1,j)
+				sj(nx+1,j)=sj(nx,j)
+				xi_x(   0,j)=xi_x( 1,j)
+				xi_x(nx+1,j)=xi_x(nx,j)
+				xi_y(   0,j)=xi_y( 1,j)
+				xi_y(nx+1,j)=xi_y(nx,j)
+				et_x(   0,j)=et_x( 1,j)
+				et_x(nx+1,j)=et_x(nx,j)
+				et_y(   0,j)=et_y( 1,j)
+				et_y(nx+1,j)=et_y(nx,j)
+			end do
+		end if
+		do i = 0, nx+1
+			sj(i,   0)=sj(i, 1)
+			sj(i,ny+1)=sj(i,ny)
+			xi_x(i,   0)=xi_x(i, 1)
+			xi_x(i,ny+1)=xi_x(i,ny)
+			xi_y(i,   0)=xi_y(i, 1)
+			xi_y(i,ny+1)=xi_y(i,ny)
+			et_x(i,   0)=et_x(i, 1)
+			et_x(i,ny+1)=et_x(i,ny)
+			et_y(i,   0)=et_y(i, 1)
+			et_y(i,ny+1)=et_y(i,ny)
+		end do
+		!
+		do i=0,nx
+			do j=0,ny
+				if(i == 0) then
+					x_xi0 = (x(i+1,j)-x(i,j))/dxi
+					y_xi0 = (y(i+1,j)-y(i,j))/dxi
+				else if(i == nx) then
+					x_xi0 = (x(i,j)-x(i-1,j))/dxi
+					y_xi0 = (y(i,j)-y(i-1,j))/dxi
+				else
+					x_xi0 = (x(i+1,j)-x(i-1,j))/(2.d0*dxi)
+					y_xi0 = (y(i+1,j)-y(i-1,j))/(2.d0*dxi)
+				end if
+				if(j == 0) then
+					x_et0 = (x(i,j+1)-x(i,j))/det
+					y_et0 = (y(i,j+1)-y(i,j))/det
+				else if(j == ny) then
+					x_et0 = (x(i,j)-x(i,j-1))/det
+					y_et0 = (y(i,j)-y(i,j-1))/det
+				else
+					x_et0 = (x(i,j+1)-x(i,j-1))/(2.d0*det)
+					y_et0 = (y(i,j+1)-y(i,j-1))/(2.d0*det)
+				end if
+				sj0(i,j)=1.d0 / ( x_xi0*y_et0 - x_et0*y_xi0 )
+				xi_x0(i,j) =  sj0(i,j)*y_et0
+				xi_y0(i,j) = -sj0(i,j)*x_et0
+				et_x0(i,j) = -sj0(i,j)*y_xi0
+				et_y0(i,j) =  sj0(i,j)*x_xi0
+			end do
+		end do
+		!
+		! ---- coefs at u grid point ------
+		do i=1,nx-1
+			do j=1,ny
+				xi_x_up(i,j) = (xi_x(i,j)+xi_x(i+1,j))*.5d0
+				et_x_up(i,j) = (et_x(i,j)+et_x(i+1,j))*.5d0
+				xi_y_up(i,j) = (xi_y(i,j)+xi_y(i+1,j))*.5d0
+				et_y_up(i,j) = (et_y(i,j)+et_y(i+1,j))*.5d0
+				beta(1,i,j)=xi_x_up(i,j)**2+xi_y_up(i,j)**2
+				beta(2,i,j)=xi_x_up(i,j)*et_x_up(i,j)+xi_y_up(i,j)*et_y_up(i,j)
+				x_xixi=(x_xi(i+1,j)-x_xi(i,j))/dxi
+				y_xixi=(y_xi(i+1,j)-y_xi(i,j))/dxi
+				x_xiet=(x_et(i+1,j)-x_et(i,j))/dxi
+				y_xiet=(y_et(i+1,j)-y_et(i,j))/dxi
+				if(j == 1) then
+					x_etet=(x_et(i+1,j+1)+x_et(i,j+1)-x_et(i+1,j)-x_et(i,j))/(2.d0*det)
+					y_etet=(y_et(i+1,j+1)+y_et(i,j+1)-y_et(i+1,j)-y_et(i,j))/(2.d0*det)
+				else if(j == ny) then
+					x_etet=(x_et(i+1,j)+x_et(i,j)-x_et(i+1,j-1)-x_et(i,j-1))/(2.d0*det)
+					y_etet=(y_et(i+1,j)+y_et(i,j)-y_et(i+1,j-1)-y_et(i,j-1))/(2.d0*det)
+				else
+					x_etet=(x_et(i+1,j+1)+x_et(i,j+1)-x_et(i+1,j-1)-x_et(i,j-1))/(4.d0*det)
+					y_etet=(y_et(i+1,j+1)+y_et(i,j+1)-y_et(i+1,j-1)-y_et(i,j-1))/(4.d0*det)
+				end if
+				alpha(1,i,j)=		xi_x_up(i,j)*x_xixi+xi_y_up(i,j)*y_xixi
+				alpha(2,i,j)=2.d0*(xi_x_up(i,j)*x_xiet+xi_y_up(i,j)*y_xiet)
+				alpha(3,i,j)=		xi_x_up(i,j)*x_etet+xi_y_up(i,j)*y_etet
+			end do
+		end do
 
     !
     !c ---- coefs at v grid point ------
