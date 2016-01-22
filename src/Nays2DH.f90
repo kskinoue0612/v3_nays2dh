@@ -10211,6 +10211,7 @@ Program Shimizu
 
   implicit none
   include "cgnslib_f.h"
+  include "iriclib_f.h"
 
   integer :: i,j,k
 
@@ -10300,6 +10301,9 @@ Program Shimizu
      IF(IER .NE. 0) THEN
         call cg_error_print_f()			
      ENDIF
+
+     ! guiにcgnsファイルを読込みであることを知らせるファイルを生成
+     call iric_initoption_f(IRIC_OPTION_CANCEL, ier)
 
      call cg_iric_gotogridcoord2d_f(ni4, nj4, ier)
      allocate (x8(ni4,nj4), y8(ni4,nj4))
@@ -11622,6 +11626,13 @@ Program Shimizu
 
 !$omp single
          if( time>=t_out_start ) then
+           ! ユーザがGUI上で "STOP" ボタンを押して実行をキャンセルしたか確認
+           call iric_check_cancel_f(istatus)
+           if(istatus == 1) then
+             write(*,*) "Solver is stopped because the STOP button was clicked."
+             stop
+           end if
+
         
         	   qptemp = qp
         	   CALL Write_CGNS(condFile,time,qptemp,im,jm		&
