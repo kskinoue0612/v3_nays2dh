@@ -2,232 +2,232 @@
 ! Define variables
 ! test
 !----------------------------------------------------------------------------------------------------
-module common_hh 
-  implicit none
-  !
-  integer,parameter :: strMax = 250
-  integer :: im, jm, mm, nm_cell
-  integer nx, ny, nym, nobst, jt1, jt2, jrep, j_qbqs, lmax, j_qbs  &
-         ,j_bedload, j_collaps, j_qsu, j_qb_vec, j_zb, j_vege, j_qbup, edition	&
-         , j_sf, j_mix_dis, j_mix_dis_dep
-  real(8) :: time
-  real(8) :: dxi, det, g, hmin, hmin2, tsc,  chl, width, skp
-  real(8) :: r_dxi, r_det
-  real(8) :: topi,dt, diam, spec, ster, tuk
-  real(8) :: a_snu, b_snu
-  real(8) :: mu_s, mu_k
-  real(8) :: cse, csm
-  character(len = strMax) :: condFile
+module common_hh
+	implicit none
+
+	integer,parameter :: strMax = 250
+	integer :: im, jm, mm, nm_cell
+	integer nx, ny, nym, nobst, jt1, jt2, jrep, j_qbqs, lmax, j_qbs	&
+		,j_bedload, j_collaps, j_qsu, j_qb_vec, j_zb, j_vege, j_qbup, edition	&
+		, j_sf, j_mix_dis, j_mix_dis_dep
+	real(8) :: time
+	real(8) :: dxi, det, g, hmin, hmin2, tsc,	chl, width, skp
+	real(8) :: r_dxi, r_det
+	real(8) :: topi,dt, diam, spec, ster, tuk
+	real(8) :: a_snu, b_snu
+	real(8) :: mu_s, mu_k
+	real(8) :: cse, csm
+	character(len = strMax) :: condFile
 end module common_hh
 
 module flag_op
-  implicit none
+	implicit none
 
-  integer :: jop_vort, jop_fr, jop_zmin, jop_zave, jop_have
-  integer :: jop_fb, jop_sh, jop_qb, jop_sc, jop_md, jop_dz
+	integer :: jop_vort, jop_fr, jop_zmin, jop_zave, jop_have
+	integer :: jop_fb, jop_sh, jop_qb, jop_sc, jop_md, jop_dz
 end module flag_op
 !--------------------------------------------------
 module common_cmuv
-  implicit none
+	implicit none
 		! yu: xi方向流速、yvn:eta方向流速
-  real(8),dimension(:,:),allocatable :: yu, yun, yv, yvn, wu, wv
+	real(8),dimension(:,:),allocatable :: yu, yun, yv, yvn, wu, wv
 end module common_cmuv
 
 !--------------------------------------------------
 module common_cmc
-  implicit none
+	implicit none
 		! yc: 浮遊砂濃度、ycb: 底面の濃度
-  real(8),dimension(:,:),allocatable :: yc, ycn, ycb
+	real(8),dimension(:,:),allocatable :: yc, ycn, ycb
 end module common_cmc
 
 !--------------------------------------------------
 module common_cmuvp
-  implicit none
+	implicit none
 		! up, vp: セル中央の流速(一般座標)、ux, uy：セル中央のデカルト流速
-  real(8),dimension(:,:),allocatable :: up, vp, ux, uy
+	real(8),dimension(:,:),allocatable :: up, vp, ux, uy
 end module common_cmuvp
 
 !--------------------------------------------------
 module common_cmhq
-  implicit none
+	implicit none
 		! h: 水位、hs: 水深
-  real(8),dimension(:,:),allocatable :: h, hn, hs, whs
-  real(8),dimension(:)  ,allocatable :: qc, qc_t, qc_t2
+	real(8),dimension(:,:),allocatable :: h, hn, hs, whs
+	real(8),dimension(:),allocatable :: qc, qc_t, qc_t2
 end module common_cmhq
 
 !--------------------------------------------------
 module common_cmgrd
-  implicit none
+	implicit none
 		! gux, guy, gvx, gvy: CIPに使う流速勾配(du_xi/dxi, du_xi/det)
-  real(8),dimension(:,:),allocatable :: gux, guy, gvx, gvy, gcx, gcy
+	real(8),dimension(:,:),allocatable :: gux, guy, gvx, gvy, gcx, gcy
 end module common_cmgrd
 
 !--------------------------------------------------
 module common_cmxy
-  implicit none
-  real(8),dimension(:,:),allocatable :: x, y, z, eta, ds, dn
-  real(8),dimension(:,:),allocatable :: sj,xi_x,xi_y,et_x, et_y, xi_r, et_r, xi_r_up, et_r_vp
-  real(8),dimension(:,:),allocatable :: z0
-			! zb: 格子点の固定床高さ、eta_zb: セル中央のzb
-  real(8),dimension(:,:),allocatable :: zb_g, zb, eta_zb
+	implicit none
+	real(8),dimension(:,:),allocatable :: x, y, z, eta, ds, dn
+	real(8),dimension(:,:),allocatable :: sj,xi_x,xi_y,et_x, et_y, xi_r, et_r, xi_r_up, et_r_vp
+	real(8),dimension(:,:),allocatable :: z0
+		! zb: 格子点の固定床高さ、eta_zb: セル中央のzb
+	real(8),dimension(:,:),allocatable :: zb_g, zb, eta_zb
 end module common_cmxy
 
 !--------------------------------------------------
 module common_cmxiet
-  implicit none
+	implicit none
 		! up, vpはuとvの定義点の値
-  real(8),dimension(:,:),allocatable :: xi_x_up,xi_y_up
-  real(8),dimension(:,:),allocatable :: et_x_up,et_y_up,xi_x_vp, xi_y_vp, et_x_vp, et_y_vp
+	real(8),dimension(:,:),allocatable :: xi_x_up,xi_y_up
+	real(8),dimension(:,:),allocatable :: et_x_up,et_y_up,xi_x_vp, xi_y_vp, et_x_vp, et_y_vp
 end module common_cmxiet
 
 !--------------------------------------------------
 module common_cmtst
-  implicit none
+	implicit none
 		! vti: 水深平均流速の絶対値
-  real(8),dimension(:,:),allocatable :: vti, tausta, qsu, usta
+	real(8),dimension(:,:),allocatable :: vti, tausta, qsu, usta
 end module common_cmtst
 
 !--------------------------------------------------
 module common_cmuxy
-  implicit none
+	implicit none
 		! uxx, uyy: デカルト座標の流速(格子点)、qbxx, qbyy: デカルト座標の掃流砂量(格子点)
-  real(8),dimension(:,:),allocatable :: uxx, uyy, qbxx, qbyy
+	real(8),dimension(:,:),allocatable :: uxx, uyy, qbxx, qbyy
 end module common_cmuxy
 
 !--------------------------------------------------
 module common_cmave
-  implicit none
+	implicit none
 		! eave: 横断面の平均標高
-  real(8),dimension(:)  ,allocatable :: eave, chb, emin, emax
-  real(8),dimension(:,:),allocatable :: eta0
-  real(8),dimension(:,:),allocatable :: b_elv(:,:)
+	real(8),dimension(:)  ,allocatable :: eave, chb, emin, emax
+	real(8),dimension(:,:),allocatable :: eta0
+	real(8),dimension(:,:),allocatable :: b_elv(:,:)
 end module common_cmave
 
 !--------------------------------------------------
 module common_cmsr
-  implicit none
+	implicit none
 		! sr: 流線の曲率
-  real(8),dimension(:,:),allocatable :: sr, cos_t, sin_t 
+	real(8),dimension(:,:),allocatable :: sr, cos_t, sin_t 
 end module common_cmsr
 
 !--------------------------------------------------
 module common_cmqb
-  implicit none
+	implicit none
 		! qb_xi, qb_et: 一般座標の掃流砂量
 		! kc: 掃流砂移動に対する勾配補正の係数
-  real(8),dimension(:,:),allocatable :: qb_xi,qb_et
-  real(8),dimension(:,:),allocatable :: kc, btheta_x, btheta_y, cos_bed, sin_bed
-  real(8),dimension(:,:),allocatable :: theta_x, theta_y, qbxc, qbyc
+	real(8),dimension(:,:),allocatable :: qb_xi,qb_et
+	real(8),dimension(:,:),allocatable :: kc, btheta_x, btheta_y, cos_bed, sin_bed
+	real(8),dimension(:,:),allocatable :: theta_x, theta_y, qbxc, qbyc
 		! dzds, dzdn : 主流と横断方向の勾配
-  real(8),dimension(:,:),allocatable :: dzds, dzdn, ubnvb
+	real(8),dimension(:,:),allocatable :: dzds, dzdn, ubnvb
 end module common_cmqb
 
 !--------------------------------------------------
 module common_cmet
-  implicit none
+	implicit none
 		! eta_t: eta方向の格子の移動速度
-  real(8),dimension(:,:),allocatable :: eta_t
+	real(8),dimension(:,:),allocatable :: eta_t
 end module common_cmet
 
 !--------------------------------------------------
 module common_cmsui
-  implicit none
-  integer,dimension(:,:),allocatable :: ijobst, ijo_in, ij_frg, ij_ero
-  integer,dimension(:,:),allocatable :: ijobst_u, ijobst_v
+	implicit none
+	integer,dimension(:,:),allocatable :: ijobst, ijo_in, ij_frg, ij_ero
+	integer,dimension(:,:),allocatable :: ijobst_u, ijobst_v
 end module common_cmsui
 
 !--------------------------------------------------
 module common_cmsn
-  implicit none
-  real(8),dimension(:,:),allocatable :: snmm, sn_up, sn_vp
+	implicit none
+	real(8),dimension(:,:),allocatable :: snmm, sn_up, sn_vp
 end module common_cmsn
 
 !--------------------------------------------------
 module common_cmxxyy
-  implicit none
-  real(8),dimension(:,:),allocatable :: xi_x0,xi_y0,et_x0,et_y0,sj0
+	implicit none
+	real(8),dimension(:,:),allocatable :: xi_x0,xi_y0,et_x0,et_y0,sj0
 end module common_cmxxyy
 
 !--------------------------------------------------
 module common_qhyd
-  implicit none
-  real(8),dimension(:)  ,allocatable :: t_hyd, q_ups, h_ups, h_dse
+	implicit none
+	real(8),dimension(:),allocatable :: t_hyd, q_ups, h_ups, h_dse
 end module common_qhyd
 
 !--------------------------------------------------
 module common_cmke
-  implicit none
+	implicit none
 		! yk: 乱れエネルギー、ep: 散逸率
-  real(8),dimension(:,:),allocatable :: yk,ykn, yep,yepn, gkx, gky, gex, gey
+	real(8),dimension(:,:),allocatable :: yk,ykn, yep,yepn, gkx, gky, gex, gey
 end module common_cmke
 
 !--------------------------------------------------
 module common_cmkep
-  implicit none
+	implicit none
 		! k-eモデルの生成項など
-  real(8),dimension(:,:),allocatable :: ph, pkv, pev, strain
+	real(8),dimension(:,:),allocatable :: ph, pkv, pev, strain
 end module common_cmkep
 
 !--------------------------------------------------
 module common_cmcf
-  implicit none
+	implicit none
 		! cf: 河床抵抗係数、re: レイノルズ数、vege_el: 植生の高さ
-  real(8),dimension(:,:),allocatable :: cf, re, cd_veg, vege_el, vege_h
+	real(8),dimension(:,:),allocatable :: cf, re, cd_veg, vege_el, vege_h
 end module common_cmcf
 
 !--------------------------------------------------
 module common_cmyp
-  implicit none
-  real(8),dimension(:,:),allocatable :: y_dis, y_plus
+	implicit none
+	real(8),dimension(:,:),allocatable :: y_dis, y_plus
 end module common_cmyp
 
 !--------------------------------------------------
 module common_cmsnu
-  implicit none
+	implicit none
 		! snu: 渦動粘性係数(セル中央)、snu_x:snuの格子点の値 
-  real(8),dimension(:,:),allocatable :: snu,snu_x,snu0,snu0_x, snuk,snuk_x
+	real(8),dimension(:,:),allocatable :: snu,snu_x,snu0,snu0_x, snuk,snuk_x
 end module common_cmsnu
 
 !--------------------------------------------------
 module common_cmchunk
-  implicit none
+	implicit none
 		! 河岸浸食系のパラメータ(2014/3/19時点で使ってない)
-  real(8),dimension(:,:),allocatable :: a_chunk, sk_chunk
-  real(8)                   :: t_chunk, d_chunk,  h_chunk
+	real(8),dimension(:,:),allocatable :: a_chunk, sk_chunk
+	real(8) :: t_chunk, d_chunk,  h_chunk
 end module common_cmchunk
 
 !--------------------------------------------------
 module common_cmab
-  implicit none
+	implicit none
 		! 運動方程式中の座標変換で出てくる項の係数
-  real(8),dimension(:,:,:),allocatable :: alpha, beta
+	real(8),dimension(:,:,:),allocatable :: alpha, beta
 end module common_cmab
 
 !--------------------------------------------------
 module common_cmdnx
-  implicit none
+	implicit none
 		! dnx, dsy: 格子中央間の距離(j, i)
-  real(8),dimension(:,:),allocatable :: dnx, dsy
+	real(8),dimension(:,:),allocatable :: dnx, dsy
 end module common_cmdnx
 
 !--------------------------------------------------
 module common_cmquv
-  implicit none
-  real(8),dimension(:,:),allocatable :: qu, qv
+	implicit none
+	real(8),dimension(:,:),allocatable :: qu, qv
 end module common_cmquv
 
 !--------------------------------------------------
 module common_cmqxe
-  implicit none
+	implicit none
 		! q_xi, q_et: xiとet方向の一般座標の流量
-  real(8),dimension(:,:),allocatable :: q_xi, q_et
+	real(8),dimension(:,:),allocatable :: q_xi, q_et
 end module common_cmqxe
 
 !--------------------------------------------------
 module common_cmdex
-  implicit none
+	implicit none
 		! dex: 1ステップの河床変動量
-  real(8),dimension(:,:),allocatable :: dex
+	real(8),dimension(:,:),allocatable :: dex
 end module common_cmdex
 
 module common_output
@@ -271,26 +271,26 @@ end module mix
 
 !--------------------------------------------------
 module common_qhyd_t
-  implicit none
-  real(8),dimension(:)  ,allocatable :: q_ups_t, h_ups_t
+	implicit none
+	real(8),dimension(:),allocatable :: q_ups_t, h_ups_t
 end module common_qhyd_t
 
 !--------------------------------------------------
 module common_cmconf1
-  implicit none
-  integer :: j_conf,j_m1,j_m2,j_t1,j_t2,i_t1,i_t2,jxd,js1,js2
+	implicit none
+	integer :: j_conf,j_m1,j_m2,j_t1,j_t2,i_t1,i_t2,jxd,js1,js2
 end module common_cmconf1
 
 !--------------------------------------------------
 module common_cmave_t
-  implicit none
-  real(8),dimension(:), allocatable :: eave_t, chb_t, emin_t, emax_t
+	implicit none
+	real(8),dimension(:), allocatable :: eave_t, chb_t, emin_t, emax_t
 end module common_cmave_t
 
 !--------------------------------------------------
 module common_cmave_t2
-  implicit none
-  real(8),dimension(:), allocatable :: eave_t2, chb_t2, emin_t2, emax_t2
+	implicit none
+	real(8),dimension(:), allocatable :: eave_t2, chb_t2, emin_t2, emax_t2
 end module common_cmave_t2
 
 module fixed_bed
@@ -317,138 +317,139 @@ end module secondary_flow
 !----------------------------------------------------------------------------------------------------
 module alloc_var_m
 
-  use common_cmuv
-  use common_cmc
-  use common_cmuvp
-  use common_cmhq
-  use common_cmgrd
-  use common_cmxy
-  use common_cmxiet
-  use common_cmtst
-  use common_cmuxy
-  use common_cmave
-  use common_cmsr
-  use common_cmqb
-  use common_cmet
-  use common_cmsui
-  use common_cmsn
-  use common_cmxxyy
-  use common_cmke
-  use common_cmkep
-  use common_cmcf
-  use common_cmyp
-  use common_cmsnu
-  use common_cmchunk
-  use common_cmab
-  use common_cmdnx
-  use common_cmquv
-  use common_cmqxe
-  use common_cmdex
-  use common_qhyd
-  use mix
-  use common_qhyd_t
-  use common_cmave_t
-  use common_cmave_t2
-  use common_output
-  use fixed_bed
-  use supplying_sediment
-  use secondary_flow
-  
+	use common_cmuv
+	use common_cmc
+	use common_cmuvp
+	use common_cmhq
+	use common_cmgrd
+	use common_cmxy
+	use common_cmxiet
+	use common_cmtst
+	use common_cmuxy
+	use common_cmave
+	use common_cmsr
+	use common_cmqb
+	use common_cmet
+	use common_cmsui
+	use common_cmsn
+	use common_cmxxyy
+	use common_cmke
+	use common_cmkep
+	use common_cmcf
+	use common_cmyp
+	use common_cmsnu
+	use common_cmchunk
+	use common_cmab
+	use common_cmdnx
+	use common_cmquv
+	use common_cmqxe
+	use common_cmdex
+	use common_qhyd
+	use mix
+	use common_qhyd_t
+	use common_cmave_t
+	use common_cmave_t2
+	use common_output
+	use fixed_bed
+	use supplying_sediment
+	use secondary_flow
+
 contains
-  !-----------------------------------------------------------------------
-  subroutine alloc_var1(im, jm)
-    implicit none
-    integer,intent(in) :: im, jm
-    integer :: i,j
-    i = im
-    j = jm
+	!-----------------------------------------------------------------------
+	subroutine alloc_var1(im, jm)
+		implicit none
+		integer,intent(in) :: im, jm
+		integer :: i,j
+		i = im
+		j = jm
 
-    allocate( yu(0:i,0:j), yun(0:i,0:j), yv(0:i,0:j), yvn(0:i,0:j), wu(0:i,0:j), wv(0:i,0:j) )
-    allocate( yc(0:i,0:j), ycn(0:i,0:j), ycb(0:i,0:j), c_g(0:i,0:j) )
-    allocate( up(0:i,0:j), vp(0:i,0:j),  ux(0:i,0:j), uy(0:i,0:j) )
-    allocate( h(0:i,0:j), hn(0:i,0:j), hs(0:i,0:j), whs(0:i,0:j) )
-    allocate(qc(0:i), qc_t(0:i), qc_t2(0:j) )		!h101019 +qc_t,qc_t2
-    allocate( gux(0:i,0:j), guy(0:i,0:j), gvx(0:i,0:j), gvy(0:i,0:j), gcx(0:i,0:j), gcy(0:i,0:j) )
-    allocate( x(0:i,0:j), y(0:i,0:j),      z(0:i,0:j),  eta(0:i,0:j) &
-         ,     ds(0:i,0:j),     dn(0:i,0:j),     sj(0:i,0:j), xi_x(0:i,0:j) &
-         ,   xi_y(0:i,0:j),   et_x(0:i,0:j),   et_y(0:i,0:j), xi_r(0:i,0:j) &
-         ,   et_r(0:i,0:j),xi_r_up(0:i,0:j),et_r_vp(0:i,0:j),   z0(0:i,0:j) &
-         , dmn(0:i,0:j), phi_g(0:i,0:j) )
-	allocate( zb(0:i,0:j), eta_zb(0:i,0:j), zb_g(0:i,0:j) )
-    allocate( xi_x_up(0:i,0:j), xi_y_up(0:i,0:j), et_x_up(0:i,0:j) &
-         , et_y_up(0:i,0:j), xi_x_vp(0:i,0:j), xi_y_vp(0:i,0:j) &
-         , et_x_vp(0:i,0:j), et_y_vp(0:i,0:j) )
-    allocate(vti(0:i,0:j),tausta(0:i,0:j),qsu(0:i,0:j),usta(0:i,0:j))
-    allocate( uxx(0:i,0:j), uyy(0:i,0:j), voltex(0:i,0:j), qbxx(0:i,0:j), qbyy(0:i,0:j) )
-    allocate( eave(0:i), chb(0:i), emin(0:i), emax(0:i) )
-    allocate( eta0(0:i,0:j), b_elv(2,0:i) )
-    allocate( sr(0:i,0:j), cos_t(0:i,0:j), sin_t(0:i,0:j) )
-    allocate( qb_xi(0:i,0:j), qb_et(0:i,0:j), theta_x(0:i,0:j), theta_y(0:i,0:j) )
-    allocate( qbxc(0:i,0:j), qbyc(0:i,0:j) )
-    allocate( dzds(0:i,0:j), dzdn(0:i,0:j), ubnvb(0:i,0:j) )
-	allocate( kc(0:i,0:j), btheta_x(0:i,0:j), btheta_y(0:i,0:j), cos_bed(0:i,0:j), sin_bed(0:i,0:j) )
-    allocate( eta_t(0:i,0:j) )
-    allocate( ijobst(0:i,0:j), ijo_in(0:i,0:j), ij_frg(0:i,0:j), ij_ero(0:i,0:j) )
-    allocate( ijobst_u(0:i,0:j), ijobst_v(0:i,0:j) )
-    allocate( snmm(0:i,0:j), sn_up(0:i,0:j), sn_vp(0:i,0:j) )
-    allocate( xi_x0(0:i,0:j), xi_y0(0:i,0:j),et_x0(0:i,0:j), et_y0(0:i,0:j),   sj0(0:i,0:j), hsxx(0:i,0:j) )
-    allocate( yk(0:i,0:j),ykn(0:i,0:j), yep(0:i,0:j),yepn(0:i,0:j), gkx(0:i,0:j), gky(0:i,0:j), gex(0:i,0:j),gey(0:i,0:j) )
-    allocate( ph(0:i,0:j),pkv(0:i,0:j),pev(0:i,0:j),strain(0:i,0:j) )
-    allocate( cf(0:i,0:j), re(0:i,0:j), cd_veg(0:i,0:j), vege_el(0:i,0:j), vege_h(0:i,0:j) )
-    allocate( y_dis(0:i,0:j), y_plus(0:i,0:j) )
-    allocate( snu(0:i,0:j), snu_x(0:i,0:j),  snu0(0:i,0:j), snu0_x(0:i,0:j),  snuk(0:i,0:j),snuk_x(0:i,0:j) )
-    allocate( a_chunk(2,0:i), sk_chunk(2,0:i) )
-    allocate( alpha(6,0:i,0:j), beta(4,0:i,0:j) )
-    allocate( dnx(0:i,0:j), dsy(0:i,0:j) )
-    allocate(  qu(0:i,0:j), qv(0:i,0:j) )	!h101019 +qv
-    allocate( q_xi(0:i,0:j), q_et(0:i,0:j) )
-    allocate( dex(0:i,0:j) )
-    allocate( eave_t(0:i), chb_t(0:i), emin_t(0:i), emax_t(0:i) )
-    allocate( eave_t2(0:j), chb_t2(0:j), emin_t2(0:j), emax_t2(0:j) )
-    allocate( fr_c(0:i,0:j), ts_g(0:i,0:j), fr_g(0:i,0:j) )
-    allocate( phi(0:i,0:j), emb(0:i,0:j) )
-	 allocate( z_min_main(0:i), z_ave_main(0:i), h_ave_main(0:i) )
-	 allocate( z_min_tri(0:i), z_ave_tri(0:i), h_ave_tri(0:i) )
-	 allocate( z_min_tri2(0:j), z_ave_tri2(0:j), h_ave_tri2(0:j) )
-	 allocate( z_min(0:i,0:j), z_ave(0:i,0:j), h_ave(0:i,0:j) )
-	 allocate( c_se(0:i,0:j) )
-	 allocate( an(0:i,0:j), vort(0:i,0:j) )
-	 allocate( us_bed(0:i,0:j), un_bed(0:i,0:j) )
-  end subroutine alloc_var1
+		allocate( yu(0:i,0:j), yun(0:i,0:j), yv(0:i,0:j), yvn(0:i,0:j), wu(0:i,0:j), wv(0:i,0:j) )
+		allocate( yc(0:i,0:j), ycn(0:i,0:j), ycb(0:i,0:j), c_g(0:i,0:j) )
+		allocate( up(0:i,0:j), vp(0:i,0:j),	ux(0:i,0:j), uy(0:i,0:j) )
+		allocate( h(0:i,0:j), hn(0:i,0:j), hs(0:i,0:j), whs(0:i,0:j) )
+		allocate(qc(0:i), qc_t(0:i), qc_t2(0:j) )		!h101019 +qc_t,qc_t2
+		allocate( gux(0:i,0:j), guy(0:i,0:j), gvx(0:i,0:j), gvy(0:i,0:j), gcx(0:i,0:j), gcy(0:i,0:j) )
+		allocate( x(0:i,0:j), y(0:i,0:j), z(0:i,0:j), eta(0:i,0:j) &
+			,     ds(0:i,0:j),     dn(0:i,0:j),     sj(0:i,0:j), xi_x(0:i,0:j) &
+			,   xi_y(0:i,0:j),   et_x(0:i,0:j),   et_y(0:i,0:j), xi_r(0:i,0:j) &
+			,   et_r(0:i,0:j),xi_r_up(0:i,0:j),et_r_vp(0:i,0:j),   z0(0:i,0:j) &
+			, dmn(0:i,0:j), phi_g(0:i,0:j) )
+		allocate( zb(0:i,0:j), eta_zb(0:i,0:j), zb_g(0:i,0:j) )
+		allocate( xi_x_up(0:i,0:j), xi_y_up(0:i,0:j), et_x_up(0:i,0:j) &
+			, et_y_up(0:i,0:j), xi_x_vp(0:i,0:j), xi_y_vp(0:i,0:j) &
+			, et_x_vp(0:i,0:j), et_y_vp(0:i,0:j) )
+		allocate(vti(0:i,0:j),tausta(0:i,0:j),qsu(0:i,0:j),usta(0:i,0:j))
+		allocate( uxx(0:i,0:j), uyy(0:i,0:j), voltex(0:i,0:j), qbxx(0:i,0:j), qbyy(0:i,0:j) )
+		allocate( eave(0:i), chb(0:i), emin(0:i), emax(0:i) )
+		allocate( eta0(0:i,0:j), b_elv(2,0:i) )
+		allocate( sr(0:i,0:j), cos_t(0:i,0:j), sin_t(0:i,0:j) )
+		allocate( qb_xi(0:i,0:j), qb_et(0:i,0:j), theta_x(0:i,0:j), theta_y(0:i,0:j) )
+		allocate( qbxc(0:i,0:j), qbyc(0:i,0:j) )
+		allocate( dzds(0:i,0:j), dzdn(0:i,0:j), ubnvb(0:i,0:j) )
+		allocate( kc(0:i,0:j), btheta_x(0:i,0:j), btheta_y(0:i,0:j), cos_bed(0:i,0:j), sin_bed(0:i,0:j) )
+		allocate( eta_t(0:i,0:j) )
+		allocate( ijobst(0:i,0:j), ijo_in(0:i,0:j), ij_frg(0:i,0:j), ij_ero(0:i,0:j) )
+		allocate( ijobst_u(0:i,0:j), ijobst_v(0:i,0:j) )
+		allocate( snmm(0:i,0:j), sn_up(0:i,0:j), sn_vp(0:i,0:j) )
+		allocate( xi_x0(0:i,0:j), xi_y0(0:i,0:j),et_x0(0:i,0:j), et_y0(0:i,0:j),	 sj0(0:i,0:j), hsxx(0:i,0:j) )
+		allocate( yk(0:i,0:j),ykn(0:i,0:j), yep(0:i,0:j),yepn(0:i,0:j), gkx(0:i,0:j), gky(0:i,0:j), gex(0:i,0:j),gey(0:i,0:j) )
+		allocate( ph(0:i,0:j),pkv(0:i,0:j),pev(0:i,0:j),strain(0:i,0:j) )
+		allocate( cf(0:i,0:j), re(0:i,0:j), cd_veg(0:i,0:j), vege_el(0:i,0:j), vege_h(0:i,0:j) )
+		allocate( y_dis(0:i,0:j), y_plus(0:i,0:j) )
+		allocate( snu(0:i,0:j), snu_x(0:i,0:j),	snu0(0:i,0:j), snu0_x(0:i,0:j),	snuk(0:i,0:j),snuk_x(0:i,0:j) )
+		allocate( a_chunk(2,0:i), sk_chunk(2,0:i) )
+		allocate( alpha(6,0:i,0:j), beta(4,0:i,0:j) )
+		allocate( dnx(0:i,0:j), dsy(0:i,0:j) )
+		allocate( qu(0:i,0:j), qv(0:i,0:j) )	!h101019 +qv
+		allocate( q_xi(0:i,0:j), q_et(0:i,0:j) )
+		allocate( dex(0:i,0:j) )
+		allocate( eave_t(0:i), chb_t(0:i), emin_t(0:i), emax_t(0:i) )
+		allocate( eave_t2(0:j), chb_t2(0:j), emin_t2(0:j), emax_t2(0:j) )
+		allocate( fr_c(0:i,0:j), ts_g(0:i,0:j), fr_g(0:i,0:j) )
+		allocate( phi(0:i,0:j), emb(0:i,0:j) )
+		allocate( z_min_main(0:i), z_ave_main(0:i), h_ave_main(0:i) )
+		allocate( z_min_tri(0:i), z_ave_tri(0:i), h_ave_tri(0:i) )
+		allocate( z_min_tri2(0:j), z_ave_tri2(0:j), h_ave_tri2(0:j) )
+		allocate( z_min(0:i,0:j), z_ave(0:i,0:j), h_ave(0:i,0:j) )
+		allocate( c_se(0:i,0:j) )
+		allocate( an(0:i,0:j), vort(0:i,0:j) )
+		allocate( us_bed(0:i,0:j), un_bed(0:i,0:j) )
+	end subroutine alloc_var1
+
+!-----------------------------------------------------------------------
+	subroutine alloc_var2(m)
+		implicit none
+		integer,intent(in) :: m
+
+		allocate( t_hyd(0:m), q_ups(0:m), h_ups(0:m), h_dse(0:m) )
+		allocate( q_ups_t(0:m), h_ups_t(0:m) )
+
+	end subroutine alloc_var2
+
 !
 !-----------------------------------------------------------------------
-  subroutine alloc_var2(m)
-    implicit none
-    integer,intent(in) :: m
+	subroutine alloc_var_mix(im, jm, m, n, n_cell)
+		implicit none
+		integer,intent(in) :: im, jm, m, n, n_cell
 
-    allocate( t_hyd(0:m), q_ups(0:m), h_ups(0:m), h_dse(0:m) )
-    allocate( q_ups_t(0:m), h_ups_t(0:m) )
+		allocate( ddist_mm(0:m), rdsgi(m),&
+			uci(m), tsci0(m), ddk(m), sum_f(m), wfk(m) )
 
-  end subroutine alloc_var2
-!
-!-----------------------------------------------------------------------
-  subroutine alloc_var_mix(im, jm, m, n, n_cell)
-    implicit none
-    integer,intent(in) :: im, jm, m, n, n_cell
-    !
-    allocate( ddist_mm(0:m), rdsgi(m),&
-         uci(m), tsci0(m), ddk(m), sum_f(m), wfk(m) )
+		allocate( pdist_m_100(0:m,0:n_cell), pmk0(m,0:n_cell) )
 
-	allocate( pdist_m_100(0:m,0:n_cell), pmk0(m,0:n_cell) )
+		allocate( pdist_d_100(0:m,0:n_cell), pdk0(m,0:n_cell) )
 
-	allocate( pdist_d_100(0:m,0:n_cell), pdk0(m,0:n_cell) )
-
-    allocate( nb(0:im,0:jm), flg_mix(0:im,0:jm), eta_base(0:im,0:jm), e_t(0:im,0:jm) &
-         , dm_t(0:im,0:jm), dm_m(0:im,0:jm), dmxx(0:im,0:jm) &
-         , tscm(0:im,0:jm) )
-    allocate( dex_mix(0:im,0:jm,m), qb_xi_mix(0:im,0:jm,m) &
-         , qb_et_mix(0:im,0:jm,m), p_m(0:im,0:jm,m), qbxkc(0:im,0:jm,m), qbykc(0:im,0:jm,m) &
-         , p_t(0:im,0:jm,m), tsk(0:im,0:jm,m), tsck(0:im,0:jm,m), usck(0:im,0:jm,m) )
-    allocate( p_d(0:im,0:jm,0:n,m), dm_d(0:im,0:jm,0:n) )
+		allocate( nb(0:im,0:jm), flg_mix(0:im,0:jm), eta_base(0:im,0:jm), e_t(0:im,0:jm) &
+				, dm_t(0:im,0:jm), dm_m(0:im,0:jm), dmxx(0:im,0:jm) &
+				, tscm(0:im,0:jm) )
+		allocate( dex_mix(0:im,0:jm,m), qb_xi_mix(0:im,0:jm,m) &
+				, qb_et_mix(0:im,0:jm,m), p_m(0:im,0:jm,m), qbxkc(0:im,0:jm,m), qbykc(0:im,0:jm,m) &
+				, p_t(0:im,0:jm,m), tsk(0:im,0:jm,m), tsck(0:im,0:jm,m), usck(0:im,0:jm,m) )
+		allocate( p_d(0:im,0:jm,0:n,m), dm_d(0:im,0:jm,0:n) )
 
 	allocate( yck(0:im,0:jm,m), ycbk(0:im,0:jm,m), qsuk(0:im,0:jm,m) )
-    
-  end subroutine alloc_var_mix
+
+	end subroutine alloc_var_mix
 
 end module alloc_var_m
 
@@ -457,44 +458,44 @@ end module alloc_var_m
 !----------------------------------------------------------------------------------------------------
 module initial_0_m
 
-  use common_hh
-  use common_cmuv
-  use common_cmc
-  use common_cmuvp
-  use common_cmhq
-  use common_cmgrd
-  use common_cmxy
-  use common_cmxiet
-  use common_cmtst
-  use common_cmuxy
-  use common_cmave
-  use common_cmsr
-  use common_cmqb
-  use common_cmet
-  use common_cmsui
-  use common_cmsn
-  use common_cmxxyy
-  use common_cmke
-  use common_cmkep
-  use common_cmcf
-  use common_cmyp
-  use common_cmsnu
-  use common_cmchunk
-  use common_cmab
-  use common_cmdnx
-  use common_cmquv
-  use common_cmqxe
-  use common_cmdex
-  use common_qhyd
-  use mix
-  use common_qhyd_t
-  use common_cmconf1
-  use common_cmave_t
-  use common_cmave_t2
-  use common_output
-  use fixed_bed
-  use secondary_flow
-  
+	use common_hh
+	use common_cmuv
+	use common_cmc
+	use common_cmuvp
+	use common_cmhq
+	use common_cmgrd
+	use common_cmxy
+	use common_cmxiet
+	use common_cmtst
+	use common_cmuxy
+	use common_cmave
+	use common_cmsr
+	use common_cmqb
+	use common_cmet
+	use common_cmsui
+	use common_cmsn
+	use common_cmxxyy
+	use common_cmke
+	use common_cmkep
+	use common_cmcf
+	use common_cmyp
+	use common_cmsnu
+	use common_cmchunk
+	use common_cmab
+	use common_cmdnx
+	use common_cmquv
+	use common_cmqxe
+	use common_cmdex
+	use common_qhyd
+	use mix
+	use common_qhyd_t
+	use common_cmconf1
+	use common_cmave_t
+	use common_cmave_t2
+	use common_output
+	use fixed_bed
+	use secondary_flow
+
 contains
   
   subroutine initial_01
