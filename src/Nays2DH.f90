@@ -735,170 +735,170 @@ contains
 			b_elv(1,i)=eta0(i,1)+bheight
 			b_elv(2,i)=eta0(i,ny)+bheight
 		end do
-    !
-    !  --- eave,emin,emax --(Main Channel) -----
-    !
-    do i=1,nx
-       eave(i)=0.d0
-       emin(i)=9999.d0
-       emax(i)=-9999.d0
-       nnp=0
-       if(i.lt.i_t1.or.j_conf.ge.2) then
-          jss1=j_m1+1
-          jss2=j_m2
-       else
-          jss1=1
-          jss2=ny
-       end if
-       do j=jss1,jss2
-          if(ijo_in(i,j).ne.1) then
-             nnp=nnp+1
-             eave(i)=eave(i)+eta(i,j)
-             emin(i)=min(emin(i),eta(i,j))
-             emax(i)=max(emax(i),eta(i,j))
-          end if
-       end do
-       eave(i)=eave(i)/dble(nnp)
-    end do
-    !c
-    !c  --- eave,emin,emax --(Tributary Channel) -----
-    !c
-    if(j_conf.eq.1) then
-       do i=1,i_t2
-          eave_t(i)=0.d0
-          emin_t(i)=9999.d0
-          emax_t(i)=-9999.d0
-          nnp=0
-          do j=j_t1+1,j_t2
-             if(ijo_in(i,j).ne.1) then
-                nnp=nnp+1
-                eave_t(i)=eave_t(i)+eta(i,j)
-                emin_t(i)=min(emin_t(i),eta(i,j))
-                emax_t(i)=max(emax_t(i),eta(i,j))
-             end if
-          end do
-          eave_t(i)=eave_t(i)/dble(nnp)
-       end do
+		!
+		!  --- eave,emin,emax --(Main Channel) -----
+		!
+		do i=1,nx
+			eave(i)=0.d0
+			emin(i)=9999.d0
+			emax(i)=-9999.d0
+			nnp=0
+			if(i.lt.i_t1.or.j_conf.ge.2) then
+				jss1=j_m1+1
+				jss2=j_m2
+			else
+				jss1=1
+				jss2=ny
+			end if
+			do j=jss1,jss2
+				if(ijo_in(i,j).ne.1) then
+					nnp=nnp+1
+					eave(i)=eave(i)+eta(i,j)
+					emin(i)=min(emin(i),eta(i,j))
+					emax(i)=max(emax(i),eta(i,j))
+				end if
+			end do
+			eave(i)=eave(i)/dble(nnp)
+		end do
+		!c
+		!c  --- eave,emin,emax --(Tributary Channel) -----
+		!c
+		if(j_conf.eq.1) then
+			do i=1,i_t2
+				eave_t(i)=0.d0
+				emin_t(i)=9999.d0
+				emax_t(i)=-9999.d0
+				nnp=0
+				do j=j_t1+1,j_t2
+					if(ijo_in(i,j).ne.1) then
+						nnp=nnp+1
+						eave_t(i)=eave_t(i)+eta(i,j)
+						emin_t(i)=min(emin_t(i),eta(i,j))
+						emax_t(i)=max(emax_t(i),eta(i,j))
+					end if
+				end do
+				eave_t(i)=eave_t(i)/dble(nnp)
+			end do
 
-    else if(j_conf.ge.2) then
-       do j=j_t1+js1,j_t2+js2,jxd
-          eave_t2(j)=0.d0
-          emin_t2(j)=9999.d0
-          emax_t2(j)=-9999.d0
-          nnp=0
-          do i=i_t1+1,i_t2
-             if(ijo_in(i,j).ne.1) then
-                nnp=nnp+1
-                eave_t2(j)=eave_t2(j)+eta(i,j)
-                emin_t2(j)=min(emin_t2(j),eta(i,j))
-                emax_t2(j)=max(emax_t2(j),eta(i,j))
-             end if
-          end do
-          eave_t2(j)=eave_t2(j)/dble(nnp)
-       end do
-    end if
-    !    c
-    !c ----- Channel Length (Main Channel) -----
-    !c
-    sch(0)=0.d0
-    do i=0,nx
-       if(i.lt.i_t1.or.j_conf.ge.2) then
-          nnym=(j_m2+j_m1)/2
-       else
-          nnym=(1+ny)/2
-       end if
-       if(i.gt.0) then
-          sch(i)=sch(i-1)+dsqrt((x(i,nnym)-x(i-1,nnym))**2+(y(i,nnym)-y(i-1,nnym))**2)
-       end if
-    end do
-    do i=1,nx
-       ss_x(i)=(sch(i)+sch(i-1))*.5d0
-    end do
-    chl=ss_x(nx)-ss_x(1)
-    !
-    !c ----- Channel Length (Triburary) -----
-    !
-    if(j_conf.eq.1) then
-       sch_t(0)=0.d0
-       do i=0,nx
-          nnym=(j_t2+j_t1)/2
-          if(i.gt.0) then
-             sch_t(i)=sch_t(i-1)+dsqrt((x(i,nnym)-x(i-1,nnym))**2+(y(i,nnym)-y(i-1,nnym))**2)
-          end if
-       end do
-       do i=1,nx
-          ss_x_t(i)=(sch_t(i)+sch_t(i-1))*.5
-       end do
-       chl_t=ss_x_t(nx)-ss_x_t(1)
-       !
-    else if(j_conf.ge.2) then
-       sch_t2(0)=0.d0
-       do j=j_t1,j_t2,jxd
-          nnxm=(i_t2+i_t1)/2
-          if(j*jxd.gt.j_t1*jxd) then
-             sch_t2(j)=sch_t2(j-jxd) +dsqrt((x(nnxm,j)-x(nnxm,j-jxd))**2+(y(nnxm,j)-y(nnxm,j-jxd))**2)
-          end if
-       end do
-       do j=j_t1+js1,j_t2+js2,jxd
-          ss_x_t2(j)=(sch_t2(j)+sch_t2(j-jxd))*.5d0
-       end do
-       chl_t=ss_x_t2(j_t2+js2)-ss_x_t2(j_t1+js1)
-    end if
-    !
-    !c ------ Slope of Main Channel ------
-    !
-    sxy=0.d0
-    sx=0.d0
-    sy=0.d0
-    sxx=0.d0
-    syy=0.d0
-    do i=1,nx
-       sx=sx+ss_x(i)
-       sy=sy+eave(i)
-       sxx=sxx+ss_x(i)**2
-       sxy=sxy+ss_x(i)*eave(i)
-    end do
-    sm=dble(nx)
-    aa=(sm*sxy-sx*sy)/(sm*sxx-sx**2)
-    bb=(sxx*sy-sxy*sx)/(sm*sxx-sx**2)
-    slope=-aa
-    !
-    !c ------ Slope of Tributary -----
-    !
-    if(j_conf.eq.1) then
-       sxy=0.d0
-       sx=0.d0
-       sy=0.d0
-       sxx=0.d0
-       syy=0.d0
-       do i=1,i_t1
-          sx=sx+ss_x_t(i)
-          sy=sy+eave_t(i)
-          sxx=sxx+ss_x_t(i)**2
-          sxy=sxy+ss_x_t(i)*eave_t(i)
-       end do
-       sm=dble(i_t1)
-       aa=(sm*sxy-sx*sy)/(sm*sxx-sx**2)
-       bb=(sxx*sy-sxy*sx)/(sm*sxx-sx**2)
-       slope_t=-aa
-       !
-    else if(j_conf.ge.2) then
-       sxy=0.d0
-       sx=0.d0
-       sy=0.d0
-       sxx=0.d0
-       syy=0.d0
-       do j=j_t1+js1,j_t2+js2,jxd
-          sx=sx+ss_x_t2(j)
-          sy=sy+eave_t2(j)
-          sxx=sxx+ss_x_t2(j)**2
-          sxy=sxy+ss_x_t2(j)*eave_t2(j)
-       end do
-       sm=dble((j_t2-j_t1)*jxd)
-       aa=(sm*sxy-sx*sy)/(sm*sxx-sx**2)
-       bb=(sxx*sy-sxy*sx)/(sm*sxx-sx**2)
-       slope_t=aa
-    end if
+		else if(j_conf.ge.2) then
+			do j=j_t1+js1,j_t2+js2,jxd
+				eave_t2(j)=0.d0
+				emin_t2(j)=9999.d0
+				emax_t2(j)=-9999.d0
+				nnp=0
+				do i=i_t1+1,i_t2
+					if(ijo_in(i,j).ne.1) then
+						nnp=nnp+1
+						eave_t2(j)=eave_t2(j)+eta(i,j)
+						emin_t2(j)=min(emin_t2(j),eta(i,j))
+						emax_t2(j)=max(emax_t2(j),eta(i,j))
+					end if
+				end do
+				eave_t2(j)=eave_t2(j)/dble(nnp)
+			end do
+		end if
+		!c
+		!c ----- Channel Length (Main Channel) -----
+		!c
+		sch(0)=0.d0
+		do i=0,nx
+			if(i.lt.i_t1.or.j_conf.ge.2) then
+				nnym=(j_m2+j_m1)/2
+			else
+				nnym=(1+ny)/2
+			end if
+			if(i.gt.0) then
+				sch(i)=sch(i-1)+dsqrt((x(i,nnym)-x(i-1,nnym))**2+(y(i,nnym)-y(i-1,nnym))**2)
+			end if
+		end do
+		do i=1,nx
+			ss_x(i)=(sch(i)+sch(i-1))*.5d0
+		end do
+		chl=ss_x(nx)-ss_x(1)
+		!
+		!c ----- Channel Length (Triburary) -----
+		!
+		if(j_conf.eq.1) then
+			sch_t(0)=0.d0
+			do i=0,nx
+				nnym=(j_t2+j_t1)/2
+				if(i.gt.0) then
+					sch_t(i)=sch_t(i-1)+dsqrt((x(i,nnym)-x(i-1,nnym))**2+(y(i,nnym)-y(i-1,nnym))**2)
+				end if
+			end do
+			do i=1,nx
+				ss_x_t(i)=(sch_t(i)+sch_t(i-1))*.5
+			end do
+			chl_t=ss_x_t(nx)-ss_x_t(1)
+			!
+		else if(j_conf.ge.2) then
+			sch_t2(0)=0.d0
+			do j=j_t1,j_t2,jxd
+				nnxm=(i_t2+i_t1)/2
+				if(j*jxd.gt.j_t1*jxd) then
+					sch_t2(j)=sch_t2(j-jxd) +dsqrt((x(nnxm,j)-x(nnxm,j-jxd))**2+(y(nnxm,j)-y(nnxm,j-jxd))**2)
+				end if
+			end do
+			do j=j_t1+js1,j_t2+js2,jxd
+				ss_x_t2(j)=(sch_t2(j)+sch_t2(j-jxd))*.5d0
+			end do
+			chl_t=ss_x_t2(j_t2+js2)-ss_x_t2(j_t1+js1)
+		end if
+		!
+		!c ------ Slope of Main Channel ------
+		!
+		sxy=0.d0
+		sx=0.d0
+		sy=0.d0
+		sxx=0.d0
+		syy=0.d0
+		do i=1,nx
+			sx=sx+ss_x(i)
+			sy=sy+eave(i)
+			sxx=sxx+ss_x(i)**2
+			sxy=sxy+ss_x(i)*eave(i)
+		end do
+		sm=dble(nx)
+		aa=(sm*sxy-sx*sy)/(sm*sxx-sx**2)
+		bb=(sxx*sy-sxy*sx)/(sm*sxx-sx**2)
+		slope=-aa
+		!
+		!c ------ Slope of Tributary -----
+		!
+		if(j_conf.eq.1) then
+			sxy=0.d0
+			sx=0.d0
+			sy=0.d0
+			sxx=0.d0
+			syy=0.d0
+			do i=1,i_t1
+				sx=sx+ss_x_t(i)
+				sy=sy+eave_t(i)
+				sxx=sxx+ss_x_t(i)**2
+				sxy=sxy+ss_x_t(i)*eave_t(i)
+			end do
+			sm=dble(i_t1)
+			aa=(sm*sxy-sx*sy)/(sm*sxx-sx**2)
+			bb=(sxx*sy-sxy*sx)/(sm*sxx-sx**2)
+			slope_t=-aa
+			!
+		else if(j_conf.ge.2) then
+			sxy=0.d0
+			sx=0.d0
+			sy=0.d0
+			sxx=0.d0
+			syy=0.d0
+			do j=j_t1+js1,j_t2+js2,jxd
+				sx=sx+ss_x_t2(j)
+				sy=sy+eave_t2(j)
+				sxx=sxx+ss_x_t2(j)**2
+				sxy=sxy+ss_x_t2(j)*eave_t2(j)
+			end do
+			sm=dble((j_t2-j_t1)*jxd)
+			aa=(sm*sxy-sx*sy)/(sm*sxx-sx**2)
+			bb=(sxx*sy-sxy*sx)/(sm*sxx-sx**2)
+			slope_t=aa
+		end if
     !
     !c ----- Width of Main Channel -----
     !
