@@ -1407,88 +1407,88 @@ contains
 		end if
 
 !$omp do
-    do i=0,nx+1
-       yk(i,   0)=0.d0
-       yk(i,ny+1)=0.d0
-       yep(i,   0)=0.d0
-       yep(i,ny+1)=0.d0
-    end do
-    !
+		do i=0,nx+1
+			yk(i,   0)=0.d0
+			yk(i,ny+1)=0.d0
+			yep(i,   0)=0.d0
+			yep(i,ny+1)=0.d0
+		end do
+		!
 !$omp do
-    do j=1,ny
-       do i=1,nx
-          if(ijo_in(i,j) == 1) then
-             yk(i,j)=0.d0
-             yep(i,j)=0.d0
-          end if
-       end do
-    end do
-  end subroutine bound_ke
-  !
-  !--------------------------------------------------------------------
-  subroutine bound_phke(strain,ph,pkv,pev)
-    implicit none
+		do j=1,ny
+			do i=1,nx
+				if(ijo_in(i,j) == 1) then
+					yk(i,j)=0.d0
+					yep(i,j)=0.d0
+				end if
+			end do
+		end do
+	end subroutine bound_ke
+	!
+	!--------------------------------------------------------------------
+	subroutine bound_phke(strain,ph,pkv,pev)
+		implicit none
 
-    integer :: i,j
-    real(8),intent(inout) :: strain(0:im,0:jm),ph(0:im,0:jm),pkv(0:im,0:jm),pev(0:im,0:jm)
-    !
-    if (jrep == 1) then
+		integer :: i,j
+		real(8),intent(inout) :: strain(0:im,0:jm),ph(0:im,0:jm),pkv(0:im,0:jm),pev(0:im,0:jm)
+		!
+		if (jrep == 1) then
 !$omp do
-       do j=1,ny
-          do i=0,1
-             strain(i,j)=strain(i+nx-3,j)
-             ph(i,j)=ph(i+nx-3,j)
-             pkv(i,j)=pkv(i+nx-3,j)
-             pev(i,j)=pev(i+nx-3,j)
-          end do
-          do i=nx-1,nx+1
-             strain(i,j)=strain(i-nx+3,j)
-             ph(i,j)=ph(i-nx+3,j)
-             pkv(i,j)=pkv(i-nx+3,j)
-             pev(i,j)=pev(i-nx+3,j)
-          end do
-       end do
-    end if
-    return
-  end subroutine bound_phke
-  !
-  !------------------------------------------------------
-  subroutine bound_h(h,hs,eta)
-    implicit none
+			do j=1,ny
+				do i=0,1
+					strain(i,j)=strain(i+nx-3,j)
+					ph(i,j)=ph(i+nx-3,j)
+					pkv(i,j)=pkv(i+nx-3,j)
+					pev(i,j)=pev(i+nx-3,j)
+				end do
+				do i=nx-1,nx+1
+					strain(i,j)=strain(i-nx+3,j)
+					ph(i,j)=ph(i-nx+3,j)
+					pkv(i,j)=pkv(i-nx+3,j)
+					pev(i,j)=pev(i-nx+3,j)
+				end do
+			end do
+		end if
+		return
+	end subroutine bound_phke
+	!
+	!------------------------------------------------------
+	subroutine bound_h(h,hs,eta)
+		implicit none
 
-    integer :: i,j
-    real(8),intent(inout) :: h(  0:im,0:jm),hs(0:im,0:jm)
-    real(8),intent(in)    :: eta(0:im,0:jm)
-    !
-    if(jrep == 1) then
+		integer :: i,j
+		real(8),intent(inout) :: h(  0:im,0:jm),hs(0:im,0:jm)
+		real(8),intent(in)    :: eta(0:im,0:jm)
+		!
+		if(jrep == 1) then
 !$omp do
-       do j=1, ny
-          do i=0 , 1
-             hs(i,j)=hs(i+nx-3,j)
-             h( i,j)=hs(i,j) + eta(i,j)
-          end do
-          do i = nx-1, nx+1
-             hs(i,j) = hs(i-nx+3,j)
-             h( i,j) = hs(i,j) + eta(i,j)
-          end do
-       end do
-    end if
+			do j=1, ny
+				do i=0 , 1
+					hs(i,j)=hs(i+nx-3,j)
+					h( i,j)=hs(i,j) + eta(i,j)
+				end do
+				do i = nx-1, nx+1
+					hs(i,j) = hs(i-nx+3,j)
+					h( i,j) = hs(i,j) + eta(i,j)
+				end do
+			end do
+		end if
 
 !$omp do
-    do i = 0, nx+1
-       h(i,   0) = h(i, 1)
-       h(i,ny+1) = h(i,ny)
-    end do
-    !
+		do i = 0, nx+1
+			h(i,   0) = h(i, 1)
+			h(i,ny+1) = h(i,ny)
+		end do
+		!
 !$omp do
-    do j=1,ny
-       do i=1,nx
-          if(ijo_in(i,j) == 1) hs(i,j) = hmin
-       end do
-    end do			!h101019 conf?
+		do j=1,ny
+			do i=1,nx
+				if(ijo_in(i,j) == 1) hs(i,j) = hmin
+			end do
+		end do			!h101019 conf?
 
-  end subroutine bound_h
-  
+	end subroutine bound_h
+
 	subroutine boundi_scalar( ff )
 		implicit none
 		
@@ -1537,13 +1537,13 @@ contains
 		end if
 		
 	end subroutine boundj_scalar
-	
+
 	subroutine bound_up( ff )
 		implicit none
-		
+
 		integer :: i, j
 		real(8), dimension(0:im,0:jm), intent(inout) :: ff
-		
+
 		if( jrep==0 ) then
 !$omp do
 			do j=1,ny
@@ -1561,8 +1561,8 @@ contains
 		end if
 
 	end subroutine bound_up
-	
-end module     bound_m
+
+end module bound_m
 
 !----------------------------------------------------------------------------------------------------
 !
