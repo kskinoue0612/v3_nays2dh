@@ -1286,32 +1286,32 @@ contains
 	end subroutine bound_u
 	!
 	!--------------------------------------------------------------------
-  subroutine bound_v(v)                              ! B.C. for v
-    implicit none
+	subroutine bound_v(v)                              ! B.C. for v
+		implicit none
 
-    integer :: i,j
-    real(8),intent(inout) :: v(0:im,0:jm)
-    !
-    if(jrep == 0) then
+		integer :: i,j
+		real(8),intent(inout) :: v(0:im,0:jm)
+		!
+		if(jrep == 0) then
 !$omp do
-       do j=1, ny-1
-          v(nx,j) = v(nx-1,j)
-       end do
-    else
+			do j=1, ny-1
+				v(nx,j) = v(nx-1,j)
+			end do
+		else
 !$omp do
-       do j=1, ny-1
-          v(   0,j) = v(nx-3,j)
-          v(   1,j) = v(nx-2,j)
-          v(nx-1,j) = v(   2,j)
-          v(nx  ,j) = v(   3,j)
-       end do
-    end if
-    !
+			do j=1, ny-1
+				v(   0,j) = v(nx-3,j)
+				v(   1,j) = v(nx-2,j)
+				v(nx-1,j) = v(   2,j)
+				v(nx  ,j) = v(   3,j)
+			end do
+		end if
+		!
 
-    if( j_conf<=1 ) then
+		if( j_conf<=1 ) then
 !$omp do
-    	do i=1,nx
-    		v(i, 0) = 0.d0
+			do i=1,nx
+				v(i, 0) = 0.d0
 			v(i,ny) = 0.d0
 		end do
 	else if( j_conf==2 ) then
@@ -1333,78 +1333,78 @@ contains
 	end if
 
 !$omp do
-    do j=0,ny
-      do i=1,nx
-        v(i,j) = v(i,j)*ijobst_v(i,j)
-      end do
-    end do
+		do j=0,ny
+			do i=1,nx
+				v(i,j) = v(i,j)*ijobst_v(i,j)
+			end do
+		end do
 
-  end subroutine bound_v
-  !
-  !--------------------------------------------------------------------
-  subroutine bound_c(c)
-    implicit none
+	end subroutine bound_v
+	!
+	!--------------------------------------------------------------------
+	subroutine bound_c(c)
+		implicit none
 
-    integer :: i,j
-    real(8),intent(inout) :: c(0:im,0:jm)
+		integer :: i,j
+		real(8),intent(inout) :: c(0:im,0:jm)
 
-    if (jrep == 1) then
+		if (jrep == 1) then
 !$omp do
-       do j = 1, ny
-          do i = 0,  1
-             c(i,j) = c(i+nx-3,j)
-          end do
-          do i=nx-1, nx+1
-             c(i,j) = c(i-nx+3,j)
-          end do
-       end do
-    end if
+			do j = 1, ny
+				do i = 0, 1
+					c(i,j) = c(i+nx-3,j)
+				end do
+				do i=nx-1, nx+1
+					c(i,j) = c(i-nx+3,j)
+				end do
+			end do
+		end if
 
-    if( j_conf<2 ) then
+		if( j_conf<2 ) then
 !$omp do
-    	do i=0,nx+1
-    		c(i,   0) = 0.d0
-    		c(i,ny+1) = 0.d0
-    	end do
-    else
+			do i=0,nx+1
+				c(i,   0) = 0.d0
+				c(i,ny+1) = 0.d0
+			end do
+		else
 !$omp do
-    	do i=0,nx+1
-    		if( i<i_t1+1 .or. i>i_t2 ) then
-    			c(i,j_t2+js1) = 0.d0
-    		end if
-    	end do
-    end if
-  
-    !
-!$omp do
-    do j=1,ny
-       do i=1,nx
-          c(i,j) = c(i,j)*(1-ijo_in(i,j))
-       end do
-    end do
+			do i=0,nx+1
+				if( i<i_t1+1 .or. i>i_t2 ) then
+					c(i,j_t2+js1) = 0.d0
+				end if
+			end do
+		end if
 
-  end subroutine bound_c
-  !
-  !--------------------------------------------------------------------
-  subroutine bound_ke(yk,yep)
-    implicit none
-    
-    integer :: i,j
-    real(8),intent(inout) :: yk(0:im,0:jm),yep(0:im,0:jm)
-    !
-    if (jrep == 1) then
+		!
 !$omp do
-       do j=1,ny
-          do i=0,1
-             yk(i,j)=yk(i+nx-3,j)
-             yep(i,j)=yep(i+nx-3,j)
-          end do
-          do i=nx-1,nx+1
-             yk(i,j)=yk(i-nx+3,j)
-             yep(i,j)=yep(i-nx+3,j)
-          end do
-       end do
-    end if
+		do j=1,ny
+			do i=1,nx
+				c(i,j) = c(i,j)*(1-ijo_in(i,j))
+			end do
+		end do
+
+	end subroutine bound_c
+	!
+	!--------------------------------------------------------------------
+	subroutine bound_ke(yk,yep)
+		implicit none
+		
+		integer :: i,j
+		real(8),intent(inout) :: yk(0:im,0:jm),yep(0:im,0:jm)
+		!
+		if (jrep == 1) then
+!$omp do
+			do j=1,ny
+				do i=0,1
+					yk(i,j)=yk(i+nx-3,j)
+					yep(i,j)=yep(i+nx-3,j)
+				end do
+				do i=nx-1,nx+1
+					yk(i,j)=yk(i-nx+3,j)
+					yep(i,j)=yep(i-nx+3,j)
+				end do
+			end do
+		end if
 
 !$omp do
     do i=0,nx+1
