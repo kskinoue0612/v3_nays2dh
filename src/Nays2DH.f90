@@ -899,160 +899,160 @@ contains
 			bb=(sxx*sy-sxy*sx)/(sm*sxx-sx**2)
 			slope_t=aa
 		end if
-    !
-    !c ----- Width of Main Channel -----
-    !
-    width=0.d0
-    do i=0,nx
-       chb(i)=0.d0
-       if(i.lt.i_t1.or.j_conf.ge.2) then
-          jss1=j_m1+1
-          jss2=j_m2
-       else
-          jss1=1
-          jss2=ny
-       end if
-       do j=jss1,jss2
-          if(ijobst(i,j)*ijobst(i,j-1).eq.0) then
-             dnx=dsqrt((x(i,j)-x(i,j-1))**2+(y(i,j)-y(i,j-1))**2)
-             chb(i)=chb(i)+dnx
-          end if
-       end do
-       width=width+chb(i)
-    end do
-    width=width/dble(nx+1)
-    !
-    !c ----- Width of Tributary ------
-    !
-    if(j_conf.eq.1) then
-       width_t=0.d0
-       do i=0,i_t1
-          chb_t(i)=0.d0
-          do j=j_t1+1,j_t2
-             if(ijobst(i,j)*ijobst(i,j-1).eq.0) then
-                dnx=dsqrt((x(i,j)-x(i,j-1))**2+(y(i,j)-y(i,j-1))**2)
-                chb_t(i)=chb_t(i)+dnx
-             end if
-          end do
-          width_t=width_t+chb_t(i)
-       end do
-       width_t=width_t/dble(i_t1+1)
-       !
-    else if(j_conf.ge.2) then
-       width_t=0.d0
-       do j=j_t1,j_t2,jxd
-          chb_t2(j)=0.d0
-          do i=i_t1+1,i_t2
-             if(ijobst(i,j)*ijobst(i-1,j).eq.0) then
-                dny=dsqrt((x(i,j)-x(i-1,j))**2+(y(i,j)-y(i-1,j))**2)
-                chb_t2(j)=chb_t2(j)+dny
-             end if
-          end do
-          width_t=width_t+chb_t2(j)
-       end do
-       width_t=width_t/dble((j_t2-j_t1)*jxd+1)
-    end if
-    !
-  end subroutine avgeo_t
-end module     avgeo_m
+		!
+		!c ----- Width of Main Channel -----
+		!
+		width=0.d0
+		do i=0,nx
+			chb(i)=0.d0
+			if(i.lt.i_t1.or.j_conf.ge.2) then
+				jss1=j_m1+1
+				jss2=j_m2
+			else
+				jss1=1
+				jss2=ny
+			end if
+			do j=jss1,jss2
+				if(ijobst(i,j)*ijobst(i,j-1).eq.0) then
+					dnx=dsqrt((x(i,j)-x(i,j-1))**2+(y(i,j)-y(i,j-1))**2)
+					chb(i)=chb(i)+dnx
+				end if
+			end do
+			width=width+chb(i)
+		end do
+		width=width/dble(nx+1)
+		!
+		!c ----- Width of Tributary ------
+		!
+		if(j_conf.eq.1) then
+			width_t=0.d0
+			do i=0,i_t1
+				chb_t(i)=0.d0
+				do j=j_t1+1,j_t2
+					if(ijobst(i,j)*ijobst(i,j-1).eq.0) then
+						dnx=dsqrt((x(i,j)-x(i,j-1))**2+(y(i,j)-y(i,j-1))**2)
+						chb_t(i)=chb_t(i)+dnx
+					end if
+				end do
+				width_t=width_t+chb_t(i)
+			end do
+			width_t=width_t/dble(i_t1+1)
+			!
+		else if(j_conf.ge.2) then
+			width_t=0.d0
+			do j=j_t1,j_t2,jxd
+				chb_t2(j)=0.d0
+				do i=i_t1+1,i_t2
+					if(ijobst(i,j)*ijobst(i-1,j).eq.0) then
+						dny=dsqrt((x(i,j)-x(i-1,j))**2+(y(i,j)-y(i-1,j))**2)
+						chb_t2(j)=chb_t2(j)+dny
+					end if
+				end do
+				width_t=width_t+chb_t2(j)
+			end do
+			width_t=width_t/dble((j_t2-j_t1)*jxd+1)
+		end if
+		!
+	end subroutine avgeo_t
+end module avgeo_m
 
 !----------------------------------------------------------------------------------------------------
 module gcoefs_m
-  
-  use common_hh
-  use common_cmxy
-  use common_cmxiet
-  use common_cmab
-  use common_cmsr
-  use common_cmdnx
-  use common_cmxxyy
-  
-  real(8),dimension(:,:),allocatable :: x_xi, x_et, y_xi, y_et
-  real(8),dimension(:,:),allocatable :: btmp
+
+	use common_hh
+	use common_cmxy
+	use common_cmxiet
+	use common_cmab
+	use common_cmsr
+	use common_cmdnx
+	use common_cmxxyy
+
+	real(8),dimension(:,:),allocatable :: x_xi, x_et, y_xi, y_et
+	real(8),dimension(:,:),allocatable :: btmp
 
 contains
 
-  subroutine alloc_gcoefs_temp_variables
-    implicit none
-    
-    allocate( x_xi(im,jm), x_et(im,jm), y_xi(im,jm), y_et(im,jm) )
-    allocate( btmp(0:im,0:jm) )
-    
-    x_xi = 0.d0;	x_et = 0.d0
-    y_xi = 0.d0;	y_et = 0.d0
-    btmp = 0.d0
-  
-  end subroutine alloc_gcoefs_temp_variables
-  
-  subroutine gcoefs(iout)
-    implicit none
-    
-    integer :: i,j
+	subroutine alloc_gcoefs_temp_variables
+		implicit none
 
-    real(8), parameter :: pi = 3.141592d0
+		allocate( x_xi(im,jm), x_et(im,jm), y_xi(im,jm), y_et(im,jm) )
+		allocate( btmp(0:im,0:jm) )
 
-    real(8), parameter :: ds00 = 0.001
-    real(8), parameter :: dn00 = 0.001
+		x_xi = 0.d0;	x_et = 0.d0
+		y_xi = 0.d0;	y_et = 0.d0
+		btmp = 0.d0
 
-    real(8) :: dx, dy, theta, x1, y1, x2, y2, x3, y3, x4, y4 &
-         , dx1, dy1, dx2, dy2, ds1, ds2, ds12 &
-         , x_xi0, y_xi0, x_et0, y_et0 &
-         , x_xixi, y_xixi, x_xiet, y_xiet, x_etet, y_etet
-    integer :: iout, m, l
+	end subroutine alloc_gcoefs_temp_variables
 
-    dx=0.d0;	dy=0.d0;	theta=0.d0
-    !
-    do i=1,nx
-       do j=0,ny
-          ds(i,j) = dsqrt( (x(i,j)-x(i-1,j))**2 + (y(i,j)-y(i-1,j))**2 )
-          ds(i,j) = max(ds(i,j),ds00)
-          xi_r(i,j) = dxi / ds(i,j)
-       end do
-    end do
-    !
-    do i = 1, nx-1
-       do j = 1, ny
-          xi_r_up(i,j)=(xi_r(i,j)+xi_r(i,j-1)+xi_r(i+1,j)+xi_r(i+1,j-1))*.25d0
-       end do
-    end do
-    do j = 1, ny
-       xi_r_up( 0,j) = ( xi_r( 1,j) + xi_r( 1,j-1) ) * 0.5d0
-       xi_r_up(nx,j) = ( xi_r(nx,j) + xi_r(nx,j-1) ) * 0.5d0
-    end do
+	subroutine gcoefs(iout)
+		implicit none
+		
+		integer :: i,j
 
-    !
-    do j=1,ny
-      do i=1,nx-1
-        dsy(i,j)=(ds(i,j)+ds(i+1,j)+ds(i,j-1)+ds(i+1,j-1))*0.25d0
-      end do
-      dsy(0,j)=dsy(1,j)*0.5d0
-      dsy(nx,j)=dsy(nx-1,j)*0.5d0
-    end do
+		real(8), parameter :: pi = 3.141592d0
 
-    !
-    do i=0,nx
-       do j=1,ny
-          dn(  i,j) = dsqrt((x(i,j)-x(i,j-1))**2+(y(i,j)-y(i,j-1))**2)
-          dn(  i,j) = max(dn(i,j),dn00)
-          et_r(i,j) = det / dn(i,j)
-       end do
-    end do
-    !
-    do i=1,nx
-       do j=1,ny-1
-          et_r_vp(i,j)=(et_r(i,j)+et_r(i-1,j)+et_r(i,j+1)+et_r(i-1,j+1))*.25d0
-       end do
-       et_r_vp(i, 0)=(et_r(i, 1)+et_r(i-1, 1))*.5d0
-       et_r_vp(i,ny)=(et_r(i,ny)+et_r(i-1,ny))*.5d0
-    end do
-    !
-    do i=1,nx
-       do j=1,ny-1
-          dnx(i, j) = ( dn(i,j)+dn(i,j+1)+dn(i-1,j)+dn(i-1,j+1) ) * 0.25d0
-       end do
-       dnx(i, 0) = dnx(i,   1) * 0.5d0
-       dnx(i,ny) = dnx(i,ny-1) * 0.5d0
-    end do
+		real(8), parameter :: ds00 = 0.001
+		real(8), parameter :: dn00 = 0.001
+
+		real(8) :: dx, dy, theta, x1, y1, x2, y2, x3, y3, x4, y4 &
+			, dx1, dy1, dx2, dy2, ds1, ds2, ds12 &
+			, x_xi0, y_xi0, x_et0, y_et0 &
+			, x_xixi, y_xixi, x_xiet, y_xiet, x_etet, y_etet
+		integer :: iout, m, l
+
+		dx=0.d0;	dy=0.d0;	theta=0.d0
+		!
+		do i=1,nx
+			do j=0,ny
+				ds(i,j) = dsqrt( (x(i,j)-x(i-1,j))**2 + (y(i,j)-y(i-1,j))**2 )
+				ds(i,j) = max(ds(i,j),ds00)
+				xi_r(i,j) = dxi / ds(i,j)
+			end do
+		end do
+		!
+		do i = 1, nx-1
+			do j = 1, ny
+				xi_r_up(i,j)=(xi_r(i,j)+xi_r(i,j-1)+xi_r(i+1,j)+xi_r(i+1,j-1))*.25d0
+			end do
+		end do
+		do j = 1, ny
+			xi_r_up( 0,j) = ( xi_r( 1,j) + xi_r( 1,j-1) ) * 0.5d0
+			xi_r_up(nx,j) = ( xi_r(nx,j) + xi_r(nx,j-1) ) * 0.5d0
+		end do
+
+		!
+		do j=1,ny
+			do i=1,nx-1
+				dsy(i,j)=(ds(i,j)+ds(i+1,j)+ds(i,j-1)+ds(i+1,j-1))*0.25d0
+			end do
+			dsy(0,j)=dsy(1,j)*0.5d0
+			dsy(nx,j)=dsy(nx-1,j)*0.5d0
+		end do
+
+		!
+		do i=0,nx
+			do j=1,ny
+				dn(  i,j) = dsqrt((x(i,j)-x(i,j-1))**2+(y(i,j)-y(i,j-1))**2)
+				dn(  i,j) = max(dn(i,j),dn00)
+				et_r(i,j) = det / dn(i,j)
+			end do
+		end do
+		!
+		do i=1,nx
+			do j=1,ny-1
+				et_r_vp(i,j)=(et_r(i,j)+et_r(i-1,j)+et_r(i,j+1)+et_r(i-1,j+1))*.25d0
+			end do
+			et_r_vp(i, 0)=(et_r(i, 1)+et_r(i-1, 1))*.5d0
+			et_r_vp(i,ny)=(et_r(i,ny)+et_r(i-1,ny))*.5d0
+		end do
+		!
+		do i=1,nx
+			do j=1,ny-1
+				dnx(i, j) = ( dn(i,j)+dn(i,j+1)+dn(i-1,j)+dn(i-1,j+1) ) * 0.25d0
+			end do
+			dnx(i, 0) = dnx(i,   1) * 0.5d0
+			dnx(i,ny) = dnx(i,ny-1) * 0.5d0
+		end do
     !
     do i=1,nx
        do j=1,ny
