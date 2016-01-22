@@ -563,179 +563,178 @@ end module     initial_0_m
 !----------------------------------------------------------------------------------------------------
 
 module avgeo_m
-  
-  use common_hh
-  use common_cmxy
-  use common_cmave
-  use common_cmsui
-  use common_cmave_t
-  use common_cmave_t2
-  use common_cmconf1
-  
-  real(8), parameter :: etmax = 9999.d0
-  real(8),dimension(:),allocatable :: sch, ss_x
-  real(8),dimension(:),allocatable :: sch_t, ss_x_t
-  real(8),dimension(:),allocatable :: sch_t2, ss_x_t2
-  real(8),dimension(:,:),allocatable :: deav
+
+	use common_hh
+	use common_cmxy
+	use common_cmave
+	use common_cmsui
+	use common_cmave_t
+	use common_cmave_t2
+	use common_cmconf1
+
+	real(8), parameter :: etmax = 9999.d0
+	real(8),dimension(:),allocatable :: sch, ss_x
+	real(8),dimension(:),allocatable :: sch_t, ss_x_t
+	real(8),dimension(:),allocatable :: sch_t2, ss_x_t2
+	real(8),dimension(:,:),allocatable :: deav
 
 contains
 
-  subroutine alloc_avgeo_temp_variables
-    implicit none
-    
-    allocate( sch(0:im), ss_x(0:im) )
-    allocate( sch_t(0:im), ss_x_t(0:im) )
-    allocate( sch_t2(0:jm), ss_x_t2(0:jm) )
-    allocate( deav(0:im,0:jm) )
-    
-    sch = 0.d0;		ss_x = 0.d0
-    sch_t = 0.d0;	ss_x_t = 0.d0
-    sch_t2 = 0.d0;	ss_x_t2 = 0.d0
-    deav = 0.d0
-  
-  end subroutine alloc_avgeo_temp_variables
-  
-  subroutine avgeo(slope,bheight)
-    use mix
-    implicit none
+	subroutine alloc_avgeo_temp_variables
+		implicit none
 
-    integer :: i, j
+		allocate( sch(0:im), ss_x(0:im) )
+		allocate( sch_t(0:im), ss_x_t(0:im) )
+		allocate( sch_t2(0:jm), ss_x_t2(0:jm) )
+		allocate( deav(0:im,0:jm) )
+		
+		sch = 0.d0;		ss_x = 0.d0
+		sch_t = 0.d0;	ss_x_t = 0.d0
+		sch_t2 = 0.d0;	ss_x_t2 = 0.d0
+		deav = 0.d0
 
-    real(8) :: slope, bheight, eett, sxy, sx, sy, sxx, syy, sm, aa, bb, dnx &
-         , de_max, de_min, ee00
-    integer :: net, nnp, mv
+	end subroutine alloc_avgeo_temp_variables
+	
+	subroutine avgeo(slope,bheight)
+		use mix
+		implicit none
+
+		integer :: i, j
+
+		real(8) :: slope, bheight, eett, sxy, sx, sy, sxx, syy, sm, aa, bb, dnx &
+			, de_max, de_min, ee00
+		integer :: net, nnp, mv
 !
-    do i = 1, nx
-       do j = 1, ny
-          net  = 0
-          eett = 0.d0
-          if( z(i  ,j  ) < etmax ) then
-             net  = net  + 1
-             eett = eett + z(i  ,j  )
-          end if
-          if( z(i-1,j  ) < etmax ) then
-             net  = net  + 1
-             eett = eett + z(i-1,j  )
-          end if
-          if( z(i  ,j-1) < etmax ) then
-             net  = net  + 1
-             eett = eett + z(i  ,j-1)
-          end if
-          if( z(i-1,j-1) < etmax ) then
-             net  = net  + 1
-             eett = eett + z(i-1,j-1)
-          end if
-          if( net > 0 ) then
-             eta( i,j) = eett / dble(net)
-          else
-             eta( i,j) = etmax
-          end if
-          eta0(i,j) = eta(i,j)
-       end do
-       b_elv(1,i) = eta0(i, 1) + bheight
-       b_elv(2,i) = eta0(i,ny) + bheight
-    end do
-    
-    do i=1,nx
-       eave(i) =     0.d0
-       emin(i) =  9999.d0
-       emax(i) = -9999.d0
-       nnp = 0
-       do j = 1, ny
-          if( ijo_in(i,j) /= 1 ) then
-             nnp     = nnp + 1
-             eave(i) =     eave(i)+eta(i,j)
-             emin(i) = min(emin(i),eta(i,j))
-             emax(i) = max(emax(i),eta(i,j))
-          end if
-       end do
-       eave(i) = eave(i) / dble(nnp)
-    end do
-    
-    sch(0) = 0.d0
-    mv = 0
-    do i = 0, nx
-       if(i .gt. 0) sch(i) = sch(i-1)+dsqrt((x(i,nym)-x(i-1,nym))**2+(y(i,nym)-y(i-1,nym))**2)
-       mv = 1
-    end do
-    do i=1,nx
-       ss_x(i) = ( sch(i) + sch(i-1) ) * 0.5d0
-    end do
-    chl = ss_x(nx) - ss_x(1)
-    
-    sxy = 0.d0
-    sx  = 0.d0
-    sy  = 0.d0
-    sxx = 0.d0
-    syy = 0.d0
-    do i = 1, nx
-       sx  = sx  + ss_x(i)
-       sy  = sy  + eave(i)
-       sxx = sxx + ss_x(i)**2
-       sxy = sxy + ss_x(i) * eave(i)
-    end do
-    sm = dble(nx)
-    aa = (sm*sxy- sx*sy) / (sm*sxx-sx**2)
-    bb = (sxx*sy-sxy*sx) / (sm*sxx-sx**2)
-    slope = - aa
+		do i = 1, nx
+			do j = 1, ny
+				net = 0
+				eett = 0.d0
+				if( z(i  ,j  ) < etmax ) then
+					net  = net  + 1
+					eett = eett + z(i  ,j  )
+				end if
+				if( z(i-1,j  ) < etmax ) then
+					net  = net  + 1
+					eett = eett + z(i-1,j  )
+				end if
+				if( z(i  ,j-1) < etmax ) then
+					net  = net  + 1
+					eett = eett + z(i  ,j-1)
+				end if
+				if( z(i-1,j-1) < etmax ) then
+					net  = net  + 1
+					eett = eett + z(i-1,j-1)
+				end if
+				if( net > 0 ) then
+					eta( i,j) = eett / dble(net)
+				else
+					eta( i,j) = etmax
+				end if
+				eta0(i,j) = eta(i,j)
+			end do
+			b_elv(1,i) = eta0(i, 1) + bheight
+			b_elv(2,i) = eta0(i,ny) + bheight
+		end do
 
-!
-    width = 0.
-    do i = 0, nx
-       chb(i) = 0.d0
-       do j = 1, ny
-          if( ijobst(i,j) * ijobst(i,j-1) == 0 ) then
-             dnx = dsqrt( (x(i,j)-x(i,j-1))**2 + (y(i,j)-y(i,j-1) )**2 )
-             chb(i) = chb(i) + dnx
-          end if
-       end do
-       width = width + chb(i)
-    end do
-    width = width / dble(nx+1)
-    !
-  end subroutine avgeo
-  
-  !----------
-  subroutine avgeo_t(slope,slope_t,bheight)
-    use mix
-    implicit none
-    
-    integer :: i,j
+		do i=1,nx
+			eave(i) =     0.d0
+			emin(i) =  9999.d0
+			emax(i) = -9999.d0
+			nnp = 0
+			do j = 1, ny
+				if( ijo_in(i,j) /= 1 ) then
+					nnp     = nnp + 1
+					eave(i) =     eave(i)+eta(i,j)
+					emin(i) = min(emin(i),eta(i,j))
+					emax(i) = max(emax(i),eta(i,j))
+				end if
+			end do
+			eave(i) = eave(i) / dble(nnp)
+		end do
 
-    real(8) :: slope, slope_t, bheight, eett, chl_t, sxy, sx, sy, sxx, syy, sm &
-         , aa, bb, dnx, width_t, dny
-    integer :: net, nnp, jss1, jss2, nnym, nnxm
-    
-    do i=1,nx
-       do j=1,ny
-          net=0
-          eett=0.d0
-          if(z(i,j).lt.etmax) then
-             net=net+1
-             eett=eett+z(i,j)
-          end if
-          if(z(i-1,j).lt.etmax) then
-             net=net+1
-             eett=eett+z(i-1,j)
-          end if
-          if(z(i,j-1).lt.etmax) then
-             net=net+1
-             eett=eett+z(i,j-1)
-          end if
-          if(z(i-1,j-1).lt.etmax) then
-             net=net+1
-             eett=eett+z(i-1,j-1)
-          end if
-          if(net.gt.0) then
-             eta(i,j)=eett/dble(net)
-          else
-             eta(i,j)=etmax
-          end if
-          eta0(i,j)=eta(i,j)
-       end do
-       b_elv(1,i)=eta0(i,1)+bheight
-       b_elv(2,i)=eta0(i,ny)+bheight
-    end do
+		sch(0) = 0.d0
+		mv = 0
+		do i = 0, nx
+			if(i .gt. 0) sch(i) = sch(i-1)+dsqrt((x(i,nym)-x(i-1,nym))**2+(y(i,nym)-y(i-1,nym))**2)
+			mv = 1
+		end do
+		do i=1,nx
+			ss_x(i) = ( sch(i) + sch(i-1) ) * 0.5d0
+		end do
+		chl = ss_x(nx) - ss_x(1)
+
+		sxy = 0.d0
+		sx  = 0.d0
+		sy  = 0.d0
+		sxx = 0.d0
+		syy = 0.d0
+		do i = 1, nx
+			 sx  = sx  + ss_x(i)
+			 sy  = sy  + eave(i)
+			 sxx = sxx + ss_x(i)**2
+			 sxy = sxy + ss_x(i) * eave(i)
+		end do
+		sm = dble(nx)
+		aa = (sm*sxy- sx*sy) / (sm*sxx-sx**2)
+		bb = (sxx*sy-sxy*sx) / (sm*sxx-sx**2)
+		slope = - aa
+
+		width = 0.
+		do i = 0, nx
+			chb(i) = 0.d0
+			do j = 1, ny
+				if( ijobst(i,j) * ijobst(i,j-1) == 0 ) then
+					dnx = dsqrt( (x(i,j)-x(i,j-1))**2 + (y(i,j)-y(i,j-1) )**2 )
+					chb(i) = chb(i) + dnx
+				end if
+			end do
+			width = width + chb(i)
+		end do
+		width = width / dble(nx+1)
+
+	end subroutine avgeo
+
+	!----------
+	subroutine avgeo_t(slope,slope_t,bheight)
+		use mix
+		implicit none
+
+		integer :: i,j
+
+		real(8) :: slope, slope_t, bheight, eett, chl_t, sxy, sx, sy, sxx, syy, sm &
+			, aa, bb, dnx, width_t, dny
+		integer :: net, nnp, jss1, jss2, nnym, nnxm
+
+		do i=1,nx
+			do j=1,ny
+				net=0
+				eett=0.d0
+				if(z(i,j).lt.etmax) then
+					net=net+1
+					eett=eett+z(i,j)
+				end if
+				if(z(i-1,j).lt.etmax) then
+					net=net+1
+					eett=eett+z(i-1,j)
+				end if
+				if(z(i,j-1).lt.etmax) then
+					net=net+1
+					eett=eett+z(i,j-1)
+				end if
+				if(z(i-1,j-1).lt.etmax) then
+					net=net+1
+					eett=eett+z(i-1,j-1)
+				end if
+				if(net.gt.0) then
+					eta(i,j)=eett/dble(net)
+				else
+					eta(i,j)=etmax
+				end if
+				eta0(i,j)=eta(i,j)
+			end do
+			b_elv(1,i)=eta0(i,1)+bheight
+			b_elv(2,i)=eta0(i,ny)+bheight
+		end do
     !
     !  --- eave,emin,emax --(Main Channel) -----
     !
