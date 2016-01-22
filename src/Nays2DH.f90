@@ -497,67 +497,67 @@ module initial_0_m
 	use secondary_flow
 
 contains
-  
-  subroutine initial_01
-    implicit none
-    
-    yu=0.d0; yun=0.d0; yv=0.d0; yvn=0.d0;	wu = 0.d0;	wv = 0.d0;
-    yc=0.d0; ycn=0.d0; ycb=0.d0; c_g = 0.d0
-    up=0.d0; vp=0.d0; ux=0.d0; uy=0.d0
-    h=0.d0; hn=0.d0; hs=0.d0; whs=0.d0
-    qc=0.d0
-    gux=0.d0; guy=0.d0; gvx=0.d0; gvy=0.d0; gcx=0.d0; gcy=0.d0
-    x=0.d0; y=0.d0; z=0.d0; eta=0.d0; ds=0.d0; dn=0.d0
-    sj=0.d0; xi_x=0.d0; xi_y=0.d0; et_x=0.d0; et_y=0.d0
-    xi_r=0.d0; et_r=0.d0; xi_r_up=0.d0; et_r_vp=0.d0; z0=0.d0
-    xi_x_up=0.d0; xi_y_up=0.d0; et_x_up=0.d0; et_y_up=0.d0
-    xi_x_vp=0.d0; xi_y_vp=0.d0; et_x_vp=0.d0; et_y_vp=0.d0
-    vti=0.d0; tausta=0.d0; qsu=0.d0; usta=0.d0
-    uxx=0.d0; uyy=0.d0; voltex=0.d0; qbxx = 0.d0; qbyy = 0.d0;
-    eave=0.d0; chb=0.d0; emin=0.d0; emax=0.d0
-    eave_t=0.d0; chb_t=0.d0; emin_t=0.d0; emax_t=0.d0		!h101019 conf
-    eave_t2=0.d0; chb_t2=0.d0; emin_t2=0.d0; emax_t2=0.d0	!h101019 conf
-    eta0=0.d0
-    b_elv(:,:)=0.d0
-    sr=0.d0; cos_t=0.d0
-    qb_xi=0.d0; qb_et=0.d0
-    eta_t=0.d0
-    ijobst=0; ijo_in=0; ij_frg=0; ij_ero=0; ijobst_u = 0; ijobst_v = 0
-    snmm=0.d0; sn_up=0.d0; sn_vp=0.d0
-    xi_x0=0.d0; xi_y0=0.d0; et_x0=0.d0; et_y0=0.d0; sj0=0.d0; hsxx=0.d0
-    yk=0.d0; ykn=0.d0; yep=0.d0; yepn=0.d0; gkx=0.d0; gky=0.d0; gex=0.d0; gey=0.d0
-    ph=0.d0; pkv=0.d0; pev=0.d0; strain=0.d0
-    cf=0.d0; re=0.d0; cd_veg=0.d0
-    y_dis=0.d0; y_plus=0.d0
-    snu=0.d0; snu_x=0.d0; snu0=0.d0; snu0_x=0.d0; snuk=0.d0; snuk_x=0.d0
-    a_chunk=0.d0; sk_chunk=0.d0
-    t_chunk=0.d0; d_chunk=0.d0;  h_chunk=0.d0
-    alpha=0.d0; beta=0.d0
-    dnx=0.d0
-    qu=0.d0; qv=0.d0		!h101019 +qv
-    q_xi=0.d0; q_et=0.d0
-    dex=0.d0;	phi=0.d0
-    an = 0.d0;	vort = 0.d0
-  end subroutine initial_01
-  !
-  subroutine initial_02
-    implicit none
 
-    t_hyd=0.d0; q_ups=0.d0; h_ups=0.d0; h_dse=0.d0
-    q_ups_t=0.d0; h_ups_t=0.d0		!h101019 conf
-  end subroutine initial_02
-  !
-  subroutine initial_mix
-    implicit none
+	subroutine initial_01
+		implicit none
 
-    nb=0;  eta_base=0.d0;  e_t=0.d0;  dm_t=0.d0;  dm_m=0.d0;  dmxx=0.d0
-    tscm=0.d0;  dex_mix=0.d0;  qb_xi_mix=0.d0;  qb_et_mix=0.d0;
-    p_m=0.d0;  p_t=0.d0;  p_d=0.d0;  dm_d=0.d0
+		yu=0.d0; yun=0.d0; yv=0.d0; yvn=0.d0; wu = 0.d0; wv = 0.d0;
+		yc=0.d0; ycn=0.d0; ycb=0.d0; c_g = 0.d0
+		up=0.d0; vp=0.d0; ux=0.d0; uy=0.d0
+		h=0.d0; hn=0.d0; hs=0.d0; whs=0.d0
+		qc=0.d0
+		gux=0.d0; guy=0.d0; gvx=0.d0; gvy=0.d0; gcx=0.d0; gcy=0.d0
+		x=0.d0; y=0.d0; z=0.d0; eta=0.d0; ds=0.d0; dn=0.d0
+		sj=0.d0; xi_x=0.d0; xi_y=0.d0; et_x=0.d0; et_y=0.d0
+		xi_r=0.d0; et_r=0.d0; xi_r_up=0.d0; et_r_vp=0.d0; z0=0.d0
+		xi_x_up=0.d0; xi_y_up=0.d0; et_x_up=0.d0; et_y_up=0.d0
+		xi_x_vp=0.d0; xi_y_vp=0.d0; et_x_vp=0.d0; et_y_vp=0.d0
+		vti=0.d0; tausta=0.d0; qsu=0.d0; usta=0.d0
+		uxx=0.d0; uyy=0.d0; voltex=0.d0; qbxx = 0.d0; qbyy = 0.d0;
+		eave=0.d0; chb=0.d0; emin=0.d0; emax=0.d0
+		eave_t=0.d0; chb_t=0.d0; emin_t=0.d0; emax_t=0.d0		!h101019 conf
+		eave_t2=0.d0; chb_t2=0.d0; emin_t2=0.d0; emax_t2=0.d0	!h101019 conf
+		eta0=0.d0
+		b_elv(:,:)=0.d0
+		sr=0.d0; cos_t=0.d0
+		qb_xi=0.d0; qb_et=0.d0
+		eta_t=0.d0
+		ijobst=0; ijo_in=0; ij_frg=0; ij_ero=0; ijobst_u = 0; ijobst_v = 0
+		snmm=0.d0; sn_up=0.d0; sn_vp=0.d0
+		xi_x0=0.d0; xi_y0=0.d0; et_x0=0.d0; et_y0=0.d0; sj0=0.d0; hsxx=0.d0
+		yk=0.d0; ykn=0.d0; yep=0.d0; yepn=0.d0; gkx=0.d0; gky=0.d0; gex=0.d0; gey=0.d0
+		ph=0.d0; pkv=0.d0; pev=0.d0; strain=0.d0
+		cf=0.d0; re=0.d0; cd_veg=0.d0
+		y_dis=0.d0; y_plus=0.d0
+		snu=0.d0; snu_x=0.d0; snu0=0.d0; snu0_x=0.d0; snuk=0.d0; snuk_x=0.d0
+		a_chunk=0.d0; sk_chunk=0.d0
+		t_chunk=0.d0; d_chunk=0.d0;	h_chunk=0.d0
+		alpha=0.d0; beta=0.d0
+		dnx=0.d0
+		qu=0.d0; qv=0.d0		!h101019 +qv
+		q_xi=0.d0; q_et=0.d0
+		dex=0.d0; phi=0.d0
+		an = 0.d0; vort = 0.d0
+	end subroutine initial_01
+	!
+	subroutine initial_02
+		implicit none
+
+		t_hyd=0.d0; q_ups=0.d0; h_ups=0.d0; h_dse=0.d0
+		q_ups_t=0.d0; h_ups_t=0.d0		!h101019 conf
+	end subroutine initial_02
+	!
+	subroutine initial_mix
+		implicit none
+
+		nb=0; eta_base=0.d0; e_t=0.d0; dm_t=0.d0; dm_m=0.d0; dmxx=0.d0
+		tscm=0.d0; dex_mix=0.d0; qb_xi_mix=0.d0; qb_et_mix=0.d0;
+		p_m=0.d0;	p_t=0.d0;	p_d=0.d0;	dm_d=0.d0
 
 	yck = 0.d0;
 
-  end subroutine initial_mix
-  !
+	end subroutine initial_mix
+	!
 end module     initial_0_m
 
 !----------------------------------------------------------------------------------------------------
