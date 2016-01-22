@@ -11635,10 +11635,12 @@ Program Shimizu
 
         
         	   qptemp = qp
+            call iric_write_sol_start_f(condFile, ier)   
         	   CALL Write_CGNS(condFile,time,qptemp,im,jm		&
             		,x,y,uxx,uyy,hsxx,z,z0,zb_g,voltex,c_g,dmn,phi_g,fr_g		&
               		,ts_g,z_ave,z_min,h_ave,qbxx,qbyy,cc_m,nk,j_mix)
             call cg_iric_flush_f(condFile, fid, ier)
+            call iric_write_sol_end_f(condFile, ier)
             
          end if
         
