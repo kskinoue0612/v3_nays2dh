@@ -1167,125 +1167,125 @@ contains
 			end do
 		end do
 
-    !
-    !c ---- coefs at v grid point ------
-    !
-    do i = 2, nx-1
-       do j = 1, ny-1
-          xi_x_vp(i,j) = ( xi_x(i,j) + xi_x(i,j+1) ) * 0.5d0
-          et_x_vp(i,j) = ( et_x(i,j) + et_x(i,j+1) ) * 0.5d0
-          xi_y_vp(i,j) = ( xi_y(i,j) + xi_y(i,j+1) ) * 0.5d0
-          et_y_vp(i,j) = ( et_y(i,j) + et_y(i,j+1) ) * 0.5d0
-          beta(3,i,j)=et_x_vp(i,j)*xi_x_vp(i,j)+et_y_vp(i,j)*xi_y_vp(i,j)
-          beta(4,i,j)=et_y_vp(i,j)**2+et_x_vp(i,j)**2
-          x_xixi = ( x_xi(i+1,j+1) + x_xi(i+1,j)- x_xi(i-1,j+1) - x_xi(i-1,j) ) / (4.d0*dxi)
-          y_xixi = ( y_xi(i+1,j+1) + y_xi(i+1,j)- y_xi(i-1,j+1) - y_xi(i-1,j) ) / (4.d0*dxi)
-          !e090211d  x_xiet = ( x_et(i  ,j+1) - x_et(i  ,j) ) / det
-          !e090211d  y_xiet = ( y_et(i  ,j+1) - y_et(i  ,j) ) / det
-          x_xiet = ( x_xi(i  ,j+1) - x_xi(i  ,j) ) / det      !e090211d
-          y_xiet = ( y_xi(i  ,j+1) - y_xi(i  ,j) ) / det      !e090211d
-          x_etet = ( x_et(i  ,j+1) - x_et(i  ,j) ) / det
-          y_etet = ( y_et(i  ,j+1) - y_et(i  ,j) ) / det
-          alpha(4,i,j) =      et_x_vp(i,j)*x_xixi+et_y_vp(i,j)*y_xixi
-          alpha(5,i,j) = 2.d0*( et_x_vp(i,j)*x_xiet+et_y_vp(i,j)*y_xiet )
-          alpha(6,i,j) =      et_x_vp(i,j)*x_etet+et_y_vp(i,j)*y_etet
-       end do
-    end do
+		!
+		!c ---- coefs at v grid point ------
+		!
+		do i = 2, nx-1
+			do j = 1, ny-1
+				xi_x_vp(i,j) = ( xi_x(i,j) + xi_x(i,j+1) ) * 0.5d0
+				et_x_vp(i,j) = ( et_x(i,j) + et_x(i,j+1) ) * 0.5d0
+				xi_y_vp(i,j) = ( xi_y(i,j) + xi_y(i,j+1) ) * 0.5d0
+				et_y_vp(i,j) = ( et_y(i,j) + et_y(i,j+1) ) * 0.5d0
+				beta(3,i,j)=et_x_vp(i,j)*xi_x_vp(i,j)+et_y_vp(i,j)*xi_y_vp(i,j)
+				beta(4,i,j)=et_y_vp(i,j)**2+et_x_vp(i,j)**2
+				x_xixi = ( x_xi(i+1,j+1) + x_xi(i+1,j)- x_xi(i-1,j+1) - x_xi(i-1,j) ) / (4.d0*dxi)
+				y_xixi = ( y_xi(i+1,j+1) + y_xi(i+1,j)- y_xi(i-1,j+1) - y_xi(i-1,j) ) / (4.d0*dxi)
+				!e090211d  x_xiet = ( x_et(i  ,j+1) - x_et(i  ,j) ) / det
+				!e090211d  y_xiet = ( y_et(i  ,j+1) - y_et(i  ,j) ) / det
+				x_xiet = ( x_xi(i  ,j+1) - x_xi(i  ,j) ) / det      !e090211d
+				y_xiet = ( y_xi(i  ,j+1) - y_xi(i  ,j) ) / det      !e090211d
+				x_etet = ( x_et(i  ,j+1) - x_et(i  ,j) ) / det
+				y_etet = ( y_et(i  ,j+1) - y_et(i  ,j) ) / det
+				alpha(4,i,j) =      et_x_vp(i,j)*x_xixi+et_y_vp(i,j)*y_xixi
+				alpha(5,i,j) = 2.d0*( et_x_vp(i,j)*x_xiet+et_y_vp(i,j)*y_xiet )
+				alpha(6,i,j) =      et_x_vp(i,j)*x_etet+et_y_vp(i,j)*y_etet
+			end do
+		end do
 
-    !
-    !c ------------------ cos(theta) ---- defined at cell-center ---
-    !
-    do i = 1, nx
-       do j = 1, ny
-          !       x1 = ( x(i,j) +x(i,j-1) +x(i-1,j) +x(i-1,j-1) )*0.25   !e090211c
-          !       y1 = ( y(i,j) +y(i,j-1) +y(i-1,j) +y(i-1,j-1) )*0.25   !e090211c
-          x1 = ( x(i-1,j  ) + x(i-1,j-1) ) * 0.5d0                 !e090211c
-          y1 = ( y(i-1,j  ) + y(i-1,j-1) ) * 0.5d0                 !e090211c
-          x2 = ( x(i  ,j  ) + x(i  ,j-1) ) * 0.5d0
-          y2 = ( y(i  ,j  ) + y(i  ,j-1) ) * 0.5d0
-          x3 = ( x(i  ,j  ) + x(i-1,j  ) ) * 0.5d0
-          y3 = ( y(i  ,j  ) + y(i-1,j  ) ) * 0.5d0
-          x4 = ( x(i  ,j-1) + x(i-1,j-1) ) * 0.5d0                 !e090211c
-          y4 = ( y(i  ,j-1) + y(i-1,j-1) ) * 0.5d0                 !e090211c
-          dx1=x2 - x1
-          dy1=y2 - y1
-          !       dx2=x3 - x1                                            !e090211c
-          !       dy2=y3 - y1                                            !e090211c
-          dx2=x3 - x4                                            !e090211c
-          dy2=y3 - y4                                            !e090211c
-          ds1=dsqrt((x2-x1)**2+(y2-y1)**2)
-          !       ds2=dsqrt((x3-x1)**2+(y3-y1)**2)                        !e090211c
-          ds2=dsqrt((x3-x4)**2+(y3-y4)**2)                        !e090211c
-          ds12=ds1*ds2
-          cos_t(i,j)=(dx1*dx2+dy1*dy2)/ds12
-       end do
-    end do
-    !
-    !c ------------------ sin(theta) ---- defined at u-position -----
-    !
-    do i=1,nx-1
-       do j=1,ny
-          x1=(x(i,j)+x(i,j-1)+x(i-1,j)+x(i-1,j-1))*.25d0
-          x2=(x(i,j)+x(i,j-1)+x(i+1,j)+x(i+1,j-1))*.25d0
-          y1=(y(i,j)+y(i,j-1)+y(i-1,j)+y(i-1,j-1))*.25d0
-          y2=(y(i,j)+y(i,j-1)+y(i+1,j)+y(i+1,j-1))*.25d0
-          x3=x(i,j-1)
-          x4=x(i,j)
-          y3=y(i,j-1)
-          y4=y(i,j)
-          dx1=x2-x1
-          dy1=y2-y1
-          dx2=x4-x3
-          dy2=y4-y3
-          ds1=dsqrt((x2-x1)**2+(y2-y1)**2)
-          ds2=dsqrt((x4-x3)**2+(y4-y3)**2)
-          ds12=ds1*ds2
-          sin_t(i,j)=(dx1*dy2-dx2*dy1)/ds12
-       end do
-    end do
-    !
-  end subroutine gcoefs
-end module     gcoefs_m
+		!
+		!c ------------------ cos(theta) ---- defined at cell-center ---
+		!
+		do i = 1, nx
+			do j = 1, ny
+				!       x1 = ( x(i,j) +x(i,j-1) +x(i-1,j) +x(i-1,j-1) )*0.25   !e090211c
+				!       y1 = ( y(i,j) +y(i,j-1) +y(i-1,j) +y(i-1,j-1) )*0.25   !e090211c
+				x1 = ( x(i-1,j  ) + x(i-1,j-1) ) * 0.5d0                 !e090211c
+				y1 = ( y(i-1,j  ) + y(i-1,j-1) ) * 0.5d0                 !e090211c
+				x2 = ( x(i  ,j  ) + x(i  ,j-1) ) * 0.5d0
+				y2 = ( y(i  ,j  ) + y(i  ,j-1) ) * 0.5d0
+				x3 = ( x(i  ,j  ) + x(i-1,j  ) ) * 0.5d0
+				y3 = ( y(i  ,j  ) + y(i-1,j  ) ) * 0.5d0
+				x4 = ( x(i  ,j-1) + x(i-1,j-1) ) * 0.5d0                 !e090211c
+				y4 = ( y(i  ,j-1) + y(i-1,j-1) ) * 0.5d0                 !e090211c
+				dx1=x2 - x1
+				dy1=y2 - y1
+				!       dx2=x3 - x1                                            !e090211c
+				!       dy2=y3 - y1                                            !e090211c
+				dx2=x3 - x4                                            !e090211c
+				dy2=y3 - y4                                            !e090211c
+				ds1=dsqrt((x2-x1)**2+(y2-y1)**2)
+				!       ds2=dsqrt((x3-x1)**2+(y3-y1)**2)                        !e090211c
+				ds2=dsqrt((x3-x4)**2+(y3-y4)**2)                        !e090211c
+				ds12=ds1*ds2
+				cos_t(i,j)=(dx1*dx2+dy1*dy2)/ds12
+			end do
+		end do
+		!
+		!c ------------------ sin(theta) ---- defined at u-position -----
+		!
+		do i=1,nx-1
+			do j=1,ny
+				x1=(x(i,j)+x(i,j-1)+x(i-1,j)+x(i-1,j-1))*.25d0
+				x2=(x(i,j)+x(i,j-1)+x(i+1,j)+x(i+1,j-1))*.25d0
+				y1=(y(i,j)+y(i,j-1)+y(i-1,j)+y(i-1,j-1))*.25d0
+				y2=(y(i,j)+y(i,j-1)+y(i+1,j)+y(i+1,j-1))*.25d0
+				x3=x(i,j-1)
+				x4=x(i,j)
+				y3=y(i,j-1)
+				y4=y(i,j)
+				dx1=x2-x1
+				dy1=y2-y1
+				dx2=x4-x3
+				dy2=y4-y3
+				ds1=dsqrt((x2-x1)**2+(y2-y1)**2)
+				ds2=dsqrt((x4-x3)**2+(y4-y3)**2)
+				ds12=ds1*ds2
+				sin_t(i,j)=(dx1*dy2-dx2*dy1)/ds12
+			end do
+		end do
+		!
+	end subroutine gcoefs
+end module gcoefs_m
 
 !----------------------------------------------------------------------------------------------------
-module bound_m       
-  
-  use common_hh
-  use common_cmsui
-  use common_cmconf1	!h101019 conf
+module bound_m
+
+	use common_hh
+	use common_cmsui
+	use common_cmconf1	!h101019 conf
 contains
 
-  subroutine bound_u(u)
-    implicit none
+	subroutine bound_u(u)
+		implicit none
 
-    integer :: i,j
-    real(8),intent(inout) :: u(0:im,0:jm)
+		integer :: i,j
+		real(8),intent(inout) :: u(0:im,0:jm)
 !
-    if(jrep == 0) then
+		if(jrep == 0) then
 !$omp do
-       do j=1, ny
-          u(nx,j) = u(nx-1,j)
-          if(u(nx,j) < 0.d0) u(nx,j) = 0.d0
-       end do
-    else
+			do j=1, ny
+				u(nx,j) = u(nx-1,j)
+				if(u(nx,j) < 0.d0) u(nx,j) = 0.d0
+			end do
+		else
 !$omp do
-       do j=1,ny
-          u(   0,j) = u(nx-3,j)
-          u(   1,j) = u(nx-2,j)
-          u(nx-1,j) = u(   2,j)
-          u(nx  ,j) = u(   3,j)
-       end do
-    end if
-    !
+			do j=1,ny
+				u(   0,j) = u(nx-3,j)
+				u(   1,j) = u(nx-2,j)
+				u(nx-1,j) = u(   2,j)
+				u(nx  ,j) = u(   3,j)
+			end do
+		end if
+		!
 !$omp do
-    do j=1,ny
-       do i=0,nx
-          u(i,j) = u(i,j)*ijobst_u(i,j)
-       end do
-    end do
-  end subroutine bound_u
-  !
-  !--------------------------------------------------------------------
+		do j=1,ny
+			do i=0,nx
+				u(i,j) = u(i,j)*ijobst_u(i,j)
+			end do
+		end do
+	end subroutine bound_u
+	!
+	!--------------------------------------------------------------------
   subroutine bound_v(v)                              ! B.C. for v
     implicit none
 
