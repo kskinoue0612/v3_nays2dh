@@ -237,7 +237,7 @@ module common_output
 										, h_ave_main, h_ave_tri, h_ave_tri2
 	real(8),dimension(:,:),allocatable :: z_min, z_ave, h_ave
 	real(8),dimension(:,:),allocatable :: fr_c
-	real(8),dimension(:,:),allocatable :: hsxx, voltex, c_g, dmn, fr_g, ts_g, phi_g
+	real(8),dimension(:,:),allocatable :: hsxx, voltex, c_g, dmn, fr_g, us_g, ts_g, phi_g
 	real(8),dimension(:,:,:),allocatable :: cc_m
 
 end module common_output
@@ -405,7 +405,7 @@ contains
 		allocate( dex(0:i,0:j) )
 		allocate( eave_t(0:i), chb_t(0:i), emin_t(0:i), emax_t(0:i) )
 		allocate( eave_t2(0:j), chb_t2(0:j), emin_t2(0:j), emax_t2(0:j) )
-		allocate( fr_c(0:i,0:j), ts_g(0:i,0:j), fr_g(0:i,0:j) )
+    allocate( fr_c(0:i,0:j), us_g(0:i,0:j), ts_g(0:i,0:j), fr_g(0:i,0:j) )
 		allocate( phi(0:i,0:j), emb(0:i,0:j) )
 		allocate( z_min_main(0:i), z_ave_main(0:i), h_ave_main(0:i) )
 		allocate( z_min_tri(0:i), z_ave_tri(0:i), h_ave_tri(0:i) )
@@ -4740,7 +4740,8 @@ contains
 !$omp do private( i, j, vvup, ts0, ubup, qb, xr, er, dzdxi, cost, dzdet, uang )
 	    do j=1, ny
 	       do i=1, nx-1
-	          vvup  = ( vti(   i,j)+vti(   i+1,j) ) * 0.5d0 * beta_g
+!	          vvup  = ( vti(i,j)+vti(i+1,j) ) * 0.5d0 * beta_g
+	          vvup  = ( us_bed(i,j)+us_bed(i+1,j) ) * 0.5d0
 	          ts0   = ( tausta(i,j)+tausta(i+1,j) ) * 0.5d0
 	          ubup  = ( ubxiti(i,j)+ubxiti(i+1,j) ) * 0.5d0
 	          qb    = ( qbti(  i,j)+qbti(  i+1,j) ) * 0.5d0
@@ -4819,8 +4820,9 @@ contains
 	          xr = xi_r(   i,j)
 	          er = et_r_vp(i,j)
 	          if( j == 0 ) then
-	             vvvp  = vti(   i,j+1) * beta_g
-	             ts0   = tausta(i,j+1) * beta_g
+!	             vvvp  = vti(i,j+1) * beta_g
+	             vvvp  = us_bed(i,j+1)
+	             ts0   = tausta(i,j+1)
 	             ubvp  = ubetti(i,j+1)
 	             qb    = qbti(  i,j+1)
 	             dzdet = - tantc / er
@@ -4831,8 +4833,9 @@ contains
 	             if( bh0 > bheight ) bh0 = bheight
 	             bh_alpha = bh0 / bheight
 	          elseif( j == ny ) then
-	             vvvp  = vti(   i,j) * beta_g
-	             ts0   = tausta(i,j) * beta_g
+!	             vvvp  = vti(i,j) * beta_g
+	             vvvp  = us_bed(i,j)
+	             ts0   = tausta(i,j)
 	             ubvp  = ubetti(i,j)
 	             qb    = qbti(  i,j)
 	             dzdet = tantc / er
@@ -4843,8 +4846,9 @@ contains
 	             if( bh0 > bheight ) bh0 = bheight
 	             bh_alpha = bh0 / bheight
 	          else
-	             vvvp  = ( vti(   i,j  ) + vti(   i,j+1) ) * 0.5d0 * beta_g
-	             ts0   = ( tausta(i,j  ) + tausta(i,j+1) ) * 0.5d0 * beta_g
+!	             vvvp  = ( vti(   i,j  ) + vti(   i,j+1) ) * 0.5d0 * beta_g
+	             vvvp  = ( us_bed(i,j) + us_bed(i,j+1) ) * 0.5d0 * beta_g
+	             ts0   = ( tausta(i,j  ) + tausta(i,j+1) ) * 0.5d0
 	             ubvp  = ( ubetti(i,j  ) + ubetti(i,j+1) ) * 0.5d0
 	             qb    = ( qbti(  i,j  ) + qbti(  i,j+1) ) * 0.5d0
 	             dzdet = ( eta(   i,j+1) - eta( i,j  ) ) * r_det
@@ -6092,16 +6096,16 @@ module c_transport_m
           if( ijo_in(i,j)==1 .or. ijo_in(i+1,j)==1 ) then
             quc(i,j) = 0.d0
           else
-            quc(i,j) = (q_xi(i,j)+dabs(q_xi(i,j)))*yc(i  ,j)*0.5d0    &
-                      +(q_xi(i,j)-dabs(q_xi(i,j)))*yc(i+1,j)*0.5d0
+            quc(i,j) = (q_xi(i,j)+dabs(q_xi(i,j)))*ycn(i  ,j)*0.5d0    &
+                      +(q_xi(i,j)-dabs(q_xi(i,j)))*ycn(i+1,j)*0.5d0
           end if
         end do
       end do
 
 !$omp do
       do j=1,ny
-        quc( 0,j) = q_xi( 0,j)*yc( 0,j)
-        quc(nx,j) = q_xi(nx,j)*yc(nx,j)
+        quc( 0,j) = q_xi( 0,j)*ycn( 0,j)
+        quc(nx,j) = q_xi(nx,j)*ycn(nx,j)
       end do
 
 !$omp do
@@ -6110,8 +6114,8 @@ module c_transport_m
           if( ijo_in(i,j)==1 .or. ijo_in(i,j+1)==1 ) then
             qvc(i,j) = 0.d0
           else
-            qvc(i,j) = (q_et(i,j)+dabs(q_et(i,j)))*yc(i,  j)*0.5d0   &
-                      +(q_et(i,j)-dabs(q_et(i,j)))*yc(i,j+1)*0.5d0
+            qvc(i,j) = (q_et(i,j)+dabs(q_et(i,j)))*ycn(i,  j)*0.5d0   &
+                      +(q_et(i,j)-dabs(q_et(i,j)))*ycn(i,j+1)*0.5d0
           end if
         end do
       end do
@@ -6126,7 +6130,7 @@ module c_transport_m
 !$omp do
 			do i=i_t1+1,i_t2
 				if( ijo_in(i,j_t2+js2)==0 ) then
-					qvc(i,j_t2) = q_et(i,j_t2)*yc(i,j_t2+js1)
+					qvc(i,j_t2) = q_et(i,j_t2)*ycn(i,j_t2+js1)
 				end if
 			end do
 		end if
@@ -6169,15 +6173,15 @@ module c_transport_m
       do j=1,ny
         do i=1,nx
           if( hs(i,j)>hmin ) then
-            yc(i,j) = ( yc(i,j)*whs(i,j)   &
+            ycn(i,j) = ( ycn(i,j)*whs(i,j)   &
                        +(dcdxi(i,j)+dcdet(i,j)+source(i,j))  &
                                             *dt*sj(i,j) )/hs(i,j)
 !            yc(i,j) = ( yc(i,j)*whs(i,j)   &
 !                      +(dcdxi(i,j)+dcdet(i,j))*dt*sj(i,j) )/hs(i,j)
           else
-            yc(i,j) = 0.d0
+            ycn(i,j) = 0.d0
           end if
-          yc(i,j) = max( yc(i,j), 0.d0 )
+          ycn(i,j) = max( ycn(i,j), 0.d0 )
         end do
       end do
 
@@ -6456,7 +6460,7 @@ contains
        !
        ! 下流端水位の計算
        !
-       if( j_wl == 1 ) then
+       if( j_wl == 1 .or. j_wl == 3) then
           jss1=1				!h101019 conf
           jss2=ny
           if(j_conf.ge.1) then
@@ -6497,6 +6501,7 @@ contains
           h_dse(n) = hh + hplus
        elseif( j_wl == 0 ) then
           h_dse(n) = h_down
+			 
        end if
 103    continue
        if( j_wl/=1 ) then
@@ -6868,20 +6873,32 @@ module downstream_m
   use common_cmsui
 contains
   !----------------------------------------------------------------
-  subroutine downstream(hnx)
+  subroutine downstream(j_wl, hnx)
     implicit none
+	 integer, intent(in) :: j_wl
     integer :: i,j
 
     
     real(8),intent(in) :: hnx
+	 if(j_wl ==3)then
     do j=1, ny
        if(ijo_in(nx,j) == 0) then
+				hs(nx,j) = hs(nx-1,j)
+				if(hs(nx,j) < hmin)    hs(nx,j) = 0.d0
+				h( nx,j) = eta(nx,j) + hs(nx,j)
+				hn(nx,j) = h(  nx,j)
+			 end if
+		 end do
+	 else
+		 do j=1, ny
+			 if(ijo_in(nx,j) == 0) then
           hs(nx,j) = hnx - eta(nx,j)
           if(hs(nx,j) < hmin)    hs(nx,j) = 0.d0
           h( nx,j) = eta(nx,j) + hs(nx,j)
           hn(nx,j) = h(  nx,j)
        end if
     end do
+	 end if
   end subroutine downstream
 end module     downstream_m
 
@@ -8321,7 +8338,8 @@ contains
 !$omp do private( i, j, vvup, ubup, er, dzdxi, cost, dzdet )
 		do j=1,ny
 			do i=1,nx-1
-				vvup = (vti(i,j)+vti(i+1,j))*.5d0
+!				vvup = (vti(i,j)+vti(i+1,j))*.5d0
+				vvup = (us_bed(i,j)+us_bed(i+1,j))*.5d0
 				ubup = (ubxi(i,j)+ubxi(i+1,j))*.5d0
 				er = et_r(i,j)
 				dzdxi = (-eta(i,j)+eta(i+1,j))*r_dxi
@@ -8409,7 +8427,8 @@ contains
 				xr = xi_r(i,j)
 				er = et_r_vp(i,j)
 				if( j==0 ) then
-					vvvp = vti(i,j+1)
+!					vvvp = vti(i,j+1)
+					vvvp = us_bed(i,j+1)
 					ubvp = ubet(i,j+1)
 					dzdet = -tantc/er
 					cost = cos_t(i,j+1)
@@ -8419,7 +8438,8 @@ contains
 					if( bh0>bheight ) bh0 = bheight
 					bh_alpha = bh0/bheight
 				else if( j==ny ) then
-					vvvp = vti(i,j)
+!					vvvp = vti(i,j)
+					vvvp = us_bed(i,j)
 					ubvp = ubet(i,j)
 					dzdet = tantc/er
 					cost = cos_t(i,j)
@@ -8429,7 +8449,8 @@ contains
 					if( bh0>bheight ) bh0 = bheight
 					bh_alpha = bh0/bheight
 				else
-					vvvp = (vti(i,j)+vti(i,j+1))*.5d0
+!					vvvp = (vti(i,j)+vti(i,j+1))*.5d0
+					vvvp = (us_bed(i,j)+us_bed(i,j+1))*.5d0
 					ubvp = (ubet(i,j)+ubet(i,j+1))*.5d0
 					dzdet = (-eta(i,j)+eta(i,j+1))*r_det
 					cost = (cos_t(i,j)+cos_t(i,j+1))*.5
@@ -8991,6 +9012,7 @@ contains
 						rsj_e = 2.d0/(sj_c+sj_e)
 						rsj_n = 2.d0/(sj_c+sj_n)
 							
+						if(hs(i,j) > hmin) then
 						do k=1,nk
 							dqbxi = (-qb_xi_mix(i-1,j,k)*rsj_w+qb_xi_mix(i,j,k)*rsj_e)*r_dxi
 							dqbet = (-qb_et_mix(i,j-1,k)*rsj_s+qb_et_mix(i,j,k)*rsj_n)*r_det
@@ -8998,6 +9020,9 @@ contains
 												    -dt*dsmt*(qsuk(i,j,k)-wfk(k)*ycbk(i,j,k)) )*csm
 							dex(i,j) = dex(i,j)+dex_mix(i,j,k)
 						end do
+						else
+						  dex(i,j) = 0.
+						end if
 					end do
 				end do
 			else
@@ -9206,6 +9231,8 @@ contains
 		integer :: k
 		double precision :: p_tot
 
+		
+		!堆積
 		if( dex(i,j)>0.d0 ) then
 			if( e_t(i,j)+dex(i,j)<e_d ) then
 				e_t_new = e_t(i,j)+dex(i,j)
@@ -9224,6 +9251,8 @@ contains
 					p_d_new(k) = p_t(i,j,k)*e_t(i,j)/e_d+(1.d0-e_t(i,j)/e_d)*p_m(i,j,k)
 				end do
 			end if
+			
+		!低下
 		else
 			if( e_t(i,j)+dex(i,j)>0.d0 ) then
 				e_t_new = e_t(i,j)+dex(i,j)
@@ -9910,7 +9939,7 @@ module cross_sectional_output
 		real(8) :: zmin
       double precision :: hmin10
 		
-      hmin10 = 10. * hmin
+      hmin10 = 2. * hmin
       
 !$omp do private( jss1, jss2, nnp )
 	    do i=0,nx
@@ -9926,7 +9955,7 @@ module cross_sectional_output
 	          jss2 = ny
 	       end if
 	       do j=jss1,jss2
-	          if( ijobst(i,j)/=1 ) then
+	          if( ijobst(i,j)/=1 .and. hsxx(i,j) > hmin10) then
 	             nnp = nnp+1
 	             z_ave_main(i) = z_ave_main(i)+z(i,j)
 	             z_min_main(i) = min(z_min_main(i),z(i,j))
@@ -9956,7 +9985,7 @@ module cross_sectional_output
 	          h_ave_tri(i) = 0.d0
 	          nnp = 0
 	          do j=j_t1,j_t2
-	             if( ijobst(i,j)/=1 ) then
+	             if( ijobst(i,j)/=1 .and. hsxx(i,j) > hmin10) then
 	                nnp = nnp+1
 	                z_ave_tri(i) = z_ave_tri(i)+z(i,j)
 	                z_min_tri(i) = min(z_min_tri(i),z(i,j))
@@ -9986,7 +10015,7 @@ module cross_sectional_output
 	          h_ave_tri2(j) = 0.d0
 	          nnp = 0
 	          do i=i_t1,i_t2
-	             if( ijobst(i,j)/=1 ) then
+	             if( ijobst(i,j)/=1 .and. hsxx(i,j) > hmin10) then
 	                nnp = nnp+1
 	                z_ave_tri2(j) = z_ave_tri2(j)+z(i,j)
 	                z_min_tri2(j) = min(z_min_tri2(j),z(i,j))
@@ -10389,6 +10418,7 @@ Program Shimizu
    !   j_wl = 0 ...下流端水位一定値を与える(h_down)
    !   j_wl = 1 ...下流端水位は等流計算で求める
    !   j_wl = 2 ...下流端水位はファイルから読み込む
+	!   j_wl = 3 ...下流端水位は自由流出
 
      CALL cg_iric_read_real_f('h_down', h_down, ier)
    !
@@ -11520,7 +11550,7 @@ Program Shimizu
         end if
         
         call upstream( h_input, h_input_t, q_input, q_input_t, slope_up, slope_up_t, j_upv )
-        call downstream(hnx)
+        call downstream(j_wl, hnx)
      end if
 
       if( j_mix==1 ) then
@@ -11576,8 +11606,9 @@ Program Shimizu
         
          call cell2grid( fr_c, fr_g )
          call cell2grid( tausta, ts_g )
+			call cell2grid( usta, us_g )
          !
-         call cell2grid( yc, c_g )
+         call cell2grid( ycn, c_g )
          call uxxyycal( yu, yv, uxx, uyy )
          call voltexcal( yu, yv, voltex )
 
@@ -11638,7 +11669,7 @@ Program Shimizu
             call iric_write_sol_start_f(condFile, ier)   
         	   CALL Write_CGNS(condFile,time,qptemp,im,jm		&
             		,x,y,uxx,uyy,hsxx,z,z0,zb_g,voltex,c_g,dmn,phi_g,fr_g		&
-              		,ts_g,z_ave,z_min,h_ave,qbxx,qbyy,cc_m,nk,j_mix)
+              		, rho, us_g, ts_g,z_ave,z_min,h_ave,qbxx,qbyy,cc_m,nk,j_mix)
             call cg_iric_flush_f(condFile, fid, ier)
             call iric_write_sol_end_f(condFile, ier)
             
@@ -11831,7 +11862,7 @@ Program Shimizu
         if(j_qbqs >= 2) then
            if(j_mix == 0) then
               call qsucal( wf, rsgd )
-              call cbcal(    yc, ycb, hs, wf,  usta )
+              call cbcal(    ycn, ycb, hs, wf,  usta )
 
               if(j_qbqs == 3) call c_secondary( ycn, up, hs, sr, theta_cx )
               
@@ -11872,7 +11903,7 @@ Program Shimizu
                  end if
               else if(j_qbqs == 2) then
                  if( j_mix==0 ) then
-                 	call cbcal(    yc, ycb, hs, wf, usta )
+                 	call cbcal(    ycn, ycb, hs, wf, usta )
                  	call etacal_c( qb_xi, qb_et, dsmt, qsu, wf, ycb )
                  else
                  	call etacal_mix_c( dsmt )
@@ -11934,15 +11965,16 @@ END PROGRAM Shimizu
 ! output for cgns file
 !--------------------------------------------------------------------------------  
 subroutine write_cgns(InputFile,time,disch,im,jm,x,y,u,v,hs,z		&
-						,z0,zb,vort,c,dmn,phi,fr,ts,zave,zmin,have,qbx,qby,cc_m,nk,j_mix)
+						,z0,zb,vort,c,dmn,phi,fr &
+						,rho, usta, ts,zave,zmin,have,qbx,qby,cc_m,nk,j_mix)
   use flag_op
   IMPLICIT NONE
   INCLUDE "cgnslib_f.h"
   CHARACTER(*), INTENT(IN) :: InputFile
-  REAL(8), INTENT(IN) :: time, disch
+  REAL(8), INTENT(IN) :: time, disch, rho
   INTEGER, INTENT(IN) :: im, jm, nk, j_mix
   real(8),dimension(0:im,0:jm),intent(in) :: u, v, hs, z, z0, zb, vort, qbx, qby
-  real(8),dimension(0:im,0:jm),intent(in) :: x, y, dmn, c, fr, ts, zmin, zave, have, phi
+  real(8),dimension(0:im,0:jm),intent(in) :: x, y, dmn, c, fr, usta, ts, zmin, zave, have, phi
   real(8),dimension(0:im,0:jm,nk),intent(in) :: cc_m
   
   INTEGER :: NX, NY
@@ -11950,7 +11982,7 @@ subroutine write_cgns(InputFile,time,disch,im,jm,x,y,u,v,hs,z		&
   INTEGER :: i, j, k
   REAL*8, ALLOCATABLE, DIMENSION(:,:) :: Vdata1, Udata1, Hdata1, Zbdata1, zfixdata, WSE, qbxdata1, qbydata1
   REAL*8, ALLOCATABLE, DIMENSION(:,:) :: xx, yy, dmn1, ssc
-  REAL*8, ALLOCATABLE, DIMENSION(:,:) :: Dzbdata1, z01, vort1, ts1, fr1, phi1
+  REAL*8, ALLOCATABLE, DIMENSION(:,:) :: Dzbdata1, z01, vort1, ts0, ts1, fr1, phi1
   REAL*8, ALLOCATABLE, DIMENSION(:,:) :: zmin1, zave1, have1
   INTEGER, ALLOCATABLE, DIMENSION(:,:) :: IBC
   character(40) :: c_label, cm
@@ -11978,6 +12010,7 @@ subroutine write_cgns(InputFile,time,disch,im,jm,x,y,u,v,hs,z		&
   ALLOCATE(fr1(nx, ny), STAT=ier)
   ALLOCATE(phi1(nx, ny), STAT=ier)
   ALLOCATE(ts1(nx, ny), STAT=ier)
+  ALLOCATE(ts0(nx, ny), STAT=ier)
   ALLOCATE(zmin1(nx, ny), STAT=ier)
   ALLOCATE(zave1(nx, ny), STAT=ier)
   ALLOCATE(have1(nx, ny), STAT=ier)
@@ -12002,6 +12035,7 @@ subroutine write_cgns(InputFile,time,disch,im,jm,x,y,u,v,hs,z		&
         fr1(i,j)		= fr(i-1,j-1)
         phi1(i,j)		= phi(i-1,j-1)
         ts1(i,j)		= ts(i-1,j-1)
+		  ts0(i,j)		= rho * usta(i-1,j-1)**2.
         zmin1(i,j)	= zmin(i-1,j-1)
         zave1(i,j)	= zave(i-1,j-1)
         have1(i,j)	= have(i-1,j-1)
@@ -12016,6 +12050,7 @@ subroutine write_cgns(InputFile,time,disch,im,jm,x,y,u,v,hs,z		&
   CALL CG_IRIC_WRITE_SOL_REAL_F("Depth(m)",HData1,IER)
   CALL CG_IRIC_WRITE_SOL_REAL_F("Elevation(m)",Zbdata1,IER)
   CALL CG_IRIC_WRITE_SOL_REAL_F("WaterSurfaceElevation(m)",WSE,IER)
+  CALL CG_IRIC_WRITE_SOL_REAL_F("ShearStress(Nm-2)",ts0,IER)
 
   if( jop_dz  ==0 ) CALL CG_IRIC_WRITE_SOL_REAL_F("ElevationChange(m)",z01,IER)
   if( jop_fb  ==0 ) CALL CG_IRIC_WRITE_SOL_REAL_F("FixedBedElevation(m)",zfixdata,IER)
