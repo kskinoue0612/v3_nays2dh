@@ -108,6 +108,7 @@
 							</Enumerations>
 							<Dependency>
 								<Condition type="and">
+								     <Condition type="isEqual" target="j_bank" value="0"/>
 							        <Condition type="isEqual" target="edition" value="1"/>
 								</Condition>
 								<Action type="enable"/>
@@ -138,6 +139,7 @@
 								<Condition type="and">
 								       <Condition type="isEqual" target="j_conf" value="0"/>
 								       <Condition type="isEqual" target="j_mix" value="0"/>
+								       <Condition type="isEqual" target="j_qb_vec" value="0"/>
 								       <Condition type="isEqual" target="edition" value="1"/>
 								</Condition>
 								<Action type="enable"/>
@@ -212,6 +214,7 @@
 								<Enumeration value="0" caption="Constant value"/>
 								<Enumeration value="1" caption="Uniform flow"/>
 								<Enumeration value="2" caption="Given from time series data"/>
+								<Enumeration value="3" caption="Free Outflow"/>
 							</Enumerations>
 						</Definition>
 					</Item>

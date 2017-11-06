@@ -6797,7 +6797,7 @@ contains
        qc0=0.d0
        do j=j_t1+1,j_t2
           if(j_upv.eq.1) then
-             hsin(j)=hin-eta(1,j)
+             hsin(j)=hin_t-eta(1,j)
           else
              hsin(j)=hs(1,j)
           end if
@@ -6830,7 +6830,7 @@ contains
        qc0=0.d0
        do i=i_t1+1,i_t2
           if(j_upv.eq.1) then
-             hsin2(i)=hin-eta(i,j_t2+js2)
+             hsin2(i)=hin_t-eta(i,j_t2+js2)
           else
              hsin2(i)=hs(i,j_t2+js2)
           end if
@@ -6881,9 +6881,10 @@ contains
     
     real(8),intent(in) :: hnx
 	 if(j_wl ==3)then
-    do j=1, ny
-       if(ijo_in(nx,j) == 0) then
-				hs(nx,j) = hs(nx-1,j)
+		 do j=1, ny
+			hn(nx,j) = h(  nx-1,j)
+			if(ijo_in(nx,j) == 0) then
+				hs(nx,j) = hnx - eta(nx,j)
 				if(hs(nx,j) < hmin)    hs(nx,j) = 0.d0
 				h( nx,j) = eta(nx,j) + hs(nx,j)
 				hn(nx,j) = h(  nx,j)
@@ -6892,12 +6893,12 @@ contains
 	 else
 		 do j=1, ny
 			 if(ijo_in(nx,j) == 0) then
-          hs(nx,j) = hnx - eta(nx,j)
-          if(hs(nx,j) < hmin)    hs(nx,j) = 0.d0
-          h( nx,j) = eta(nx,j) + hs(nx,j)
-          hn(nx,j) = h(  nx,j)
-       end if
-    end do
+				 hs(nx,j) = hnx - eta(nx,j)
+				 if(hs(nx,j) < hmin)    hs(nx,j) = 0.d0
+				 h( nx,j) = eta(nx,j) + hs(nx,j)
+				 hn(nx,j) = h(  nx,j)
+			 end if
+		 end do
 	 end if
   end subroutine downstream
 end module     downstream_m
@@ -11103,7 +11104,7 @@ Program Shimizu
              CALL CG_IRIC_READ_FUNCTIONALSIZE_F('mixfile_fr_d',tmpint,ier)
              allocate(xtmp(tmpint),ytmp(tmpint))
 
-             if( tmpint-1/=nk ) then
+             if( tmpint/=nk ) then
                 write(*,*) "The sediment size class in deposited layer is different from one in the mixed layer."
                 write(*,*) "The sediment size class (number of class and each diameter) must be same in both layers."
                 stop
@@ -11116,7 +11117,7 @@ Program Shimizu
                 call cg_iric_read_functionalwithname_f('mixfile_fr_d', mix_label, ytmp, ier)
           
                 do k=0,nk
-                   pdist_d_100(k,n) = ytmp(k+1)
+                   pdist_d_100(k,n) = ytmp(k)
                 end do
                     
              end do
@@ -11865,12 +11866,13 @@ Program Shimizu
               call cbcal(    ycn, ycb, hs, wf,  usta )
 
               if(j_qbqs == 3) call c_secondary( ycn, up, hs, sr, theta_cx )
+
+              if( jrep==0 ) call upstream_c( ycn, ycb, wf, qsu, usta )
               
               call c_transport(wf,dsmt)
 
 !              call diffusion_c( ycn, sigma )
               call bound_c(     ycn )
-              if( jrep==0 ) call upstream_c( ycn, ycb, wf, qsu, usta )
 
            else
            		call qsucal_mix( qsuk, tsk, tsck, p_m, tsci0, wfk, ddk, usta, hs, vti, nk )
