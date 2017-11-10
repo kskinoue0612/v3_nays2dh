@@ -3535,7 +3535,6 @@ contains
     end if
   end subroutine upstream_c
 
-
   !--------------------------------------------------------------------
 	subroutine upstream_c_mix( ck, cbk, wfk, qsuk, usta, nk )
 		implicit none
@@ -5803,7 +5802,8 @@ contains
 				cb(i,j) = 0.d0
 			else
 				bet     = 15.d0 * wf / usta(i,j)   ! * hs(i,j)
-				alfx    = alf( bet )
+!				alfx    = alf( bet )
+				call alf_s(alfx,bet)
 				cb(i,j) = c(i,j) * alfx
 			end if
 		end do
@@ -5824,7 +5824,6 @@ contains
 	real(8),dimension(0:im,0:jm),intent(in)    :: hs, usta
 	real(8),dimension(0:im,0:jm,nk),intent(in) :: ck
 	real(8),dimension(0:im,0:jm,nk),intent(out) :: cbk
-	
 !
 !$omp do private( i, j, k, bet, alfx )
 	do j=1,ny
@@ -5836,8 +5835,9 @@ contains
 					cbk(i,j,k) = ck(i,j,k)*15.d0
 				else
 					bet = 15.d0*wfk(k)/usta(i,j)
-                    alfx = alf(bet)
-                    cbk(i,j,k) = ck(i,j,k)*alfx
+					call alf_s(alfx,bet)
+!                    alfx = alf(bet)
+               cbk(i,j,k) = ck(i,j,k)*alfx
 				end if
 			end do
 		end do
@@ -5856,6 +5856,19 @@ real(8) function alf(bet)
      alf = bet / (1.d0-dexp(-bet))
   end if
 end function alf
+
+subroutine alf_s(alfx,bet)
+	implicit none
+	real(8), intent(in)	:: bet
+	real(8), intent(out)	:: alfx
+
+	if( bet>20 ) then
+		alfx = bet
+	else
+		alfx = bet/(1.d0-exp(-bet))
+	end if
+
+end subroutine alf_s
 
 end module cbcal_m
 
@@ -5939,7 +5952,7 @@ module qsucal_m
 			do j=1,ny
 				do k=1,nk
 					do i=1,nx
-						if( dabs(vti(i,j)) < 1e-8.or.hs(i,j) < hmin .or. tsk(i,j,k)<tsck(i,j,k) .or. usta(i,j)/wfk(k)<1.08 ) then
+						if( dabs(vti(i,j)) < 1e-8.or.hs(i,j) < hmin .or. tsk(i,j,k)<tsck(i,j,k) .or. usta(i,j)/wfk(k)<1.08d0 ) then
 							qsuk(i,j,k) = 0.d0
 						else
 							bsk = bs*tsck(i,j,k)/tsci0(k)
@@ -5972,9 +5985,9 @@ module qsucal_m
 !--------------------------------------------------------------------
 	subroutine calomega(bs,ts,ome)
   		implicit none
- 
+
 		real(8) :: ome, ts, ad, bs, x, t, zx, px, er1, er
- 
+
 		if(ts <= 1e-7) then
 			ome = 0.d0
 			return
@@ -5983,8 +5996,8 @@ module qsucal_m
 		ad = bs / ts - 2.d0
 		if(ad >= 0.d0) x =   ad*dsqrt(2.d0)
 		if(ad <  0.d0) x = - ad*dsqrt(2.d0)
-		t   = 1.d0 / ( 1. + 0.33627 * x )
-		zx  = 1.d0 / dsqrt(2.*pai)*dexp(-x**2./2.d0)
+		t   = 1.d0 / ( 1.d0 + 0.33627d0 * x )
+		zx  = 1.d0 / dsqrt(2.d0*pai)*dexp(-x**2.d0/2.d0)
 		px  = 1.d0 - zx*(a1*t+a2*t**2+a3*t**3)
 		er1 = 2.d0 - 2.d0*px
 		if(   ad >= 0.d0) er = er1/2.d0
@@ -8365,7 +8378,7 @@ contains
 			end do
 		end do
 
-!$omp do private( i, j, k, tsi_up, tsci_up, qbxi )
+!$omp do private( i, j, k, tsi_up, tsci_up, qbxi, qb )
 		do j=1,ny
 			do k=1,nk
 				do i=1,nx-1
@@ -8884,9 +8897,9 @@ contains
 				eta(i,j) = eta(i,j)+dex(i,j)
 				
 				if( phi(i,j)<1.d0 ) then
-					call sorting_fixed( i, j, nb_new, e_t_new, p_m_new, p_t_new, p_d_new )
+					call sorting_fixed( i, j, nb_new, e_t_new, p_m_new, p_t_new, p_d_new, p_tot )
 				else
-					call sorting_movable( i, j, nb_new, e_t_new, p_m_new, p_t_new, p_d_new )
+					call sorting_movable( i, j, nb_new, e_t_new, p_m_new, p_t_new, p_d_new, p_tot )
 				end if
 				
 				e_t(i,j) = e_t_new
@@ -9134,9 +9147,9 @@ contains
 				eta(i,j) = eta(i,j)+dex(i,j)
 
 				if( phi(i,j)<1.d0 ) then
-					call sorting_fixed( i, j, nb_new, e_t_new, p_m_new, p_t_new, p_d_new )
+					call sorting_fixed( i, j, nb_new, e_t_new, p_m_new, p_t_new, p_d_new, p_tot )
 				else
-					call sorting_movable( i, j, nb_new, e_t_new, p_m_new, p_t_new, p_d_new )
+					call sorting_movable( i, j, nb_new, e_t_new, p_m_new, p_t_new, p_d_new, p_tot )
 				end if
 				
 				e_t(i,j) = e_t_new
@@ -9220,17 +9233,17 @@ contains
 
 ! ---------------------------------------------------------------- !
 
-	subroutine sorting_movable( i, j, nb_new, e_t_new, p_m_new, p_t_new, p_d_new )
+	subroutine sorting_movable( i, j, nb_new, e_t_new, p_m_new, p_t_new, p_d_new, p_tot )
 		use common_cmdex
 		use mix
 		implicit none
 		integer,intent(in) :: i, j
 		integer,intent(out) :: nb_new
-		double precision,intent(out) :: e_t_new
+		double precision,intent(out) :: e_t_new, p_tot
 		double precision,dimension(nk),intent(out) :: p_m_new, p_t_new, p_d_new
 		
 		integer :: k
-		double precision :: p_tot
+!		double precision :: p_tot
 
 		
 		!‘ÍÏ
@@ -9337,17 +9350,17 @@ contains
 
 ! ---------------------------------------------------------------- !
 
-	subroutine sorting_fixed( i, j, nb_new, e_t_new, p_m_new, p_t_new, p_d_new )
+	subroutine sorting_fixed( i, j, nb_new, e_t_new, p_m_new, p_t_new, p_d_new, p_tot )
 		use common_cmdex
 		use mix
 		implicit none
 		integer,intent(in) :: i, j
 		integer,intent(out) :: nb_new
-		double precision,intent(out) :: e_t_new
+		double precision,intent(out) :: e_t_new, p_tot
 		double precision,dimension(nk),intent(out) :: p_m_new, p_t_new, p_d_new
 		
 		integer :: k
-		double precision :: p_tot, emb_new
+		double precision :: emb_new
 
 		emb_new = emb(i,j)+dex(i,j)
 		nb_new = 0
@@ -9382,7 +9395,7 @@ contains
 		p_tot = 0.d0
 
 		do k=1,nk
-			if( p_m_new(k)<=0. ) p_m_new(k) = 0.
+			if( p_m_new(k)<=0.d0 ) p_m_new(k) = 0.d0
 			p_tot = p_tot+p_m_new(k)
 		end do
 		
@@ -9395,7 +9408,7 @@ contains
 		p_tot = 0.d0
 
 		do k=1,nk
-			if( p_t_new(k)<=0. ) p_t_new(k) = 0.
+			if( p_t_new(k)<=0.d0 ) p_t_new(k) = 0.d0
 			p_tot = p_tot+p_t_new(k)
 		end do
 
@@ -9491,9 +9504,11 @@ contains
 			end do
 		end do
 
+!$omp single
+
   ! ---- source term ---- !
 
-!$omp do private( i, j, k, i_noflux, wdepth, wsj, v_ck, ez, dzc )
+!!$omp do private( i, j, k, i_noflux, wdepth, wsj, v_ck, ez, dzc )
 		do j=1,ny
 			do k=1,nk
 				do i=1,nx
@@ -9534,6 +9549,7 @@ contains
 				end do
 			end do
 		end do
+!$omp end single
 
   ! ---- update suspended sediment concentration ---- !
 
@@ -9757,7 +9773,7 @@ module ebank_m
 		real(8),intent(in) :: tantc, dtanmax
 
 		integer :: i, j, k, nb_new
-		real(8) :: dz1, dz2, e_t_new
+		real(8) :: dz1, dz2, e_t_new, p_tot
 		real(8),dimension(nk) :: p_m_new, p_t_new, p_d_new
 		
 		p_m_new = 0.d0; p_t_new = 0.d0; p_d_new = 0.d0
@@ -9902,9 +9918,9 @@ module ebank_m
 				eta(i,j) = eta(i,j)+dex(i,j)
 				
 				if( phi(i,j)<1.d0 ) then
-					call sorting_fixed( i, j, nb_new, e_t_new, p_m_new, p_t_new, p_d_new )
+					call sorting_fixed( i, j, nb_new, e_t_new, p_m_new, p_t_new, p_d_new, p_tot )
 				else
-					call sorting_movable( i, j, nb_new, e_t_new, p_m_new, p_t_new, p_d_new )
+					call sorting_movable( i, j, nb_new, e_t_new, p_m_new, p_t_new, p_d_new, p_tot )
 				end if
 				
 				e_t(i,j) = e_t_new
@@ -11868,11 +11884,11 @@ Program Shimizu
               if(j_qbqs == 3) call c_secondary( ycn, up, hs, sr, theta_cx )
 
               if( jrep==0 ) call upstream_c( ycn, ycb, wf, qsu, usta )
-              
+
               call c_transport(wf,dsmt)
 
 !              call diffusion_c( ycn, sigma )
-              call bound_c(     ycn )
+              call bound_c( ycn )
 
            else
            		call qsucal_mix( qsuk, tsk, tsck, p_m, tsci0, wfk, ddk, usta, hs, vti, nk )
@@ -11891,10 +11907,10 @@ Program Shimizu
            
            if( time > ster ) then
               if( j_mix == 0 ) then
-                 call qbcal_w    ( ux,uy,hs,gamma,pi_bed,dsmt,tantc,j_bank &
+                 call qbcal_w    ( ux,uy,hs,gamma,pi_bed,dsmt,tantc,j_bank 			&
                       				,i_erosion_start,i_erosion_end,bheight )
               else
-                 call qbcal_w_mix( ux,uy,hs,gamma_m,dsmt,pi_bed,tantc &
+                 call qbcal_w_mix( ux,uy,hs,gamma_m,dsmt,pi_bed,tantc 					&
                       				,j_bank,i_erosion_start,i_erosion_end,bheight )
               end if
               if(j_qbqs == 1) then
