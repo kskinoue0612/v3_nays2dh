@@ -991,8 +991,8 @@ contains
 
 		real(8), parameter :: pi = 3.141592d0
 
-		real(8), parameter :: ds00 = 0.001
-		real(8), parameter :: dn00 = 0.001
+		real(8), parameter :: ds00 = 0.001d0
+		real(8), parameter :: dn00 = 0.001d0
 
 		real(8) :: dx, dy, theta, x1, y1, x2, y2, x3, y3, x4, y4 &
 			, dx1, dy1, dx2, dy2, ds1, ds2, ds12 &
@@ -2838,7 +2838,7 @@ module hcal_m
 				wv(i,j) = yvn(i,j)
 			end do
 		end do
-       
+
 !$omp do private( hs_up, v_up, ux_up, uy_up, vv_up, c_xi, c_xi_shear, c_veg, h_veg, f_xi, dhdxi, dhdet, p_xi, hr, hl,hss,hsn,zs,zn)
 			do j=1, ny
 				do i=1, nx-1
@@ -3486,11 +3486,32 @@ contains
   end subroutine newgrd_c
 end module     newgrd_m
 
+module sus_profile
+	implicit none
+
+ contains
+
+	subroutine alf_s(alfx,bet)
+		implicit none
+		real(8), intent(in)	:: bet
+		real(8), intent(out)	:: alfx
+
+		if( bet>20 ) then
+			alfx = bet
+		else
+			alfx = bet/(1.d0-exp(-bet))
+		end if
+
+	end subroutine alf_s
+
+end module sus_profile
+
 !--------------------------------------------------------------------------------
 module upstream_c_m
   
   use common_hh
   use common_cmconf1	!h101019 conf
+  use sus_profile
 contains
   !--------------------------------------------------------------------
   subroutine upstream_c(c,cb,wf,qsu,usta)
@@ -3509,7 +3530,8 @@ contains
           cb(1,j) = 0.d0
        else
           bet=15. * wf / usta(1,j)
-          alfx=alf(bet)
+!          alfx=alf(bet)
+          call alf_s(alfx,bet)
           c( 1,j)=qsu(1,j) / (wf*alfx)
           cb(1,j)=c(  1,j) * alfx
        end if
@@ -3525,7 +3547,8 @@ contains
              cb(i,j_t2+js2) = 0.d0
           else
              bet = 15.d0*wf/usta(i,j_t2+js2)
-             alfx = alf(bet)
+!             alfx = alf(bet)
+				 call alf_s(alfx,bet)
              c(i,j_t2+js2) = qsu(i,j_t2+js2)/(wf*alfx)
              cb(i,j_t2+js2) = c(i,j_t2+js2)*alfx
           end if
@@ -3556,7 +3579,8 @@ contains
 					cbk(1,j,k) = 0.d0
 				else
 					bet = 15.d0*wfk(k)/usta(1,j)
-					alfx = alf(bet)
+!					alfx = alf(bet)
+					call alf_s(alfx,bet)
 					ck( 1,j,k) = qsuk(1,j,k)/(wfk(k)*alfx)
 					cbk(1,j,k) = ck(  1,j,k)*alfx
 				end if
@@ -3574,7 +3598,8 @@ contains
                 cbk(i,j_t2+js2,k) = 0.d0
              else
                 bet = 15.d0*wfk(k)/usta(i,j_t2+js2)
-                alfx = alf(bet)
+!                alfx = alf(bet)
+					call alf_s(alfx,bet)
                 ck(i,j_t2+js2,k) = qsuk(i,j_t2+js2,k)/(wfk(k)*alfx)
                 cbk(i,j_t2+js2,k) = ck(i,j_t2+js2,k)*alfx
              end if
@@ -4062,9 +4087,16 @@ contains
     real(8),dimension(0:im,0:jm),intent(in)    :: yn
     real(8),dimension(0:im,0:jm),intent(inout) :: y
 
+!!$omp do
+!    do j=1,ny
+!       do i=0,nx
+!          y(i,j) = yn(i,j)
+!       end do
+!    end do
+
 !$omp do
-    do j=1,ny
-       do i=0,nx
+    do j=0,ny+1
+       do i=0,nx+1
           y(i,j) = yn(i,j)
        end do
     end do
@@ -4078,8 +4110,15 @@ contains
     real(8),dimension(0:im,0:jm),intent(in)    :: yn
     real(8),dimension(0:im,0:jm),intent(inout) :: y
 
+!!$omp do
+!    do j=1,ny-1
+!       do i=0,nx+1
+!          y(i,j) = yn(i,j)
+!       end do
+!    end do
+
 !$omp do
-    do j=1,ny-1
+    do j=0,ny+1
        do i=0,nx+1
           y(i,j) = yn(i,j)
        end do
@@ -5785,6 +5824,7 @@ end function alf
 module cbcal_m
   
 	use common_hh
+  use sus_profile
 contains
   !--------------------------------------------------------------------
   subroutine cbcal(c,cb,hs,wf,usta)
@@ -5856,19 +5896,6 @@ real(8) function alf(bet)
      alf = bet / (1.d0-dexp(-bet))
   end if
 end function alf
-
-subroutine alf_s(alfx,bet)
-	implicit none
-	real(8), intent(in)	:: bet
-	real(8), intent(out)	:: alfx
-
-	if( bet>20 ) then
-		alfx = bet
-	else
-		alfx = bet/(1.d0-exp(-bet))
-	end if
-
-end subroutine alf_s
 
 end module cbcal_m
 
@@ -5947,6 +5974,7 @@ module qsucal_m
 		real(8),dimension(0:im,0:jm,nk),intent(in) :: tsk, tsck, p_m
 		real(8),dimension(0:im,0:jm,nk),intent(out) :: qsuk
 !
+!!$omp single
 		if( j_qsu==0 ) then
 !$omp do private( i, j, k, bsk, ome )
 			do j=1,ny
@@ -5979,6 +6007,7 @@ module qsucal_m
 				end do
 			end do
 		end if
+!!$omp end single
 
 	end subroutine qsucal_mix
 
@@ -8184,8 +8213,8 @@ contains
 		real(8),dimension(0:im,0:jm),intent(in) :: ux0,uy0,hs0
     ! --------------------------------------------------------------------
     !
-
-!$omp do private( i, j, coss, sins, dzdxi, dzdet, uxbed, uybed, vb )
+!$omp single
+!!$omp do private( i, j, coss, sins, dzdxi, dzdet, uxbed, uybed, vb )
     do j = 1, ny
        do i = 1, nx
           if( dabs(vti(i,j)) < 1e-8.or.hs(i,j) < hmin) then
@@ -8313,7 +8342,7 @@ contains
        end do
     end do
     
-!$omp do private( i, j, k, us_e, ts_e )
+!!$omp do private( i, j, k, us_e, ts_e )
 		do j=1,ny
 			do k=1,nk
 				do i=1,nx
@@ -8349,7 +8378,7 @@ contains
     !
     ! ------- qb_xi_mix -------------------------
     !
-!$omp do private( i, j, vvup, ubup, er, dzdxi, cost, dzdet )
+!!$omp do private( i, j, vvup, ubup, er, dzdxi, cost, dzdet )
 		do j=1,ny
 			do i=1,nx-1
 !				vvup = (vti(i,j)+vti(i+1,j))*.5d0
@@ -8378,7 +8407,7 @@ contains
 			end do
 		end do
 
-!$omp do private( i, j, k, tsi_up, tsci_up, qbxi, qb )
+!!$omp do private( i, j, k, tsi_up, tsci_up, qbxi, qb )
 		do j=1,ny
 			do k=1,nk
 				do i=1,nx-1
@@ -8401,7 +8430,7 @@ contains
 		end do
     !
 		if( jrep==1 ) then
-!$omp do
+!!$omp do
 			do j=1,ny
 				do k=1,nk
 					qb_xi_mix(0,j,k) = qb_xi_mix(nx-3,j,k)
@@ -8411,7 +8440,7 @@ contains
 				end do
 			end do
 		else
-!$omp do
+!!$omp do
 			do j=1,ny
 				do k=1,nk
 					qb_xi_mix(0,j,k) = qb_xi_mix(1,j,k)
@@ -8423,7 +8452,7 @@ contains
     !
     ! ------- qb_et_mix -------------------------
     !
-!$omp do private( i, j, j1, j2, xr, er, vvvp, ubvp, dzdet, cost, dzdxi, bh0, bh_alpha, qb, tsi_vp, tsci_vp, qbet )
+!!$omp do private( i, j, j1, j2, xr, er, vvvp, ubvp, dzdet, cost, dzdxi, bh0, bh_alpha, qb, tsi_vp, tsci_vp, qbet )
 		do i=2,nx-1
 			if( j_bank == 0 .or. i <= i_erosion_start .or. i >= nx-i_erosion_end ) then
 				j1 = 1
@@ -8522,7 +8551,7 @@ contains
 		end do
 
 		if(j_conf>=2) then
-!$omp do
+!!$omp do
 			do i=i_t1+1,i_t2
 				do k=1,nk
 					qb_et_mix(i,j_t2,k) = qb_et_mix(i,j_t2-jxd,k)
@@ -8532,7 +8561,7 @@ contains
    
    !
 		if(jrep == 1) then
-!$omp do
+!!$omp do
 			do j=0,ny
 				do k=1,nk
 					qb_et_mix(0,j,k) = qb_et_mix(nx-3,j,k)
@@ -8542,7 +8571,7 @@ contains
 				end do
 			end do
 		else
-!$omp do
+!!$omp do
 			do j=0,ny
 				do k=1,nk
 					qb_et_mix(1,j,k) = qb_et_mix(2,j,k)
@@ -8551,7 +8580,7 @@ contains
 			end do
 		end if
 
-!$omp do
+!!$omp do
 		do j=1,ny
 			do i=1,nx
 				if( ijo_in(i,j)==1 ) then
@@ -8565,14 +8594,14 @@ contains
 			end do
 		end do
     
-!$omp do
+!!$omp do
 		do j=1,ny
 			do i=0,nx
 				qb_xi(i,j) = 0.d0
 			end do
 		end do
     
-!$omp do
+!!$omp do
 		do j=1,ny
 			do i=0,nx
 				do k=1,nk
@@ -8581,14 +8610,14 @@ contains
 			end do
 		end do
 	
-!$omp do
+!!$omp do
 		do j=0,ny
 			do i=1,nx
 				qb_et(i,j) = 0.d0
 			end do
 		end do
     
-!$omp do
+!!$omp do
 		do j=0,ny
 			do i=1,nx
 				do k=1,nk
@@ -8599,7 +8628,7 @@ contains
 
 	else
 	
-!$omp do private(i,j,d_sed1,d_sed2,beta_a,coss,sins)
+!!$omp do private(i,j,d_sed1,d_sed2,beta_a,coss,sins)
     	do j=1,ny
     		do k=1,nk
     			do i=1,nx
@@ -8619,7 +8648,7 @@ contains
     	end do
 
     	if( jrep==0 ) then
-!$omp do
+!!$omp do
 			do k=1,nk
 				do j=1,ny
 					qbxkc(   0,j,k) = qbxkc( 1,j,k)
@@ -8629,7 +8658,7 @@ contains
 				end do
 			end do
     	else
-!$omp do
+!!$omp do
 			do k=1,nk
 				do j=1,ny
 					qbxkc(   0,j,k) = qbxkc(nx,j,k)
@@ -8640,7 +8669,7 @@ contains
 			end do
     	end if
 
-!$omp do
+!!$omp do
 		do k=1,nk
 			do i=1,nx
 				qbxkc(i,   0,k) = qbxkc(i, 1,k)
@@ -8650,7 +8679,7 @@ contains
 			end do
 		end do
 		
-!$omp do
+!!$omp do
 		do j=0,ny+1
 			do i=0,nx+1
 				qbxc(i,j) = 0.d0
@@ -8662,9 +8691,9 @@ contains
 			end do
 		end do
 
-!$omp do private(i,j,qbxi1,qbxi2,qbet1,qbet2,qbx_xi1,qby_xi1,qbx_et1,qby_et1,	&
-!$omp& qbx_xi2,qby_xi2,qbx_et2,qby_et2,xi_x1,xi_y1,xi_x2,xi_y2,et_x1,et_y1,		&
-!$omp& et_x2,et_y2,sj_xi1,sj_et1,sj_xi2,sj_et2,ip1,im1,jp1,jm1)
+!!$omp do private(i,j,qbxi1,qbxi2,qbet1,qbet2,qbx_xi1,qby_xi1,qbx_et1,qby_et1,	&
+!!$omp& qbx_xi2,qby_xi2,qbx_et2,qby_et2,xi_x1,xi_y1,xi_x2,xi_y2,et_x1,et_y1,		&
+!!$omp& et_x2,et_y2,sj_xi1,sj_et1,sj_xi2,sj_et2,ip1,im1,jp1,jm1)
     	do j=1,ny
     		do i=1,nx
     		
@@ -8731,6 +8760,7 @@ contains
     	end do
     
     end if
+!$omp end single
 
    !
  end subroutine qbcal_w_mix
@@ -8755,6 +8785,7 @@ contains
 		real(8) :: rsj_w, rsj_e, rsj_n, rsj_s
    
 		p_m_new=0.d0; p_t_new=0.d0; p_d_new=0.d0
+		p_tot = 0.d0
 		
    ! -------------------------------------------------------------
    !
@@ -8762,10 +8793,11 @@ contains
    !       âÕè∞çÇÇÃïœçXÇÃåvéZ
    !
    
+!$omp single
 		if( j_qb_vec==0 ) then
 
-!$omp do private( i, j, k, dqbxi, dqbet		&
-!$omp			,rsj_w ,rsj_e ,rsj_n ,rsj_s ,sj_w ,sj_e ,sj_n ,sj_s ,sj_c )
+!!$omp do private( i, j, k, dqbxi, dqbet		&
+!!$omp			,rsj_w ,rsj_e ,rsj_n ,rsj_s ,sj_w ,sj_e ,sj_n ,sj_s ,sj_c )
 			do j=1,ny
 				do i=1,nx
 					dex(i,j) = 0.d0
@@ -8790,7 +8822,7 @@ contains
 				end do
 			end do
 		else
-!$omp do
+!!$omp do
 			do j=1,ny
 				do k=1,nk
 					do i=1,nx
@@ -8800,7 +8832,7 @@ contains
 			end do
 		end if
 
-!$omp do
+!!$omp do
 		do j=1,ny
 			do i=1,nx
 				if( dex(i,j)+emb(i,j)<0.d0 ) then
@@ -8813,7 +8845,7 @@ contains
 		end do
    !
 		if( jrep==1 ) then
-!$omp do
+!!$omp do
 			do j=1,ny
 				do i=0,1
 					dex(i,j) = dex(i+nx-3,j)
@@ -8823,7 +8855,7 @@ contains
 				end do
 			end do
       
-!$omp do
+!!$omp do
 			do j=1,ny
 				do i=nx-1,nx+1
 					dex(i,j) = dex(i-nx+3,j)
@@ -8834,7 +8866,7 @@ contains
 			end do
 		else
 			if( j_qbup==0 ) then
-!$omp do
+!!$omp do
 				do j=1,ny
 					do i=0,1
 						dex(i,j) = 0.d0
@@ -8844,7 +8876,7 @@ contains
 					end do
 				end do
 			else
-!$omp do
+!!$omp do
 				do j=1,ny
 					dex(1,j) = dex(2,j)
 					dex(0,j) = dex(1,j)
@@ -8854,7 +8886,7 @@ contains
 					end do
 				end do
 			end if
-!$omp do
+!!$omp do
 			do j=1,ny
 				dex(nx,j) = dex(nx-1,j)
 				do k=1,nk
@@ -8865,7 +8897,7 @@ contains
    
 		if( j_conf>=2 ) then
 			if( j_qbup==0 ) then
-!$omp do
+!!$omp do
 				do i=i_t1+1,i_t2
 					dex(i,j_t2+js2) = 0.d0
 					do k=1,nk
@@ -8873,7 +8905,7 @@ contains
 					end do
 				end do
 			else
-!$omp do
+!!$omp do
 				do i=i_t1+1,i_t2
 					dex(i,j_t2+js2) = dex(i,j_t2+js2-jxd)
 					do k=1,nk
@@ -8891,10 +8923,19 @@ contains
 		nbmin =  9999
 		nbmax = -9999
 
-!$omp do private( i, j, e_t_new, nb_new, p_m_new, p_t_new, p_d_new, nbmin, nbmax, i_nbmin, j_nbmin, i_nbmax, j_nbmax, p_tot )
+!!$omp do
+		do j=1,ny
+			do k=1,nk
+				do i=1,nx
+					eta(i,j) = eta(i,j)+dex_mix(i,j,k)
+				end do
+			end do
+		end do
+
+!!$omp do private( i, j, e_t_new, nb_new, p_m_new, p_t_new, p_d_new, nbmin, nbmax, i_nbmin, j_nbmin, i_nbmax, j_nbmax, p_tot )
 		do j=1,ny
 			do i=1,nx
-				eta(i,j) = eta(i,j)+dex(i,j)
+!				eta(i,j) = eta(i,j)+dex(i,j)
 				
 				if( phi(i,j)<1.d0 ) then
 					call sorting_fixed( i, j, nb_new, e_t_new, p_m_new, p_t_new, p_d_new, p_tot )
@@ -8917,7 +8958,7 @@ contains
    !
    ! ----- Adjust Water Depth ------
    !
-!$omp do
+!!$omp do
 		do j=1,ny
 			do i=1,nx
 				if( ijo_in(i,j)==0 ) then
@@ -8931,7 +8972,7 @@ contains
 		end do
    !
 		if( jrep==1 ) then
-!$omp do
+!!$omp do
 			do j=1,ny
 				do i=0,1
 					eta(i,j) = eta0(i,j)+(eta(i+nx-3,j)-eta0(i+nx-3,j))
@@ -8964,7 +9005,7 @@ contains
 				end do
 			end do
 		else
-!$omp do
+!!$omp do
 			do j=1,ny
 				do i=nx,nx+1
 					e_t(i,j) = e_t(nx-1,j)
@@ -8977,6 +9018,7 @@ contains
 				end do
 			end do
 		end if
+!$omp end single
    !
 	end subroutine etacal_mix
 
@@ -9008,9 +9050,10 @@ contains
    !       âÕè∞çÇÇÃïœçXÇÃåvéZ
    !
    
+!$omp single
    		if( j_qb_vec==0 ) then
-!$omp do private( i, j, k, dqbxi, dqbet		&
-!$omp			,rsj_w ,rsj_e ,rsj_n ,rsj_s ,sj_w ,sj_e ,sj_n ,sj_s ,sj_c )
+!!$omp do private( i, j, k, dqbxi, dqbet		&
+!!$omp			,rsj_w ,rsj_e ,rsj_n ,rsj_s ,sj_w ,sj_e ,sj_n ,sj_s ,sj_c )
 				do j=1,ny
 					do i=1,nx
 						dex(i,j) = 0.d0
@@ -9030,8 +9073,9 @@ contains
 						do k=1,nk
 							dqbxi = (-qb_xi_mix(i-1,j,k)*rsj_w+qb_xi_mix(i,j,k)*rsj_e)*r_dxi
 							dqbet = (-qb_et_mix(i,j-1,k)*rsj_s+qb_et_mix(i,j,k)*rsj_n)*r_det
-							dex_mix(i,j,k) = ( -sj_c*dt*dsmt*(dqbxi+dqbet)	&
-												    -dt*dsmt*(qsuk(i,j,k)-wfk(k)*ycbk(i,j,k)) )*csm
+!							dex_mix(i,j,k) = ( -sj_c*dt*dsmt*(dqbxi+dqbet)	&
+!												    -dt*dsmt*(qsuk(i,j,k)-wfk(k)*ycbk(i,j,k)) )*csm
+							dex_mix(i,j,k) = ( -dt*dsmt*(qsuk(i,j,k)-wfk(k)*ycbk(i,j,k)) )*csm
 							dex(i,j) = dex(i,j)+dex_mix(i,j,k)
 						end do
 						else
@@ -9040,7 +9084,7 @@ contains
 					end do
 				end do
 			else
-!$omp do
+!!$omp do
 				do j=1,ny
 					do k=1,nk
 						do i=1,nx
@@ -9051,7 +9095,7 @@ contains
 				end do
 			end if
 
-!$omp do
+!!$omp do
 		do j=1,ny
 			do i=1,nx
 				if( dex(i,j)+emb(i,j)<0.d0 ) then
@@ -9064,7 +9108,7 @@ contains
 		end do
    !
 		if( jrep==1 ) then
-!$omp do
+!!$omp do
 			do j=1,ny
 				do i=0,1
 					dex(i,j) = dex(i+nx-3,j)
@@ -9074,7 +9118,7 @@ contains
 				end do
 			end do
       
-!$omp do
+!!$omp do
 			do j=1,ny
 				do i=nx-1,nx+1
 					dex(i,j) = dex(i-nx+3,j)
@@ -9085,7 +9129,7 @@ contains
 			end do
 		else
 			if( j_qbup==0 ) then
-!$omp do
+!!$omp do
 				do j=1,ny
 					do i=0,1
 						dex(i,j) = 0.d0
@@ -9095,7 +9139,7 @@ contains
 					end do
 				end do
 			else
-!$omp do
+!!$omp do
 				do j=1,ny
 					dex(1,j) = dex(2,j)
 					dex(0,j) = dex(1,j)
@@ -9105,7 +9149,7 @@ contains
 					end do
 				end do
 			end if
-!$omp do
+!!$omp do
 			do j=1,ny
 				dex(nx,j) = dex(nx-1,j)
 				do k=1,nk
@@ -9116,7 +9160,7 @@ contains
    
 		if( j_conf>=2 ) then
 			if( j_qbup==0 ) then
-!$omp do
+!!$omp do
 				do i=i_t1+1,i_t2
 					dex(i,j_t2+js2) = 0.d0
 					do k=1,nk
@@ -9124,7 +9168,7 @@ contains
 					end do
 				end do
 			else
-!$omp do
+!!$omp do
 				do i=i_t1+1,i_t2
 					dex(i,j_t2+js2) = dex(i,j_t2+js2-jxd)
 					do k=1,nk
@@ -9141,7 +9185,7 @@ contains
 		nbmin =  9999
 		nbmax = -9999
 
-!$omp do private( i, j, e_t_new, nb_new, p_m_new, p_t_new, p_d_new, nbmin, nbmax, i_nbmin, j_nbmin, i_nbmax, j_nbmax, p_tot )
+!!$omp do private( i, j, e_t_new, nb_new, p_m_new, p_t_new, p_d_new, nbmin, nbmax, i_nbmin, j_nbmin, i_nbmax, j_nbmax, p_tot )
 		do j=1,ny
 			do i=1,nx
 				eta(i,j) = eta(i,j)+dex(i,j)
@@ -9168,7 +9212,7 @@ contains
    ! ----- Adjust Water Depth ------
    !
 
-!$omp do
+!!$omp do
 		do j=1,ny
 			do i=1,nx
 				if( ijo_in(i,j)==0 ) then
@@ -9182,7 +9226,7 @@ contains
 		end do
    !
 		if( jrep==1 ) then
-!$omp do
+!!$omp do
 			do j=1,ny
 				do i=0,1
 					eta(i,j) = eta0(i,j)+(eta(i+nx-3,j)-eta0(i+nx-3,j))
@@ -9215,7 +9259,7 @@ contains
 				end do
 			end do
 		else
-!$omp do
+!!$omp do
 			do j=1,ny
 				do i=nx,nx+1
 					e_t(i,j) = e_t(nx-1,j)
@@ -9228,6 +9272,7 @@ contains
 				end do
 			end do
 		end if
+!$omp end single
    !
 	end subroutine etacal_mix_c
 
@@ -9437,8 +9482,9 @@ contains
 		real(8),intent(in) :: dsmt
 
   ! ---- advection term of suspended sediment transport --- !
+!$omp single
 
-!$omp do private( i, j, k )
+!!$omp do private( i, j, k )
 		do j=1,ny
 			do k=1,nk
 				do i=1,nx-1
@@ -9449,7 +9495,7 @@ contains
 			end do
 		end do
 
-!$omp do
+!!$omp do
 		do j=1,ny
 			do k=1,nk
 				quck( 0,j,k) = q_xi( 0,j)*yck( 0,j,k)
@@ -9457,7 +9503,7 @@ contains
 			end do
 		end do
 
-!$omp do private( i, j, k )
+!!$omp do private( i, j, k )
 		do j=1,ny-1
 			do k=1,nk
 				do i=1,nx
@@ -9467,7 +9513,7 @@ contains
 			end do
 		end do
 
-!$omp do
+!!$omp do
 		do k=1,nk
 			do i=1,nx
 				qvck(i, 0,k) = 0.d0
@@ -9476,7 +9522,7 @@ contains
 		end do
 
 		if( j_conf>=2 ) then
-!$omp do
+!!$omp do
 			do i=i_t1+1,i_t2
 				if( ijo_in(i,j_t2+js2)==0 ) then
 					do k=1,nk
@@ -9486,7 +9532,7 @@ contains
 			end do
 		end if
 
-!$omp do
+!!$omp do
 		do j=1,ny
 			do k=1,nk
 				do i=1,nx
@@ -9495,7 +9541,7 @@ contains
 			end do
 		end do
 
-!$omp do
+!!$omp do
 		do j=1,ny
 			do k=1,nk
 				do i=1,nx
@@ -9504,10 +9550,8 @@ contains
 			end do
 		end do
 
-!$omp single
-
   ! ---- source term ---- !
-
+!!$omp single
 !!$omp do private( i, j, k, i_noflux, wdepth, wsj, v_ck, ez, dzc )
 		do j=1,ny
 			do k=1,nk
@@ -9549,11 +9593,10 @@ contains
 				end do
 			end do
 		end do
-!$omp end single
 
   ! ---- update suspended sediment concentration ---- !
 
-!$omp do private( i, j, k, i_noflux, depth, wdepth, wsj )
+!!$omp do private( i, j, k, i_noflux, depth, wdepth, wsj )
 		do j=1,ny
 			do k=1,nk
 				do i=1,nx
@@ -9570,6 +9613,8 @@ contains
 				end do
 			end do
 		end do
+
+!$omp end single
 
 	end subroutine c_transport_mix
 
@@ -11371,7 +11416,7 @@ Program Shimizu
        snu_0 = 0.4d0 / 6.d0 * us0 * h0*a_snu + b_snu
     end if
     c_k0 = phi0
-    c_e0 = 3.6*c_2e / c_f**(3.d0/4.d0) * dsqrt(c_mu0)
+    c_e0 = 3.6d0*c_2e / c_f**(3.d0/4.d0) * dsqrt(c_mu0)
     ye00 = 0.d0
     yk00 = 0.d0
     dtanmax = 0.0001d0
@@ -11514,6 +11559,8 @@ Program Shimizu
 !$omp parallel
 
   2000 continue
+
+!$omp barrier
 
 !$omp single
 
