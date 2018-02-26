@@ -11720,14 +11720,6 @@ Program Shimizu
 
 !$omp single
 
-           ! ユーザがGUI上で "STOP" ボタンを押して実行をキャンセルしたか確認
-           call iric_check_cancel_f(istatus)
-           if(istatus == 1) then
-             write(*,*) "Solver is stopped because the STOP button was clicked."
-             stop
-           end if
-
-
          if( time>=t_out_start ) then
 
              !guiがcgnsファイルを読込中か否かを判定
@@ -11775,6 +11767,14 @@ Program Shimizu
      !------- output temporary file for hot start -----------
      !
 !$omp single
+
+        ! ユーザがGUI上で "STOP" ボタンを押して実行をキャンセルしたか確認
+     call iric_check_cancel_f(istatus)
+     if(istatus == 1) then
+        write(*,*) "Solver is stopped because the STOP button was clicked."
+        stop
+     end if
+
 
      if(i_re_flag_o == 1 .and. time > opt_tmp(i_tmp_count)) then
         !
