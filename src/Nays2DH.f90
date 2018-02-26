@@ -4728,7 +4728,7 @@ contains
 	         sin_bed(i,j) = uybed / vb
 	            
 				kc(i,j) = Dmax1(1d0+1d0/mu_s*((1d0/spec+1d0)*cos_bed(i,j)*dtan(theta_x(i,j))	&
-									+sin_bed(i,j)*dtan(theta_x(i,j))),0.5D0)
+									+sin_bed(i,j)*dtan(theta_y(i,j))),0.5D0)
 	    		
 	    		btheta_y(i,j) = 1.d0/(1.d0+dtan(theta_x(i,j))**2.d0+dtan(theta_y(i,j))**2.d0)
 	    		btheta_x(i,j) = btheta_y(i,j)+dcos(theta_x(i,j))**2.d0/spec
@@ -4769,7 +4769,6 @@ contains
     		end do
     	end do
     end if
-
 
     if( j_qb_vec==0 ) then
     	!
@@ -8331,7 +8330,7 @@ contains
 						   +(-et_x(i,j)*sins+et_y(i,j)*coss)*dzdet
 	       
 				kc(i,j) = Dmax1(1.d0+1.d0/mu_s*((1.d0/spec+1.d0)*cos_bed(i,j)*dtan(theta_x(i,j))	&
-									+sin_bed(i,j)*dtan(theta_x(i,j))),0.5D0)
+									+sin_bed(i,j)*dtan(theta_y(i,j))),0.5D0)
 
 !				kc(i,j) = dmax1(1.d0+dzds(i,j)/mu_s,0.5d0)
 
@@ -11720,7 +11719,7 @@ Program Shimizu
 		   call cell2grid( phi, phi_g )
 
 !$omp single
-         if( time>=t_out_start ) then
+
            ! ユーザがGUI上で "STOP" ボタンを押して実行をキャンセルしたか確認
            call iric_check_cancel_f(istatus)
            if(istatus == 1) then
@@ -11728,6 +11727,18 @@ Program Shimizu
              stop
            end if
 
+
+         if( time>=t_out_start ) then
+
+             !guiがcgnsファイルを読込中か否かを判定
+	        do
+	            call iric_check_lock_f(condfile, istatus)
+	            if(istatus == 1) then
+	                call sleep(1)
+	            elseif(istatus == 0)then  !読込中でなければdoループを抜ける
+	                exit
+	            end if
+	        end do
         
         	   qptemp = qp
             call iric_write_sol_start_f(condFile, ier)   
