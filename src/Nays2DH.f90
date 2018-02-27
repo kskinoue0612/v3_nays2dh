@@ -2682,7 +2682,7 @@ contains
     implicit none
 
     integer :: i,j
-    real(8) :: snu00, us_2
+    real(8), intent(in) :: snu00
     
 !$omp do
     do j = 1, ny
@@ -2741,7 +2741,6 @@ contains
 		end do
 	end do
 !
-
   end subroutine taustacal_mix
   
 end module     taustacal_m
@@ -3260,7 +3259,7 @@ contains
           yun(nx-1,j) = yun(   2,j)
        end do
 
-!!$omp do
+!!$omp do		! ‚¨‚©‚µ‚¢
 !$omp single
        do j=1,ny-1
           yvn(   1,j) = yvn(nx-2,j)
@@ -3499,7 +3498,7 @@ module sus_profile
 		if( bet>20 ) then
 			alfx = bet
 		else
-			alfx = bet/(1.d0-exp(-bet))
+			alfx = bet/(1.d0-dexp(-bet))
 		end if
 
 	end subroutine alf_s
@@ -3523,13 +3522,13 @@ contains
     real(8),dimension(0:im,0:jm),intent(inout) :: c  , cb
     real(8),dimension(0:im,0:jm),intent(in)    :: qsu, usta
 
-!$omp do
+!$omp do private( bet, alfx )
     do j = 1, ny
        if( usta(1,j)<=wf ) then
           c( 1,j) = 0.d0
           cb(1,j) = 0.d0
        else
-          bet=15. * wf / usta(1,j)
+          bet=15.d0 * wf / usta(1,j)
 !          alfx=alf(bet)
           call alf_s(alfx,bet)
           c( 1,j)=qsu(1,j) / (wf*alfx)
@@ -4576,7 +4575,7 @@ module vorticity_eq_m
 				vort(i,j) = an(i,j)*c_an(i,j)/sj(i,j)
 			end do
 		end do
-	
+
 	end subroutine vorticity_eq
 
 end module vorticity_eq_m
@@ -5939,7 +5938,7 @@ module qsucal_m
 						qsu(i,j) = 0.d0
 					else
 						call calomega(bs,tausta(i,j),ome)
-						qsu(i,j) = sk * ( als*rw/rs*ome*rsgd/tausta(i,j)**0.5-wf )*phi(i,j)*c_se(i,j)
+						qsu(i,j) = sk * ( als*rw/rs*ome*rsgd/tausta(i,j)**0.5d0-wf )*phi(i,j)*c_se(i,j)
 						if(qsu(i,j) < 1e-10) qsu(i,j)=0.d0
 					end if
 				end do
@@ -5953,7 +5952,7 @@ module qsucal_m
 						qsu(i,j) = 0.d0
 					else
 						de = dexp(-wf/usta(i,j))
-						qsu(i,j) = 5.5*(0.5*usta(i,j)/wf*de)**1.61/(1.d0+spec)/1000.d0*wf*phi(i,j)*c_se(i,j)
+						qsu(i,j) = 5.5*(0.5*usta(i,j)/wf*de)**1.61d0/(1.d0+spec)/1000.d0*wf*phi(i,j)*c_se(i,j)
 						if(qsu(i,j) < 1e-10) qsu(i,j)=0.d0
 					end if
 				end do
@@ -5999,7 +5998,7 @@ module qsucal_m
 							qsuk(i,j,k) = 0.d0
 						else
 							de = dexp(-wfk(k)/usta(i,j))
-							qsuk(i,j,k) = p_m(i,j,k)*5.5*(0.5*usta(i,j)/wfk(k)*de)**1.61/(1.d0+spec)/1000.d0*wfk(k)*phi(i,j)*c_se(i,j)
+							qsuk(i,j,k) = p_m(i,j,k)*5.5d0*(0.5d0*usta(i,j)/wfk(k)*de)**1.61d0/(1.d0+spec)/1000.d0*wfk(k)*phi(i,j)*c_se(i,j)
 							if( p_m(i,j,k)<=0.d0 .or. qsuk(i,j,k)<1e-10 ) qsuk(i,j,k) = 0.d0
 						end if
 					end do
@@ -6292,7 +6291,7 @@ contains
        do i=1,nx
           if(ijo_in(i,j) == 1.or.hs(i,j) < hmin) then
              snu(i,j) = 0.d0
-          else if(re(i,j) <= 500.) then
+          else if(re(i,j) <= 500.d0) then
              snu(i,j) = snu00
           else
              snu(i,j) = 0.4d0 / 6.d0 * usta(i,j) * hs(i,j)*a_snu+b_snu
@@ -8648,8 +8647,8 @@ contains
 
     	if( jrep==0 ) then
 !$omp do
-			do k=1,nk
-				do j=1,ny
+			do j=1,ny
+				do k=1,nk
 					qbxkc(   0,j,k) = qbxkc( 1,j,k)
 					qbxkc(nx+1,j,k) = qbxkc(nx,j,k)
 					qbykc(   0,j,k) = qbykc( 1,j,k)
@@ -8658,8 +8657,8 @@ contains
 			end do
     	else
 !$omp do
-			do k=1,nk
-				do j=1,ny
+			do j=1,ny
+				do k=1,nk
 					qbxkc(   0,j,k) = qbxkc(nx,j,k)
 					qbxkc(nx+1,j,k) = qbxkc( 1,j,k)
 					qbykc(   0,j,k) = qbykc(nx,j,k)
@@ -8669,8 +8668,8 @@ contains
     	end if
 
 !$omp do
-		do k=1,nk
-			do i=1,nx
+		do i=1,nx
+			do k=1,nk
 				qbxkc(i,   0,k) = qbxkc(i, 1,k)
 				qbxkc(i,ny+1,k) = qbxkc(i,ny,k)
 				qbykc(i,   0,k) = qbykc(i, 1,k)
@@ -9513,8 +9512,8 @@ contains
 		end do
 
 !$omp do
-		do k=1,nk
-			do i=1,nx
+		do i=1,nx
+			do k=1,nk
 				qvck(i, 0,k) = 0.d0
 				qvck(i,ny,k) = 0.d0
 			end do
@@ -11557,15 +11556,13 @@ Program Shimizu
 
 !$omp parallel
 
-  2000 continue
-
-!$omp barrier
+  do					!  Time loop
+!2000 continue
 
 !$omp single
-
-    icount = icount + 1
+    
     !-------------------------------------------
-    if( time <= 0.) then
+    if( time <= 0.d0 ) then
         h_input   = h_ups( 0)
         h_input_t = h_ups_t( 0)		!h101019 conf
         q_input   = q_ups( 0)
@@ -11622,7 +11619,8 @@ Program Shimizu
 
 !$omp end single
 
-      if ( icount == 1.or.mod(icount-1,kmod) == 0 ) then		!h time=0‚ào—Í
+!      if ( icount == 1.or.mod(icount-1,kmod) == 0 ) then		!h time=0‚ào—Í
+      if ( icount == 0.or.mod(icount,kmod) == 0 ) then		!h time=0‚ào—Í
          if( iofrg == 0 ) then
             iofrg = 1
             if( i_re_flag_i == 0 ) then
@@ -11678,6 +11676,7 @@ Program Shimizu
 		   if( j_qb_vec==0 ) then
             call uxxyycal( qb_xi, qb_et, qbxx, qbyy )
          else
+!$omp single
             qbxx( 0, 0) = qbxc( 1, 1)
             qbyy( 0, 0) = qbyc( 1, 1)
             qbxx( 0,ny) = qbxc( 1,ny)
@@ -11686,7 +11685,9 @@ Program Shimizu
             qbyy(nx, 0) = qbyc(nx, 1)
             qbxx(nx,ny) = qbxc(nx,ny)
             qbyy(nx,ny) = qbyc(nx,ny)
+!$omp end single
              
+!$omp do
             do j=1,ny-1
                qbxx( 0,j) = ( qbxc( 1,j)+qbxc( 1,j+1) )*0.5d0
                qbyy( 0,j) = ( qbyc( 1,j)+qbyc( 1,j+1) )*0.5d0
@@ -11694,6 +11695,7 @@ Program Shimizu
                qbyy(nx,j) = ( qbyc(nx,j)+qbyc(nx,j+1) )*0.5d0
             end do
            
+!$omp do
             do i=1,nx-1
                qbxx(i, 0) = ( qbxc(i, 1)+qbxc(i+1, 1) )*0.5d0
                qbyy(i, 0) = ( qbyc(i, 1)+qbyc(i+1, 1) )*0.5d0
@@ -11701,6 +11703,7 @@ Program Shimizu
                qbyy(i,ny) = ( qbyc(i,ny)+qbyc(i+1,ny) )*0.5d0
             end do
            
+!$omp do
             do j=1,ny-1
                do i=1,nx-1
                   qbxx(i,j) = ( qbxc(i,j)+qbxc(i+1,j)+qbxc(i,j+1)+qbxc(i+1,j+1) )*0.25d0
@@ -11717,6 +11720,8 @@ Program Shimizu
 		   end if
 		
 		   call cell2grid( phi, phi_g )
+
+!$omp barrier
 
 !$omp single
 
@@ -12025,10 +12030,19 @@ Program Shimizu
         end do
      end do
      !-------------------------------------------
-     if( icount-1 > kend ) goto 3000
-     time = dble( icount ) * dt
-     goto 2000
-3000 continue
+!     if( icount-1 > kend ) goto 3000
+     if(  icount > kend ) exit
+
+!$omp barrier
+
+!$omp single
+    icount	= icount + 1
+    time		= dble( icount ) * dt
+!$omp end single
+
+	end do
+!     goto 2000
+!3000 continue
 
 !$omp end parallel
 
