@@ -1262,13 +1262,13 @@ contains
 		real(8),intent(inout) :: u(0:im,0:jm)
 !
 		if(jrep == 0) then
-!$omp do
+!$omp do private(j)
 			do j=1, ny
 				u(nx,j) = u(nx-1,j)
 				if(u(nx,j) < 0.d0) u(nx,j) = 0.d0
 			end do
 		else
-!$omp do
+!$omp do private(j)
 			do j=1,ny
 				u(   0,j) = u(nx-3,j)
 				u(   1,j) = u(nx-2,j)
@@ -1277,7 +1277,7 @@ contains
 			end do
 		end if
 		!
-!$omp do
+!$omp do private(i,j)
 		do j=1,ny
 			do i=0,nx
 				u(i,j) = u(i,j)*ijobst_u(i,j)
@@ -1293,12 +1293,12 @@ contains
 		real(8),intent(inout) :: v(0:im,0:jm)
 		!
 		if(jrep == 0) then
-!$omp do
+!$omp do private(j)
 			do j=1, ny-1
 				v(nx,j) = v(nx-1,j)
 			end do
 		else
-!$omp do
+!$omp do private(j)
 			do j=1, ny-1
 				v(   0,j) = v(nx-3,j)
 				v(   1,j) = v(nx-2,j)
@@ -1309,13 +1309,13 @@ contains
 		!
 
 		if( j_conf<=1 ) then
-!$omp do
+!$omp do private(i)
 			do i=1,nx
 				v(i, 0) = 0.d0
 			v(i,ny) = 0.d0
 		end do
 	else if( j_conf==2 ) then
-!$omp do
+!$omp do private(i)
 		do i=1,nx
 			v(i,0) = 0.d0
 			if( i<=i_t1 .or. i>i_t2 ) then
@@ -1323,7 +1323,7 @@ contains
 			end if
 		end do
 	else if( j_conf==3 ) then
-!$omp do
+!$omp do private(i)
 		do i=1,nx
 			v(i,ny) = 0.d0
 			if( i<=i_t1 .or. i>i_t2 ) then
@@ -1332,7 +1332,7 @@ contains
 		end do
 	end if
 
-!$omp do
+!$omp do private(i,j)
 		do j=0,ny
 			do i=1,nx
 				v(i,j) = v(i,j)*ijobst_v(i,j)
@@ -1349,7 +1349,7 @@ contains
 		real(8),intent(inout) :: c(0:im,0:jm)
 
 		if (jrep == 1) then
-!$omp do
+!$omp do private(i,j)
 			do j = 1, ny
 				do i = 0, 1
 					c(i,j) = c(i+nx-3,j)
@@ -1361,13 +1361,13 @@ contains
 		end if
 
 		if( j_conf<2 ) then
-!$omp do
+!$omp do private(i)
 			do i=0,nx+1
 				c(i,   0) = 0.d0
 				c(i,ny+1) = 0.d0
 			end do
 		else
-!$omp do
+!$omp do private(i)
 			do i=0,nx+1
 				if( i<i_t1+1 .or. i>i_t2 ) then
 					c(i,j_t2+js1) = 0.d0
@@ -1376,7 +1376,7 @@ contains
 		end if
 
 		!
-!$omp do
+!$omp do private(i,j)
 		do j=1,ny
 			do i=1,nx
 				c(i,j) = c(i,j)*(1-ijo_in(i,j))
@@ -1393,7 +1393,7 @@ contains
 		real(8),intent(inout) :: yk(0:im,0:jm),yep(0:im,0:jm)
 		!
 		if (jrep == 1) then
-!$omp do
+!$omp do private(i,j)
 			do j=1,ny
 				do i=0,1
 					yk(i,j)=yk(i+nx-3,j)
@@ -1406,7 +1406,7 @@ contains
 			end do
 		end if
 
-!$omp do
+!$omp do private(i)
 		do i=0,nx+1
 			yk(i,   0)=0.d0
 			yk(i,ny+1)=0.d0
@@ -1414,7 +1414,7 @@ contains
 			yep(i,ny+1)=0.d0
 		end do
 		!
-!$omp do
+!$omp do private(i,j)
 		do j=1,ny
 			do i=1,nx
 				if(ijo_in(i,j) == 1) then
@@ -1433,7 +1433,7 @@ contains
 		real(8),intent(inout) :: strain(0:im,0:jm),ph(0:im,0:jm),pkv(0:im,0:jm),pev(0:im,0:jm)
 		!
 		if (jrep == 1) then
-!$omp do
+!$omp do private(i,j)
 			do j=1,ny
 				do i=0,1
 					strain(i,j)=strain(i+nx-3,j)
@@ -1461,7 +1461,7 @@ contains
 		real(8),intent(in)    :: eta(0:im,0:jm)
 		!
 		if(jrep == 1) then
-!$omp do
+!$omp do private(i,j)
 			do j=1, ny
 				do i=0 , 1
 					hs(i,j)=hs(i+nx-3,j)
@@ -1474,13 +1474,13 @@ contains
 			end do
 		end if
 
-!$omp do
+!$omp do private(i)
 		do i = 0, nx+1
 			h(i,   0) = h(i, 1)
 			h(i,ny+1) = h(i,ny)
 		end do
 		!
-!$omp do
+!$omp do private(i,j)
 		do j=1,ny
 			do i=1,nx
 				if(ijo_in(i,j) == 1) hs(i,j) = hmin
@@ -1496,7 +1496,7 @@ contains
 		real(8), dimension(0:im,0:jm), intent(inout) :: ff
 		
 		if( jrep==1 ) then
-!$omp do
+!$omp do private(i,j)
 			do j=1,ny
 				do i=0, 1
 					ff(i,j) = ff(i+nx-3,j)
@@ -1506,7 +1506,7 @@ contains
 				end do
 			end do
 		else
-!$omp do
+!$omp do private(j)
 			do j=1,ny
 				ff(   0,j) = ff( 1,j)
 				ff(nx+1,j) = ff(nx,j)
@@ -1521,14 +1521,14 @@ contains
 		integer :: i, j
 		real(8), dimension(0:im,0:jm), intent(inout) :: ff
 		
-!$omp do
+!$omp do private(i)
 		do i=1,nx
 			ff(i,   0) = 0.d0
 			ff(i,ny+1) = 0.d0
 		end do
 
 		if( j_conf>=2 ) then
-!$omp do
+!$omp do private(i)
 			do i=i_t1+1,i_t2
 				if( ijo_in(i,j_t2+js2)==0 ) then
 					ff(i,j_t2+js1) = ff(i,j_t2+js2)
@@ -1545,13 +1545,13 @@ contains
 		real(8), dimension(0:im,0:jm), intent(inout) :: ff
 
 		if( jrep==0 ) then
-!$omp do
+!$omp do private(j)
 			do j=1,ny
 				ff( 0,j) = ff(   1,j)
 				ff(nx,j) = ff(nx-1,j)
 			end do
 		else
-!$omp do
+!$omp do private(j)
 			do j=1,ny
 				ff(   0,j) = ff(nx-3,j)
 				ff(   1,j) = ff(nx-2,j)
@@ -2387,7 +2387,7 @@ module uvpcal_m
 		real(8),dimension(0:im,0:jm),intent(in)    :: u, v, hs
 		real(8),dimension(0:im,0:jm),intent(inout) :: up, vp
 
-!$omp do
+!$omp do private(i,j)
 		do j = 1, ny
 			do i = 1, nx
 				if( hs(i,j)<=hmin ) then
@@ -2419,7 +2419,7 @@ module uxuycal_m
 		real(8),dimension(0:im,0:jm),intent(in)    ::  up, vp
 		real(8),dimension(0:im,0:jm),intent(inout) ::  ux, uy
 
-!$omp do
+!$omp do private(i,j)
 		do j = 1, ny
 			do i = 1, nx
 				ux(i,j) = (  et_y(i,j)*up(i,j)-xi_y(i,j)*vp(i,j) ) / sj(i,j)
@@ -2457,7 +2457,7 @@ module voltexcal_m
 		real(8),dimension(0:im,0:jm),intent(in)    :: u, v
 		real(8),dimension(0:im,0:jm),intent(inout) :: vol
     !
-!$omp do
+!$omp do private(i,j)
 		do j=1, ny-1
 			do i=1, nx-1
 				dudy(i,j) = (-u(i,j)+u(i,j+1))*r_det &
@@ -2465,13 +2465,13 @@ module voltexcal_m
 			end do
 		end do
 
-!$omp do
+!$omp do private(i)
 		do i=1,nx-1
 			dudy(i, 0) = dudy(i,   1)
 			dudy(i,ny) = dudy(i,ny-1)
 		end do
     !
-!$omp do
+!$omp do private(i,j)
 		do j=0,ny
 			do i=1,nx-1
 				dvdx(i,j) = (-v(i,j)+v(i+1,j))*r_det &
@@ -2479,7 +2479,7 @@ module voltexcal_m
 			end do
 		end do
     !   
-!$omp do
+!$omp do private(i,j)
 		do j=0,ny
 			do i=1,nx-1
 				vol(i,j) = dvdx(i,j) - dudy(i,j)
@@ -2488,13 +2488,13 @@ module voltexcal_m
     !
     
 		if( jrep==0 ) then
-!$omp do
+!$omp do private(j)
 			do j=0,ny
 				vol( 0,j) = vol(   1,j)
 				vol(nx,j) = vol(nx-1,j)
 			end do
 		else
-!$omp do
+!$omp do private(i,j)
 			do j=0,ny
 				do i=0, 1
 					vol(i,j) = vol(i+nx-3,j)
@@ -2537,7 +2537,7 @@ contains
     real(8),dimension(0:im,0:jm),intent(inout) :: ux, uy
 
     !
-!$omp do
+!$omp do private(i)
     do i = 0, nx
       u_grid(i,0) = u(i,1)
       v_grid(i,0) = 0.d0
@@ -2552,7 +2552,7 @@ contains
       end if
     end do
 
-!$omp do
+!$omp do private(i,j)
     do j=1,ny-1
     	do i=0,nx
              u_grid(i,j) = ( u(i,j) + u(i,j+1) ) * 0.5d0
@@ -2560,7 +2560,7 @@ contains
         end do
     end do
     !
-!$omp do
+!$omp do private(i,j)
     do j = 0, ny
        do i = 0, nx
           ux(i,j) = ( et_y0(i,j)*u_grid(i,j)-xi_y0(i,j)*v_grid(i,j)) / sj0(i,j)
@@ -2599,7 +2599,7 @@ contains
 
 			!	—Ìˆæ‚Ì•Ó‚Ìê‡
 
-!$omp do
+!$omp do private(i)
 		do i=1,nx-1
 			hsxx(i, 0) = (hs(i, 1)+hs(i+1, 1))*0.5d0
 			hsxx(i,ny) = (hs(i,ny)+hs(i+1,ny))*0.5d0
@@ -2607,7 +2607,7 @@ contains
 			z(i,ny) = (eta(i,ny)+eta(i+1,ny))*0.5d0
 		end do
 
-!$omp do
+!$omp do private(j)
 		do j=1,ny-1
 			hsxx( 0,j) = (hs( 1,j)+hs( 1,j+1))*0.5d0
 			hsxx(nx,j) = (hs(nx,j)+hs(nx,j+1))*0.5d0
@@ -2617,7 +2617,7 @@ contains
 
 			!	—Ìˆæ“à•”‚Ìê‡
 
-!$omp do
+!$omp do private(i,j)
 		do j=1,ny-1
 			do i=1,nx-1
 				hsxx(i,j) = (hs(i,j)+hs(i+1,j)+hs(i,j+1)+hs(i+1,j+1))*.25d0
@@ -2645,7 +2645,7 @@ module func_fixed_bed
 
 	! --- calculate the thickness of movable bed --- !
 		
-!$omp do
+!$omp do private(i,j)
 		do j=1,ny
 			do i=1,nx
 				emb(i,j) = eta(i,j)-eta_zb(i,j)
@@ -2656,7 +2656,7 @@ module func_fixed_bed
 
 	! --- boundary condition for bank erosion --- !
 
-!$omp do
+!$omp do private(i)
 		do i=1,nx
 			phi(i, 0) = 1.d0
 			phi(i,ny+1) = 1.d0
@@ -2684,7 +2684,7 @@ contains
     integer :: i,j
     real(8), intent(in) :: snu00
     
-!$omp do
+!$omp do private(i,j)
     do j = 1, ny
        do i = 1, nx
           vti(i,j) = dsqrt( ux(i,j)**2 + uy(i,j)**2 )
@@ -2708,7 +2708,7 @@ contains
     integer :: i, j, k
     real(8) :: snu00, us_2, xi_ega
     
-!$omp do
+!$omp do private(i,j)
     do j = 1, ny
        do i = 1, nx
           vti(i,j)=dsqrt( ux(i,j)**2 + uy(i,j)**2 )
@@ -2763,9 +2763,10 @@ module hcal_v_m
     
 		real(8) :: qp, qc_ave, hs_ave, dh
 
-		if( qc_ave>0. ) then
+!$omp single
+		if( qc_ave>0.d0 ) then
 			dh = hs_ave * (qp/qc_ave-1.d0) * hv_alpha
-!$omp do
+!!$omp do
 			do j=1,ny
 				do i=1,nx
 					if(ijo_in(i,j) == 0) then
@@ -2776,6 +2777,7 @@ module hcal_v_m
 				end do
 			end do
 		end if
+!$omp end single
 
 	end subroutine hcal_v
 end module     hcal_v_m
@@ -2819,7 +2821,7 @@ module hcal_m
 
     !---------------------------------------------------------
     
-!$omp do
+!$omp do private(i,j)
 		do j=1,ny
 			do i=1,nx
 				whs(i,j) = hs(i,j)
@@ -2831,14 +2833,14 @@ module hcal_m
 			call uxuycal( up, vp, ux, uy )
 
 !$omp do private( i, j )
-		do j=0,ny+1
-			do i=0,nx+1
-				wu(i,j) = yun(i,j)
-				wv(i,j) = yvn(i,j)
+			do j=0,ny+1
+				do i=0,nx+1
+					wu(i,j) = yun(i,j)
+					wv(i,j) = yvn(i,j)
+				end do
 			end do
-		end do
 
-!$omp do private( hs_up, v_up, ux_up, uy_up, vv_up, c_xi, c_xi_shear, c_veg, h_veg, f_xi, dhdxi, dhdet, p_xi, hr, hl,hss,hsn,zs,zn)
+!$omp do private( i, j, hs_up, v_up, ux_up, uy_up, vv_up, c_xi, c_xi_shear, c_veg, h_veg, f_xi, dhdxi, dhdet, p_xi, hr, hl,hss,hsn,zs,zn)
 			do j=1, ny
 				do i=1, nx-1
 					hs_up = ( hs(i,j) + hs(i+1,j) ) * 0.5d0
@@ -2941,7 +2943,7 @@ module hcal_m
 			end do
        !
 
-!$omp do private( hs_vp, u_vp, ux_vp, uy_vp, vv_vp, c_et, c_et_shear, c_veg, h_veg, f_et, dhdxi, dhdet, p_et, hu, hd, eta_t_x,hse,hsw,ze,zw)
+!$omp do private( i, j, hs_vp, u_vp, ux_vp, uy_vp, vv_vp, c_et, c_et_shear, c_veg, h_veg, f_et, dhdxi, dhdet, p_et, hu, hd, eta_t_x,hse,hsw,ze,zw)
 			do j = 1, ny-1
 				do i = 1, nx
 					hs_vp = ( hs(i,j) + hs(i,j+1) ) * 0.5d0
@@ -3051,9 +3053,8 @@ module hcal_m
        !
 !$omp single
 			err = 0.d0
-!$omp end single
 
-!$omp do reduction( +:err ) private( div, hsta, serr )
+!!$omp do reduction( +:err ) private( i, j, div, hsta, serr )
 			do j = 1, ny
 				do i = 1, nx-1
 					if( ijo_in(i,j) == 1 ) goto 201
@@ -3074,6 +3075,7 @@ module hcal_m
 					201 continue
 				end do
 			end do
+!$omp end single
 
 			if( err < errmax ) exit
 
@@ -3150,7 +3152,7 @@ contains
     real(8) :: hhx1, hhx2, uvis, vvis
   !
   ! ------- uvix_x(i=1,nx,j=1,ny) ------
-!$omp do
+!$omp do private(i,j)
 		do j=1,ny
 			do i=1,nx
 				uvis_x(i,j)=snu(i,j)*(xi_r(i,j-1)+xi_r(i,j))*.5d0*(-yun(i-1,j)+yun(i,j))*r_dxi
@@ -3159,7 +3161,7 @@ contains
 
   ! ------- uvix_y(i=1,nx-1,j=0,ny) ------
 
-!$omp do private( hhx1, hhx2 )
+!$omp do private( i, j, hhx1, hhx2 )
     do i=1,nx
        do j=1,ny-1
           hhx1 = ( hs(i,j  ) + hs(i+1,j  ) ) * 0.5d0
@@ -3187,7 +3189,7 @@ contains
        end do
     end do
        !
-!$omp do
+!$omp do private(i)
    do i=1,nx
        uvis_y(i,ny) = - cw * yun(i,ny) * dabs(yun(i,ny) ) &
             / ( xi_r(i,ny-1) + xi_r(i+1,ny-1) ) * 2.d0
@@ -3197,7 +3199,7 @@ contains
   !
   !------- yun(i=1,nx-1 j=1,ny)------
 
-!$omp do private( uvis )
+!$omp do private( i, j, uvis )
 		do j=1,ny
 			do i=1,nx-1
 				uvis = (-uvis_x(i,j)+uvis_x(i+1,j))*r_dxi*xi_r_up(i,j)	&
@@ -3208,7 +3210,7 @@ contains
 
   ! ------ vvis_x(i=1,nx-1 j=1,ny-1)
 
-!$omp do private( hhx1, hhx2 )
+!$omp do private( i, j, hhx1, hhx2 )
     do j=1,ny-1
        do i=1,nx-1
           hhx1 = ( hs(i  ,j) + hs(i  ,j+1) ) * 0.5d0
@@ -3231,7 +3233,7 @@ contains
   !
   ! ------ vvis_y(i=2,nx-1 j=1,ny)
 
-!$omp do
+!$omp do private(i,j)
 		do j=1,ny
 			do i=2,nx-1
 				vvis_y(i,j) = snu(i,j)*(-yvn(i,j-1)+yvn(i,j))*r_det*(et_r(i-1,j)+et_r(i,j))*.5d0
@@ -3240,7 +3242,7 @@ contains
   !
   ! ------ yvn(i=2,nx-1 j=1,ny-1)
 
-!$omp do private( vvis )
+!$omp do private( i, j, vvis )
 		do j=1,ny-1
 			do i=2,nx-1
 				vvis = (-vvis_x(i-1,j)+vvis_x(i,j))*r_dxi*xi_r(i,j)		&
@@ -3251,7 +3253,7 @@ contains
   !
   ! ------ rep ------
     if(jrep == 1) then
-!$omp do
+!$omp do private(j)
        do j=1,ny
           yun(   0,j) = yun(nx-3,j)
           yun(   1,j) = yun(nx-2,j)
@@ -3305,13 +3307,13 @@ contains
 
     !
     ! ------- cvix_x(i=2,nx,j=1,ny) ------
-!$omp do
+!$omp do private(j)
     do j=1,ny
     	cvis_x( 0,j) = 0.d0
     	cvis_x(nx,j) = 0.d0
     end do
     
-!$omp do
+!$omp do private(i,j)
     do j=1,ny
        do i=1,nx-1
           if(hs(i,j) <= hmin.or.hs(i+1,j) <= hmin) then
@@ -3324,13 +3326,13 @@ contains
     
   !
   ! ------- cvix_y(i=1,nx,j=2,ny) ------
-!$omp do
+!$omp do private(i)
     do i=1,nx
     	cvis_y(i, 0) = 0.d0
     	cvis_y(i,ny) = 0.d0
     end do
     
-!$omp do
+!$omp do private(i,j)
     do j=1,ny-1
        do i=1,nx
           if(hs(i,j) <= hmin.or.hs(i,j+1) <= hmin) then
@@ -3342,7 +3344,7 @@ contains
     end do
   !
   !------- cn(i=2,nx-1 j=2,ny-1)------
-!$omp do private( cvis )
+!$omp do private( i, j, cvis )
     do j=1,ny
        do i=2,nx-1
           if( hs(i,j) <= hmin ) then
@@ -3372,7 +3374,7 @@ contains
     integer :: j
     real(8),intent(inout) :: yn(0:im,0:jm)
 
-!$omp do
+!$omp do private(j)
     do j=1,ny
        yn(   0,j) = yn(nx-3,j)
        yn(   1,j) = yn(nx-2,j)
@@ -3399,14 +3401,14 @@ contains
     real(8),dimension(0:im,0:jm),intent(inout) :: gux, guy
     !
 
-!$omp do
+!$omp do private(i,j)
 		do j=1,ny
 			do i=1,nx-1
 				gux(i,j) = gux(i,j)+(-yun(i-1,j)+yun(i+1,j)+yu(i-1,j)-yu(i+1,j))*0.5d0*r_dxi
 			end do
 		end do
 
-!$omp do
+!$omp do private(i,j)
 		do j=2,ny-1
 			do i=1,nx-1
 				guy(i,j) = (guy(i,j)+(-yun(i,j-1)+yun(i,j+1)	&
@@ -3431,7 +3433,7 @@ contains
     real(8),dimension(0:im,0:jm),intent(in)    :: yv , yvn
     real(8),dimension(0:im,0:jm),intent(inout) :: gvx, gvy
 
-!$omp do
+!$omp do private(i,j)
 		do j=1,ny-1
 			do i=2,nx-1
 					gvx(i,j) = (gvx(i,j)+(-yvn(i-1,j)+yvn(i+1,j)	&
@@ -3439,7 +3441,7 @@ contains
 			end do
 		end do
 
-!$omp do
+!$omp do private(i,j)
 		do j=1,ny-1
 			do i=1,nx
 				gvy(i,j) = gvy(i,j)+(-yvn(i,j-1)+yvn(i,j+1)+yv(i,j-1)-yv(i,j+1))*0.5d0*r_det
@@ -3461,7 +3463,7 @@ contains
     real(8),dimension(0:im,0:jm),intent(in)    :: yc , ycn
     real(8),dimension(0:im,0:jm),intent(inout) :: gcx, gcy
     !
-!$omp do
+!$omp do private(i,j)
     do j=1,ny
        do i=2,nx-1
           gcx(i,j) = gcx(i,j) &
@@ -3469,7 +3471,7 @@ contains
        end do
     end do
 
-!$omp do
+!$omp do private(i,j)
     do j=2,ny-1
        do i=1,nx
           gcy(i,j) = gcy(i,j) &
@@ -3522,7 +3524,7 @@ contains
     real(8),dimension(0:im,0:jm),intent(inout) :: c  , cb
     real(8),dimension(0:im,0:jm),intent(in)    :: qsu, usta
 
-!$omp do private( bet, alfx )
+!$omp do private( j, bet, alfx )
     do j = 1, ny
        if( usta(1,j)<=wf ) then
           c( 1,j) = 0.d0
@@ -3539,7 +3541,7 @@ contains
     end do
 
     if(j_conf.ge.2) then
-!$omp do private( i, j, bet, alfx )
+!$omp do private( i, bet, alfx )
        do i=i_t1+1,i_t2
           if( usta(i,j_t2+js2)<=wf ) then
              c(i,j_t2+js2) = 0.d0
@@ -3570,7 +3572,7 @@ contains
 		real(8),dimension(0:im,0:jm,nk),intent(in)    :: qsuk
 		real(8),dimension(0:im,0:jm,nk),intent(inout) :: ck, cbk
 
-!$omp do private( i, j, bet, alfx )
+!$omp do private( j, k, bet, alfx )
 		do j=1,ny
 			do k=1,nk
 				if( usta(1,j)<=wfk(k) ) then
@@ -3589,7 +3591,7 @@ contains
 		end do
 
     if( j_conf>=2 ) then
-!$omp do private( i, j, bet, alfx )
+!$omp do private( i, k, bet, alfx )
        do i=i_t1+1,i_t2
           do k=1,nk
              if( usta(i,j_t2+js2)<=wfk(k) ) then
@@ -3658,7 +3660,7 @@ contains
     real(8),dimension(0:im,0:jm),intent(inout) :: f, gx, gy
 
     !
-!$omp do private( et_x )
+!$omp do private( i, j, et_x )
     do j=1,ny
        do i=1,nx-1
           u(i,j) = yu(i,j) 
@@ -3667,7 +3669,7 @@ contains
        end do
     end do
     !
-!$omp do
+!$omp do private(j)
     do j=1,ny
        u( 0,j) = u(   1,j)
        v( 0,j) = v(   1,j)
@@ -3675,7 +3677,7 @@ contains
        v(nx,j) = v(nx-1,j)
     end do
 
-!$omp do
+!$omp do private(i)
     do i=0,nx
        u(i,   0) = u(i, 1)
        v(i,   0) = v(i, 1)
@@ -3740,7 +3742,7 @@ contains
     real(8),dimension(0:im,0:jm),intent(inout) :: f, gx, gy
 
     !
-!$omp do private( et_x )
+!$omp do private( i, j, et_x )
     do j=1,ny
        do i=1,nx-1
           u(i,j) = yu(i,j)
@@ -3749,7 +3751,7 @@ contains
        end do
     end do
     !
-!$omp do
+!$omp do private(j)
     do j =1,ny
        u(   0,j) = u( 1,j)
        v(   0,j) = v( 1,j)
@@ -3757,7 +3759,7 @@ contains
        v(nx+1,j) = v(nx,j)
     end do
 
-!$omp do
+!$omp do private(i)
     do i = 0,nx+1
        u(i,   0) =  u(i, 1)
        v(i,   0) = -v(i, 1)
@@ -3765,7 +3767,7 @@ contains
        v(i,ny+1) = -v(i,ny)
     end do
     !
-!$omp do private( u_dfdx, v_dfdy )
+!$omp do private( i, j, u_dfdx, v_dfdy )
     do j=1,ny
        do i=1,nx-1
 			u_dfdx = ((u(i,j)+dabs(u(i,j)))*(-f(i-1,j)+f(i,j))		&
@@ -3776,7 +3778,7 @@ contains
        end do
     end do
     !
-!$omp do
+!$omp do private(i,j)
     do j=1,ny
        do i=1,nx-1
           f(i,j) = fn(i,j)
@@ -3800,7 +3802,7 @@ contains
     real(8),dimension(0:im,0:jm),intent(inout) :: f, gx, gy
 
     !
-!$omp do private( et_x )
+!$omp do private( i, j, et_x )
     do j=1,ny-1
        do i=1,nx
           u(i,j) = 0.25d0 * ( yu(i,j)+yu(i-1,j)+yu(i,j+1)+yu(i-1,j+1) )
@@ -3809,7 +3811,7 @@ contains
        end do
     end do
     !
-!$omp do
+!$omp do private(j)
     do j = 1, ny-1
        u(   0,j) = u( 1,j)
        v(   0,j) = v( 1,j)
@@ -3817,7 +3819,7 @@ contains
        v(nx+1,j) = v(nx,j)
     end do
 
-!$omp do
+!$omp do private(i)
     do i = 0, nx
        u(i,   0) = u(i, 1)
        v(i,   0) = 0.d0
@@ -3885,7 +3887,7 @@ contains
     real(8),dimension(0:im,0:jm),intent(inout) :: f, gx, gy
 
     !
-!$omp do private( et_x )
+!$omp do private( i, j, et_x )
     do j = 1, ny-1
        do i = 1, nx
           u(i,j) = 0.25d0 * ( yu(i,j)+yu(i-1,j)+yu(i,j+1)+yu(i-1,j+1) )
@@ -3894,7 +3896,7 @@ contains
        end do
     end do
     !
-!$omp do
+!$omp do private(j)
     do j =1,ny-1
        u(   0,j)=u( 1,j)
        v(   0,j)=v( 1,j)
@@ -3902,7 +3904,7 @@ contains
        v(nx+1,j)=v(nx,j)
     end do
 
-!$omp do
+!$omp do private(i)
     do i = 0,nx
        u(i,   0)= u(i, 1)
        v(i,   0)= v(i, 1)
@@ -3911,7 +3913,7 @@ contains
     end do
     !
 
-!$omp do private(u_dfdx,v_dfdy)
+!$omp do private(i,j,u_dfdx,v_dfdy)
     do j=1,ny-1
        do i=1,nx
 			u_dfdx = ((u(i,j)+dabs(u(i,j)))*(-f(i-1,j)+f(i,j))		&
@@ -3922,7 +3924,7 @@ contains
        end do
     end do
     !
-!$omp do
+!$omp do private(i,j)
     do j=1,ny-1
        do i=1,nx
           f( i,j) = fn(i,j)
@@ -3944,7 +3946,7 @@ contains
     real(8),dimension(0:im,0:jm),intent(inout) :: f, gx, gy
 
     !
-!$omp do
+!$omp do private(i,j)
     do j=1,ny
        do i=1,nx
           u(i,j)=up(i,j)
@@ -3952,7 +3954,7 @@ contains
        end do
     end do
     !
-!$omp do
+!$omp do private(j)
     do j =1,ny
        u(   0,j)=u( 1,j)
        v(   0,j)=v( 1,j)
@@ -3960,7 +3962,7 @@ contains
        v(nx+1,j)=v(nx,j)
     end do
 
-!$omp do
+!$omp do private(i)
     do i = 0,nx+1
        u(i,   0)= u(i, 1)
        v(i,   0)=-v(i, 1)
@@ -4026,7 +4028,7 @@ contains
     real(8),dimension(0:im,0:jm),intent(inout) :: f, gx, gy
 
     !
-!$omp do
+!$omp do private(i,j)
     do j=1,ny
        do i=1,nx
           u(i,j)=up(i,j)
@@ -4034,7 +4036,7 @@ contains
        end do
     end do
     !
-!$omp do
+!$omp do private(j)
     do j =1,ny
        u(   0,j)=u( 1,j)
        v(   0,j)=v( 1,j)
@@ -4042,7 +4044,7 @@ contains
        v(nx+1,j)=v(nx,j)
     end do
 
-!$omp do
+!$omp do private(i)
     do i = 0,nx+1
        u(i,   0)= u(i, 1)
        v(i,   0)=-v(i, 1)
@@ -4062,7 +4064,7 @@ contains
        end do
     end do
     !
-!$omp do
+!$omp do private(i,j)
     do j=1,ny
        do i=1,nx
           f( i,j)=fn(i,j)
@@ -4093,7 +4095,7 @@ contains
 !       end do
 !    end do
 
-!$omp do
+!$omp do private(i,j)
     do j=0,ny+1
        do i=0,nx+1
           y(i,j) = yn(i,j)
@@ -4116,7 +4118,7 @@ contains
 !       end do
 !    end do
 
-!$omp do
+!$omp do private(i,j)
     do j=0,ny+1
        do i=0,nx+1
           y(i,j) = yn(i,j)
@@ -4132,7 +4134,7 @@ contains
     real(8),dimension(0:im,0:jm),intent(in)    :: yn
     real(8),dimension(0:im,0:jm),intent(inout) :: y
 
-!$omp do
+!$omp do private(i,j)
     do j=1,ny
        do i=1,nx
           y(i,j) = yn(i,j)
@@ -4148,7 +4150,7 @@ contains
     real(8),dimension(0:im,0:jm),intent(in)    :: yn
     real(8),dimension(0:im,0:jm),intent(inout) :: y
 
-!$omp do
+!$omp do private(i,j)
     do j=1,ny
        do i=1,nx
           y(i,j) = yn(i,j)
@@ -4164,7 +4166,7 @@ contains
     real(8),dimension(0:im,0:jm),intent(in)    :: hn
     real(8),dimension(0:im,0:jm),intent(inout) :: h
 
-!$omp do
+!$omp do private(i,j)
     do j=1,ny
        do i=1,nx-1
           h(i,j) = hn(i,j)
@@ -4189,7 +4191,7 @@ contains
     real(8),dimension(0:im,0:jm),intent(inout) :: u, gx, gy
     real(8),dimension(0:im,0:jm),intent(in)    :: hs
 
-!$omp do
+!$omp do private(i,j)
     do j=1,ny
        do i=1,nx-1
           if(     hs(i  ,j)<=hmin.and.hs(i+1,j)<=hmin ) then
@@ -4218,7 +4220,7 @@ contains
     real(8),dimension(0:im,0:jm),intent(inout) :: v, gx, gy
     real(8),dimension(0:im,0:jm),intent(in)    :: hs
 
-!$omp do
+!$omp do private(i,j)
     do j=1,ny-1
        do i=1,nx
           if(     hs(i,j  ) <= hmin.and.hs(i,j+1) <= hmin ) then
@@ -4247,7 +4249,7 @@ contains
     real(8),dimension(0:im,0:jm),intent(inout) :: c, gx, gy
     real(8),dimension(0:im,0:jm),intent(in)    :: hs
     
-!$omp do
+!$omp do private(i,j)
     do j=1,ny
        do i=1,nx
           if(hs(i,j) <= hmin.or.c(i,j) < 0.d0) then
@@ -4357,7 +4359,7 @@ contains
     end do
     !
     if(jrep == 1) then
-!$omp do
+!$omp do private(j)
        do j = 1, ny
           sr(   0,j) = sr(nx-3,j)
           sr(   1,j) = sr(nx-2,j)
@@ -4367,7 +4369,7 @@ contains
     end if
 
     if( j_sf==0 ) then
-!$omp do
+!$omp do private(i,j)
 		do j=1,ny
 			do i=1,nx
 				if( vti(i,j)<1e-8.or.hs(i,j)<hmin ) then
@@ -4488,7 +4490,7 @@ module vorticity_eq_m
 		call boundi_scalar( uxi_bed )
 		call boundi_scalar( un_bed )
 
-!$omp do
+!$omp do private(i,j)
 		do j=1,ny
 			do i=0,nx
 				uxi_surf_up(i,j) = ( uxi_surf(i,j)+ uxi_surf(i+1,j))*0.5d0*ijobst_u(i,j)
@@ -4496,7 +4498,7 @@ module vorticity_eq_m
 			end do
 		end do
 		
-!$omp do
+!$omp do private(i,j)
 		do j=1,ny-1
 			do i=1,nx
 				uet_surf_vp (i,j) = ( uet_surf(i,j)+ uet_surf(i,j+1))*0.5d0*ijobst_v(i,j)
@@ -4504,7 +4506,7 @@ module vorticity_eq_m
 			end do
 		end do
 		
-!$omp do
+!$omp do private(i)
 		do i=1,nx
 			uet_surf_vp(i, 0) = 0.d0
 			uet_bed_vp (i, 0) = 0.d0
@@ -4513,7 +4515,7 @@ module vorticity_eq_m
 		end do
 
 		if( j_conf>=2 ) then
-!$omp do
+!$omp do private(i)
 			do i=i_t1+1,i_t2
 				if( ijo_in(i,j_t2+js2)==0 ) then
 					uet_surf_vp(i,j_t2) = uet_surf_vp(i,j_t2-jxd)
@@ -4522,7 +4524,7 @@ module vorticity_eq_m
 			end do
 		end if
 
-!$omp do
+!$omp do private(i,j)
 		do j=1,ny
 			do i=1,nx-1
 				uxisuns(i,j) = ( (uxi_surf_up(i,j)+dabs(uxi_surf_up(i,j)))*un_surf(i  ,j)/sj(i  ,j)				&
@@ -4535,7 +4537,7 @@ module vorticity_eq_m
 		call bound_up( uxisuns )
 		call bound_up( uxibunb )
 
-!$omp do
+!$omp do private(i,j)
 		do j=1,ny-1
 			do i=1,nx
 				uetsuns(i,j) = ( (uet_surf_vp(i,j)+dabs(uet_surf_vp(i,j)))*un_surf(i,j  )/sj(i,j  )				&
@@ -4545,7 +4547,7 @@ module vorticity_eq_m
 			end do
 		end do
 		
-!$omp do
+!$omp do private(i)
 		do i=1,nx
 			uetsuns(i, 0) = 0.d0
 			uetsuns(i,ny) = 0.d0
@@ -4554,7 +4556,7 @@ module vorticity_eq_m
 		end do
 
 		if( j_conf>=2 ) then
-!$omp do
+!$omp do private(i)
 			do i=i_t1+1,i_t2
 				if( ijo_in(i,j_t2+js2)==0 ) then
 					uetsuns(i,j_t2) = uetsuns(i,j_t2-jxd)
@@ -4743,7 +4745,7 @@ contains
 
     !
     if( j_bedload==0 ) then
-!$omp do
+!$omp do private(i,j)
     	do j=1,ny
     		do i=1,nx
     			if( tausta(i,j)<=tsc ) then
@@ -4823,7 +4825,7 @@ contains
 	    end do
 
     	if(jrep == 1) then
-!$omp do
+!$omp do private(j)
        		do j=1, ny
           		qb_xi(   0,j) = qb_xi(nx-3,j)
           		qb_xi(   1,j) = qb_xi(nx-2,j)
@@ -4831,7 +4833,7 @@ contains
           		qb_xi(nx  ,j) = qb_xi(   3,j)
        		end do
     	else
-!$omp do
+!$omp do private(j)
        		do j=1, ny
           		qb_xi( 0,j) = qb_xi(   1,j)
           		qb_xi(nx,j) = qb_xi(nx-1,j)
@@ -4927,7 +4929,7 @@ contains
 	    end do
 
     	if( jrep == 1 ) then
-!$omp do
+!$omp do private(j)
        		do j = 0, ny
           		qb_et(   0,j) = qb_et(nx-3,j)
           		qb_et(   1,j) = qb_et(nx-2,j)
@@ -4935,7 +4937,7 @@ contains
           		qb_et(nx  ,j) = qb_et(   3,j)
        		end do
     	else
-!$omp do
+!$omp do private(j)
        		do j = 0, ny
           		qb_et(   1,j) = qb_et(   2,j)
           		qb_et(nx  ,j) = qb_et(nx-1,j)
@@ -4943,13 +4945,13 @@ contains
     	end if
     !
     	if( j_conf>=2 ) then
-!$omp do
+!$omp do private(i)
        		do i=i_t1+1,i_t2
           		qb_et(i,j_t2)=qb_et(i,j_t2-jxd)
        		end do
     	end if
 
-!$omp do
+!$omp do private(i,j)
     	do j=1,ny
       	do i=1,nx
         		if( ijo_in(i,j)==1 ) then
@@ -4987,7 +4989,7 @@ contains
     	end do
 
     	if( jrep==0 ) then
-!$omp do
+!$omp do private(j)
 			do j=1,ny
 				qbxc(   0,j) = qbxc( 1,j)
 				qbxc(nx+1,j) = qbxc(nx,j)
@@ -4995,7 +4997,7 @@ contains
 				qbyc(nx+1,j) = qbyc(nx,j)
 			end do
     	else
-!$omp do
+!$omp do private(j)
 			do j=1,ny
 				qbxc(   0,j) = qbxc(nx,j)
 				qbxc(nx+1,j) = qbxc( 1,j)
@@ -5004,7 +5006,7 @@ contains
 			end do
     	end if
 
-!$omp do
+!$omp do private(i)
 		do i=1,nx
 			qbxc(i,   0) = qbxc(i, 1)
 			qbxc(i,ny+1) = qbxc(i,ny)
@@ -5120,7 +5122,7 @@ contains
 	    end do
 	end if
 
-!$omp do
+!$omp do private(i,j)
 		do j=1,ny
 			do i=1,nx
 				if( dex(i,j)+emb(i,j)<0.d0 ) dex(i,j) = 0.d0
@@ -5128,13 +5130,13 @@ contains
 		end do
     !
     if( jrep == 1 ) then
-!$omp do
+!$omp do private(i,j)
        do j = 1, ny
           do i = 0,  1
              dex(i,j) = dex(i+nx-3,j)
           end do
        end do
-!$omp do
+!$omp do private(i,j)
        do j =    1, ny
           do i = nx-1, nx+1
              dex(i,j) = dex(i-nx+3,j)
@@ -5142,20 +5144,20 @@ contains
        end do
     else
        if( j_qbup==0 ) then
-!$omp do
+!$omp do private(i,j)
           do j = 1, ny
              do i = 0,  1
                dex(i,j) = 0.d0
              end do
           end do
        else
-!$omp do
+!$omp do private(j)
           do j=1,ny
              dex(1,j) = dex(2,j)
              dex(0,j) = dex(1,j)
           end do
        end if
-!$omp do
+!$omp do private(j)
        do j=1, ny
           dex(nx,j) = dex(nx-1,j)
        end do
@@ -5163,19 +5165,19 @@ contains
     !
     if( j_conf>=2 ) then
        if( j_qbup==0 ) then
-!$omp do
+!$omp do private(i)
          do i=i_t1+1,i_t2
            dex(i,j_t2+js2) = 0.d0
          end do
        else
-!$omp do
+!$omp do private(i)
          do i=i_t1+1,i_t2
            dex(i,j_t2+js2) = dex(i,j_t2+js2-jxd)
          end do
        end if
     end if
     !
-!$omp do
+!$omp do private(i,j)
     do j = 1, ny
        do i = 1, nx
           if( ijo_in(i,j)==0 ) then
@@ -5190,7 +5192,7 @@ contains
     end do
     !
     if(jrep == 1) then
-!$omp do
+!$omp do private(i,j)
        do j = 1, ny
           do i = 0,  1
              eta(i,j) = eta0(i,j) + ( eta(i+nx-3,j) - eta0(i+nx-3,j) )
@@ -5230,7 +5232,7 @@ contains
        		end do
     	end do
     else
-!$omp do
+!$omp do private(i,j)
     	do j=1,ny
     		do i=1,nx
     			dex(i,j) = dex(i,j)-dt*dsmt*(qsu(i,j)-wf*cb(i,j))*csm
@@ -5238,7 +5240,7 @@ contains
     	end do
     end if
 
-!$omp do
+!$omp do private(i,j)
 		do j=1,ny
 			do i=1,nx
 				if( dex(i,j)+emb(i,j)<0.d0 ) dex(i,j) = 0.d0
@@ -5246,14 +5248,14 @@ contains
 		end do
     !
     if(jrep == 1) then
-!$omp do
+!$omp do private(i,j)
        do j=1,ny
           do i=0,1
              dex(i,j) = dex(i+nx-3,j)
           end do
        end do
 
-!$omp do
+!$omp do private(i,j)
        do j=1,ny
           do i=nx-1, nx+1
              dex(i,j) = dex(i-nx+3,j)
@@ -5261,20 +5263,20 @@ contains
        end do
     else
        if( j_qbup==0 ) then
-!$omp do
+!$omp do private(i,j)
           do j = 1, ny
              do i = 0,  1
                dex(i,j) = 0.d0
              end do
           end do
        else
-!$omp do
+!$omp do private(j)
           do j=1,ny
              dex(1,j) = dex(2,j)
              dex(0,j) = dex(1,j)
           end do
        end if
-!$omp do
+!$omp do private(j)
        do j=1, ny
           dex(nx,j) = dex(nx-1,j)
        end do
@@ -5282,19 +5284,19 @@ contains
     !
     if( j_conf>=2 ) then
        if( j_qbup==0 ) then
-!$omp do
+!$omp do private(i)
          do i=i_t1+1,i_t2
            dex(i,j_t2+js2) = 0.d0
          end do
        else
-!$omp do
+!$omp do private(i)
          do i=i_t1+1,i_t2
            dex(i,j_t2+js2) = dex(i,j_t2+js2-jxd)
          end do
        end if
     end if
     !
-!$omp do
+!$omp do private(i,j)
     do j = 1, ny
        do i = 1, nx
           if( ijo_in(i,j)==0 ) then
@@ -5309,7 +5311,7 @@ contains
     end do
     !
     if(jrep == 1) then
-!$omp do
+!$omp do private(j)
        do j = 1, ny
           do i = 0,  1
              eta(i,j) = eta0(i,j) + ( eta(i+nx-3,j)-eta0(i+nx-3,j) )
@@ -6130,7 +6132,7 @@ module c_transport_m
 
   ! ---- advection term of suspended sediment transport --- !
 
-!$omp do
+!$omp do private(i,j)
       do j=1,ny
         do i=1,nx-1
           if( ijo_in(i,j)==1 .or. ijo_in(i+1,j)==1 ) then
@@ -6142,13 +6144,13 @@ module c_transport_m
         end do
       end do
 
-!$omp do
+!$omp do private(j)
       do j=1,ny
         quc( 0,j) = q_xi( 0,j)*ycn( 0,j)
         quc(nx,j) = q_xi(nx,j)*ycn(nx,j)
       end do
 
-!$omp do
+!$omp do private(i,j)
       do j=1,ny-1
         do i=1,nx
           if( ijo_in(i,j)==1 .or. ijo_in(i,j+1)==1 ) then
@@ -6160,14 +6162,14 @@ module c_transport_m
         end do
       end do
 
-!$omp do
+!$omp do private(i)
       do i=1,nx
           qvc(i,0) = 0.d0
           qvc(i,ny) = 0.d0
       end do
 
 		if( j_conf>=2 ) then
-!$omp do
+!$omp do private(i)
 			do i=i_t1+1,i_t2
 				if( ijo_in(i,j_t2+js2)==0 ) then
 					qvc(i,j_t2) = q_et(i,j_t2)*ycn(i,j_t2+js1)
@@ -6175,14 +6177,14 @@ module c_transport_m
 			end do
 		end if
 !
-!$omp do
+!$omp do private(i,j)
       do j=1,ny
         do i=1,nx
           dcdxi(i,j) = -(-quc(i-1,j)+quc(i,j))*r_dxi
         end do
       end do
 
-!$omp do
+!$omp do private(i,j)
       do j=1,ny
         do i=1,nx
           dcdet(i,j) = -(-qvc(i,j-1)+qvc(i,j))*r_det
@@ -6286,7 +6288,7 @@ contains
     real(8),dimension(0:im,0:jm),intent(in)    :: usta, hs
     real(8),dimension(0:im,0:jm),intent(inout) :: snu, snu_x
 
-!$omp do
+!$omp do private(i,j)
     do j=1,ny
        do i=1,nx
           if(ijo_in(i,j) == 1.or.hs(i,j) < hmin) then
@@ -6300,7 +6302,7 @@ contains
        end do
     end do
     !
-!$omp do
+!$omp do private(i,j)
     do j=1,ny-1
        do i=1,nx-1
          snu_x(i,j) = (snu(i,j)+snu(i+1,j)+snu(i,j+1)+snu(i+1,j+1))*0.25d0*(1-ijobst(i,j))
@@ -6963,7 +6965,7 @@ contains
     real(8),dimension(0:im,0:jm),intent(in)    :: hs, yk, yep
     real(8),dimension(0:im,0:jm),intent(inout) :: snu, snu_x
     !
-!$omp do
+!$omp do private(i,j)
     do j=1,ny
        do i=1,nx
           if(ijo_in(i,j) == 1.or.hs(i,j) < hmin) then
@@ -6980,7 +6982,7 @@ contains
        end do
     end do
     !
-!$omp do
+!$omp do private(i,j)
     do j=1,ny-1
        do i=1,nx-1
          snu_x(i,j)=(snu(i,j)+snu(i+1,j)+snu(i,j+1)+snu(i+1,j+1))*.25d0*(1-ijobst(i,j))
@@ -7005,7 +7007,7 @@ contains
     real(8),dimension(0:im,0:jm),intent(in)    :: yk, yep, hs
     real(8),dimension(0:im,0:jm),intent(inout) :: ykn
 
-!$omp do
+!$omp do private(i,j)
     do j = 1, ny
        do i = 1, nx
           if( hs(i,j) > hmin.and.ijo_in(i,j) == 0 ) then
@@ -7026,7 +7028,7 @@ contains
     real(8),dimension(0:im,0:jm),intent(in)    :: yep, yk, hs
     real(8),dimension(0:im,0:jm),intent(inout) :: yepn
 
-!$omp do
+!$omp do private(i,j)
     do j=1,ny
        do i=1,nx
           if(hs(i,j) > hmin.and.yk(i,j) > 0.d0.and.ijo_in(i,j) /= 1) then
@@ -7141,7 +7143,7 @@ contains
     real(8),dimension(0:im,0:jm),intent(in) :: usta
     real(8)                     ,intent(in) :: h0, snu00
 
-!$omp do
+!$omp do private(i,j)
     do j=1,ny
        do i=1,nx
           y_plus(i,j) = rho*y_dis(i,j)*usta(i,j)/snu00*(1-ijo_in(i,j))
@@ -7166,7 +7168,7 @@ contains
     real(8),dimension(0:im,0:jm),intent(in)    :: usta
     real(8),dimension(0:im,0:jm),intent(inout) :: yk, yep
 
-!$omp do
+!$omp do private(i,j)
     do j = 1, ny
        do i = 1, nx
           if(y_plus(i,j) <= 30.d0) then
@@ -7806,20 +7808,20 @@ module cell2grid_m
 		f_g(nx,ny) = f_c(nx,ny)
 
 			!	—Ìˆæ‚Ì•Ó‚Ìê‡
-!$omp do
+!$omp do private(i)
 		do i=1,nx-1
 			f_g(i, 0) = (f_c(i, 1)+f_c(i+1, 1))*0.5d0
 			f_g(i,ny) = (f_c(i,ny)+f_c(i+1,ny))*0.5d0
 		end do
 
-!$omp do
+!$omp do private(j)
 		do j=1,ny-1
 			f_g( 0,j) = (f_c( 1,j)+f_c( 1,j+1))*0.5d0
 			f_g(nx,j) = (f_c(nx,j)+f_c(nx,j+1))*0.5d0
 		end do
 
 			!	—Ìˆæ“à•”‚Ìê‡
-!$omp do
+!$omp do private(i,j)
 		do j=1,ny-1
 			do i=1,nx-1
 				f_g(i,j) = (f_c(i,j)+f_c(i+1,j)+f_c(i,j+1)+f_c(i+1,j+1))*.25d0
@@ -8428,7 +8430,7 @@ contains
 		end do
     !
 		if( jrep==1 ) then
-!$omp do
+!$omp do private(j,k)
 			do j=1,ny
 				do k=1,nk
 					qb_xi_mix(0,j,k) = qb_xi_mix(nx-3,j,k)
@@ -8438,7 +8440,7 @@ contains
 				end do
 			end do
 		else
-!$omp do
+!$omp do private(j,k)
 			do j=1,ny
 				do k=1,nk
 					qb_xi_mix(0,j,k) = qb_xi_mix(1,j,k)
@@ -8450,7 +8452,7 @@ contains
     !
     ! ------- qb_et_mix -------------------------
     !
-!$omp do private( i, j, j1, j2, xr, er, vvvp, ubvp, dzdet, cost, dzdxi, bh0, bh_alpha, qb, tsi_vp, tsci_vp, qbet )
+!$omp do private( i, j, k, j1, j2, xr, er, vvvp, ubvp, dzdet, cost, dzdxi, bh0, bh_alpha, qb, tsi_vp, tsci_vp, qbet )
 		do i=2,nx-1
 			if( j_bank == 0 .or. i <= i_erosion_start .or. i >= nx-i_erosion_end ) then
 				j1 = 1
@@ -8549,7 +8551,7 @@ contains
 		end do
 
 		if(j_conf>=2) then
-!$omp do
+!$omp do private(i,k)
 			do i=i_t1+1,i_t2
 				do k=1,nk
 					qb_et_mix(i,j_t2,k) = qb_et_mix(i,j_t2-jxd,k)
@@ -8559,7 +8561,7 @@ contains
    
    !
 		if(jrep == 1) then
-!$omp do
+!$omp do private(j,k)
 			do j=0,ny
 				do k=1,nk
 					qb_et_mix(0,j,k) = qb_et_mix(nx-3,j,k)
@@ -8569,7 +8571,7 @@ contains
 				end do
 			end do
 		else
-!$omp do
+!$omp do private(j,k)
 			do j=0,ny
 				do k=1,nk
 					qb_et_mix(1,j,k) = qb_et_mix(2,j,k)
@@ -8578,7 +8580,7 @@ contains
 			end do
 		end if
 
-!$omp do
+!$omp do private(i,j,k)
 		do j=1,ny
 			do i=1,nx
 				if( ijo_in(i,j)==1 ) then
@@ -8592,14 +8594,14 @@ contains
 			end do
 		end do
     
-!$omp do
+!$omp do private(i,j)
 		do j=1,ny
 			do i=0,nx
 				qb_xi(i,j) = 0.d0
 			end do
 		end do
     
-!$omp do
+!$omp do private(i,j,k)
 		do j=1,ny
 			do i=0,nx
 				do k=1,nk
@@ -8608,14 +8610,14 @@ contains
 			end do
 		end do
 	
-!$omp do
+!$omp do private(i,j)
 		do j=0,ny
 			do i=1,nx
 				qb_et(i,j) = 0.d0
 			end do
 		end do
     
-!$omp do
+!$omp do private(i,j,k)
 		do j=0,ny
 			do i=1,nx
 				do k=1,nk
@@ -8626,7 +8628,7 @@ contains
 
 	else
 	
-!$omp do private(i,j,d_sed1,d_sed2,beta_a,coss,sins)
+!$omp do private(i,j,k,d_sed1,d_sed2,beta_a,coss,sins)
     	do j=1,ny
     		do k=1,nk
     			do i=1,nx
@@ -8646,7 +8648,7 @@ contains
     	end do
 
     	if( jrep==0 ) then
-!$omp do
+!$omp do private(j,k)
 			do j=1,ny
 				do k=1,nk
 					qbxkc(   0,j,k) = qbxkc( 1,j,k)
@@ -8656,7 +8658,7 @@ contains
 				end do
 			end do
     	else
-!$omp do
+!$omp do private(j,k)
 			do j=1,ny
 				do k=1,nk
 					qbxkc(   0,j,k) = qbxkc(nx,j,k)
@@ -8667,7 +8669,7 @@ contains
 			end do
     	end if
 
-!$omp do
+!$omp do private(i,k)
 		do i=1,nx
 			do k=1,nk
 				qbxkc(i,   0,k) = qbxkc(i, 1,k)
@@ -8677,7 +8679,7 @@ contains
 			end do
 		end do
 		
-!$omp do
+!$omp do private(i,j,k)
 		do j=0,ny+1
 			do i=0,nx+1
 				qbxc(i,j) = 0.d0
@@ -8689,7 +8691,7 @@ contains
 			end do
 		end do
 
-!$omp do private(i,j,qbxi1,qbxi2,qbet1,qbet2,qbx_xi1,qby_xi1,qbx_et1,qby_et1,	&
+!$omp do private(i,j,k,qbxi1,qbxi2,qbet1,qbet2,qbx_xi1,qby_xi1,qbx_et1,qby_et1,	&
 !$omp& qbx_xi2,qby_xi2,qbx_et2,qby_et2,xi_x1,xi_y1,xi_x2,xi_y2,et_x1,et_y1,		&
 !$omp& et_x2,et_y2,sj_xi1,sj_et1,sj_xi2,sj_et2,ip1,im1,jp1,jm1)
     	do j=1,ny
@@ -8820,7 +8822,7 @@ contains
 				end do
 			end do
 		else
-!$omp do
+!$omp do private(i,j,k)
 			do j=1,ny
 				do k=1,nk
 					do i=1,nx
@@ -8830,7 +8832,7 @@ contains
 			end do
 		end if
 
-!$omp do
+!$omp do private(i,j,k)
 		do j=1,ny
 			do i=1,nx
 				if( dex(i,j)+emb(i,j)<0.d0 ) then
@@ -8843,7 +8845,7 @@ contains
 		end do
    !
 		if( jrep==1 ) then
-!$omp do
+!$omp do private(i,j,k)
 			do j=1,ny
 				do i=0,1
 					dex(i,j) = dex(i+nx-3,j)
@@ -8853,7 +8855,7 @@ contains
 				end do
 			end do
       
-!$omp do
+!$omp do private(i,j,k)
 			do j=1,ny
 				do i=nx-1,nx+1
 					dex(i,j) = dex(i-nx+3,j)
@@ -8864,7 +8866,7 @@ contains
 			end do
 		else
 			if( j_qbup==0 ) then
-!$omp do
+!$omp do private(i,j,k)
 				do j=1,ny
 					do i=0,1
 						dex(i,j) = 0.d0
@@ -8874,7 +8876,7 @@ contains
 					end do
 				end do
 			else
-!$omp do
+!$omp do private(j,k)
 				do j=1,ny
 					dex(1,j) = dex(2,j)
 					dex(0,j) = dex(1,j)
@@ -8884,7 +8886,7 @@ contains
 					end do
 				end do
 			end if
-!$omp do
+!$omp do private(j,k)
 			do j=1,ny
 				dex(nx,j) = dex(nx-1,j)
 				do k=1,nk
@@ -8895,7 +8897,7 @@ contains
    
 		if( j_conf>=2 ) then
 			if( j_qbup==0 ) then
-!$omp do
+!$omp do private(i,k)
 				do i=i_t1+1,i_t2
 					dex(i,j_t2+js2) = 0.d0
 					do k=1,nk
@@ -8903,7 +8905,7 @@ contains
 					end do
 				end do
 			else
-!$omp do
+!$omp do private(i,k)
 				do i=i_t1+1,i_t2
 					dex(i,j_t2+js2) = dex(i,j_t2+js2-jxd)
 					do k=1,nk
@@ -8930,7 +8932,7 @@ contains
 !			end do
 !		end do
 
-!$omp do private( i, j, e_t_new, nb_new, p_m_new, p_t_new, p_d_new, nbmin, nbmax, i_nbmin, j_nbmin, i_nbmax, j_nbmax, p_tot )
+!$omp do private( i, j, k, e_t_new, nb_new, p_m_new, p_t_new, p_d_new, nbmin, nbmax, i_nbmin, j_nbmin, i_nbmax, j_nbmax, p_tot )
 		do j=1,ny
 			do i=1,nx
 				eta(i,j) = eta(i,j)+dex(i,j)
@@ -8956,7 +8958,7 @@ contains
    !
    ! ----- Adjust Water Depth ------
    !
-!$omp do
+!$omp do private(i,j)
 		do j=1,ny
 			do i=1,nx
 				if( ijo_in(i,j)==0 ) then
@@ -8970,7 +8972,7 @@ contains
 		end do
    !
 		if( jrep==1 ) then
-!$omp do
+!$omp do private(i,j,k)
 			do j=1,ny
 				do i=0,1
 					eta(i,j) = eta0(i,j)+(eta(i+nx-3,j)-eta0(i+nx-3,j))
@@ -9003,7 +9005,7 @@ contains
 				end do
 			end do
 		else
-!$omp do
+!$omp do private(i,j,k)
 			do j=1,ny
 				do i=nx,nx+1
 					e_t(i,j) = e_t(nx-1,j)
@@ -9082,7 +9084,7 @@ contains
 					end do
 				end do
 			else
-!$omp do
+!$omp do private(i,j,k)
 				do j=1,ny
 					do k=1,nk
 						do i=1,nx
@@ -9093,7 +9095,7 @@ contains
 				end do
 			end if
 
-!$omp do
+!$omp do private(i,j,k)
 		do j=1,ny
 			do i=1,nx
 				if( dex(i,j)+emb(i,j)<0.d0 ) then
@@ -9106,7 +9108,7 @@ contains
 		end do
    !
 		if( jrep==1 ) then
-!$omp do
+!$omp do private(i,j,k)
 			do j=1,ny
 				do i=0,1
 					dex(i,j) = dex(i+nx-3,j)
@@ -9116,7 +9118,7 @@ contains
 				end do
 			end do
       
-!$omp do
+!$omp do private(i,j,k)
 			do j=1,ny
 				do i=nx-1,nx+1
 					dex(i,j) = dex(i-nx+3,j)
@@ -9127,7 +9129,7 @@ contains
 			end do
 		else
 			if( j_qbup==0 ) then
-!$omp do
+!$omp do private(i,j,k)
 				do j=1,ny
 					do i=0,1
 						dex(i,j) = 0.d0
@@ -9137,7 +9139,7 @@ contains
 					end do
 				end do
 			else
-!$omp do
+!$omp do private(i,j,k)
 				do j=1,ny
 					dex(1,j) = dex(2,j)
 					dex(0,j) = dex(1,j)
@@ -9147,7 +9149,7 @@ contains
 					end do
 				end do
 			end if
-!$omp do
+!$omp do private(j,k)
 			do j=1,ny
 				dex(nx,j) = dex(nx-1,j)
 				do k=1,nk
@@ -9158,7 +9160,7 @@ contains
    
 		if( j_conf>=2 ) then
 			if( j_qbup==0 ) then
-!$omp do
+!$omp do private(i,k)
 				do i=i_t1+1,i_t2
 					dex(i,j_t2+js2) = 0.d0
 					do k=1,nk
@@ -9166,7 +9168,7 @@ contains
 					end do
 				end do
 			else
-!$omp do
+!$omp do private(i,k)
 				do i=i_t1+1,i_t2
 					dex(i,j_t2+js2) = dex(i,j_t2+js2-jxd)
 					do k=1,nk
@@ -9183,7 +9185,7 @@ contains
 		nbmin =  9999
 		nbmax = -9999
 
-!$omp do private( i, j, e_t_new, nb_new, p_m_new, p_t_new, p_d_new, nbmin, nbmax, i_nbmin, j_nbmin, i_nbmax, j_nbmax, p_tot )
+!$omp do private( i, j, k, e_t_new, nb_new, p_m_new, p_t_new, p_d_new, nbmin, nbmax, i_nbmin, j_nbmin, i_nbmax, j_nbmax, p_tot )
 		do j=1,ny
 			do i=1,nx
 				eta(i,j) = eta(i,j)+dex(i,j)
@@ -9210,7 +9212,7 @@ contains
    ! ----- Adjust Water Depth ------
    !
 
-!$omp do
+!$omp do private(i,j)
 		do j=1,ny
 			do i=1,nx
 				if( ijo_in(i,j)==0 ) then
@@ -9224,7 +9226,7 @@ contains
 		end do
    !
 		if( jrep==1 ) then
-!$omp do
+!$omp do private(i,j,k)
 			do j=1,ny
 				do i=0,1
 					eta(i,j) = eta0(i,j)+(eta(i+nx-3,j)-eta0(i+nx-3,j))
@@ -9257,7 +9259,7 @@ contains
 				end do
 			end do
 		else
-!$omp do
+!$omp do private(i,j,k)
 			do j=1,ny
 				do i=nx,nx+1
 					e_t(i,j) = e_t(nx-1,j)
@@ -9287,7 +9289,6 @@ contains
 		
 		integer :: k
 !		double precision :: p_tot
-
 		
 		!‘ÍÏ
 		if( dex(i,j)>0.d0 ) then
@@ -9493,7 +9494,7 @@ contains
 			end do
 		end do
 
-!$omp do
+!$omp do private(j,k)
 		do j=1,ny
 			do k=1,nk
 				quck( 0,j,k) = q_xi( 0,j)*yck( 0,j,k)
@@ -9511,7 +9512,7 @@ contains
 			end do
 		end do
 
-!$omp do
+!$omp do private(i,k)
 		do i=1,nx
 			do k=1,nk
 				qvck(i, 0,k) = 0.d0
@@ -9520,7 +9521,7 @@ contains
 		end do
 
 		if( j_conf>=2 ) then
-!$omp do
+!$omp do private(i,k)
 			do i=i_t1+1,i_t2
 				if( ijo_in(i,j_t2+js2)==0 ) then
 					do k=1,nk
@@ -9530,7 +9531,7 @@ contains
 			end do
 		end if
 
-!$omp do
+!$omp do private(i,j,k)
 		do j=1,ny
 			do k=1,nk
 				do i=1,nx
@@ -9539,7 +9540,7 @@ contains
 			end do
 		end do
 
-!$omp do
+!$omp do private(i,j,k)
 		do j=1,ny
 			do k=1,nk
 				do i=1,nx
@@ -9625,7 +9626,7 @@ contains
 		integer :: i, j, k
 		
 		if ( jrep==1 ) then
-!$omp do
+!$omp do private(i,j,k)
 			do j=1,ny
 				do k=1,nk
 					do i=0,1
@@ -9638,7 +9639,7 @@ contains
 			end do
 		end if
     !
-!$omp do
+!$omp do private(i,j,k)
 		do j=1,ny
 			do i=1,nx
 				if( ijo_in(i,j)==1 ) then
@@ -10001,7 +10002,7 @@ module cross_sectional_output
 		
       hmin10 = 2. * hmin
       
-!$omp do private( jss1, jss2, nnp )
+!$omp do private( i, j, jss1, jss2, nnp )
 	    do i=0,nx
 	       z_ave_main(i) = 0.d0
 	       z_min_main(i) = 9999.d0
@@ -10038,7 +10039,7 @@ module cross_sectional_output
 	    end do
 	    
 	    if( j_conf==1 ) then
-!$omp do private( nnp )
+!$omp do private( i, j, nnp )
 	       do i=0,i_t2
 	          z_ave_tri(i) = 0.d0
 	          z_min_tri(i) = 9999.d0
@@ -10068,7 +10069,7 @@ module cross_sectional_output
 	       end do
 	       
 	    else if( j_conf>=2 ) then
-!$omp do private( nnp )
+!$omp do private( i, j, nnp )
 	       do j=j_t1,j_t2,jxd
 	          z_ave_tri2(j) = 0.d0
 	          z_min_tri2(j) = 9999.d0
@@ -10099,7 +10100,7 @@ module cross_sectional_output
 	       end do
 	    end if
 	    
-!$omp do private( jss1, jss2 )
+!$omp do private( i, j, jss1, jss2 )
 	    do i=0,nx
 	       if( i<i_t1.or.j_conf>=2) then
 	          jss1 = j_m1
@@ -10116,7 +10117,7 @@ module cross_sectional_output
 	    end do
 	    
 	    if( j_conf==1 ) then
-!$omp do
+!$omp do private(i,j)
 	       do i=0,i_t2
 	          do j=j_t1,j_t2
 	             z_ave(i,j) = z_ave_tri(i)
@@ -10126,7 +10127,7 @@ module cross_sectional_output
 	       end do
 	       
 	    else if( j_conf>=2 ) then
-!$omp do
+!$omp do private(i,j)
 	       do j=j_t1+js1-js2,j_t2,jxd
 	          do i=i_t1,i_t2
 	             z_ave(i,j) = z_ave_tri2(j)
@@ -11639,14 +11640,14 @@ Program Shimizu
          end if
          !
          if( j_mix==0 ) then
-!$omp do
+!$omp do private(i,j)
         	   do j=0,ny
         		   do i=0,nx
         			   dmn(i,j) = diam*1000.d0
         		   end do
         	   end do
          else
-!$omp do
+!$omp do private(i,j)
         	   do j=0,ny
         		   do i=0,nx
         			   dmn(i,j) = dmxx(i,j)*1000.d0
@@ -11654,7 +11655,7 @@ Program Shimizu
         	   end do
          end if
         
-!$omp do
+!$omp do private(i,j)
          do j=1,ny
         	   do i=1,nx
         		   if( hs(i,j)<=hmin .or. ijo_in(i,j)==1 ) then
@@ -11687,7 +11688,7 @@ Program Shimizu
             qbyy(nx,ny) = qbyc(nx,ny)
 !$omp end single
              
-!$omp do
+!$omp do private(j)
             do j=1,ny-1
                qbxx( 0,j) = ( qbxc( 1,j)+qbxc( 1,j+1) )*0.5d0
                qbyy( 0,j) = ( qbyc( 1,j)+qbyc( 1,j+1) )*0.5d0
@@ -11695,7 +11696,7 @@ Program Shimizu
                qbyy(nx,j) = ( qbyc(nx,j)+qbyc(nx,j+1) )*0.5d0
             end do
            
-!$omp do
+!$omp do private(i)
             do i=1,nx-1
                qbxx(i, 0) = ( qbxc(i, 1)+qbxc(i+1, 1) )*0.5d0
                qbyy(i, 0) = ( qbyc(i, 1)+qbyc(i+1, 1) )*0.5d0
@@ -11703,7 +11704,7 @@ Program Shimizu
                qbyy(i,ny) = ( qbyc(i,ny)+qbyc(i+1,ny) )*0.5d0
             end do
            
-!$omp do
+!$omp do private(i,j)
             do j=1,ny-1
                do i=1,nx-1
                   qbxx(i,j) = ( qbxc(i,j)+qbxc(i+1,j)+qbxc(i,j+1)+qbxc(i+1,j+1) )*0.25d0
@@ -11902,7 +11903,7 @@ Program Shimizu
         if(j_snu > 1) call snucal_ke(hs,yk,yep,c_mu0,snu00,snuk,snuk_x)
      end if
      if(j_snu == 2) then
-!$omp do
+!$omp do private(i,j)
 		do j=1,ny
 			do i=1,nx
 				snu(i,j) = snuk(i,j)
@@ -12020,7 +12021,7 @@ Program Shimizu
      !-------------------------------------------
      call hshift( hn, h )
      
-!$omp do
+!$omp do private(i,j)
      do j=1,ny
         do i=1,nx
            if( isnan(h(i,j)) ) then
