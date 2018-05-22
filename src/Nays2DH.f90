@@ -5121,13 +5121,6 @@ contains
 	       end do
 	    end do
 	end if
-
-!$omp do private(i,j)
-		do j=1,ny
-			do i=1,nx
-				if( dex(i,j)+emb(i,j)<0.d0 ) dex(i,j) = 0.d0
-			end do
-		end do
     !
     if( jrep == 1 ) then
 !$omp do private(i,j)
@@ -5176,6 +5169,13 @@ contains
          end do
        end if
     end if
+
+!$omp do private(i,j)
+		do j=1,ny
+			do i=1,nx
+				if( dex(i,j)+emb(i,j)<0.d0 ) dex(i,j) = 0.d0
+			end do
+		end do
     !
 !$omp do private(i,j)
     do j = 1, ny
@@ -5239,13 +5239,6 @@ contains
     		end do
     	end do
     end if
-
-!$omp do private(i,j)
-		do j=1,ny
-			do i=1,nx
-				if( dex(i,j)+emb(i,j)<0.d0 ) dex(i,j) = 0.d0
-			end do
-		end do
     !
     if(jrep == 1) then
 !$omp do private(i,j)
@@ -5295,6 +5288,13 @@ contains
          end do
        end if
     end if
+
+!$omp do private(i,j)
+		do j=1,ny
+			do i=1,nx
+				if( dex(i,j)+emb(i,j)<0.d0 ) dex(i,j) = 0.d0
+			end do
+		end do
     !
 !$omp do private(i,j)
     do j = 1, ny
@@ -8831,18 +8831,6 @@ contains
 				end do
 			end do
 		end if
-
-!$omp do private(i,j,k)
-		do j=1,ny
-			do i=1,nx
-				if( dex(i,j)+emb(i,j)<0.d0 ) then
-					dex(i,j) = 0.d0
-					do k=1,nk
-						dex_mix(i,j,k) = 0.d0
-					end do
-				end if
-			end do
-		end do
    !
 		if( jrep==1 ) then
 !$omp do private(i,j,k)
@@ -8914,7 +8902,18 @@ contains
 				end do
 			end if
 		end if
-
+ 
+!$omp do private(i,j,k)
+		do j=1,ny
+			do i=1,nx
+				if( dex(i,j)+emb(i,j)<0.d0 ) then
+					dex(i,j) = 0.d0
+					do k=1,nk
+						dex_mix(i,j,k) = 0.d0
+					end do
+				end if
+			end do
+		end do
    !
    ! ------ cal. of sediment fraction changes in exchange layer ------
    !        河床高と河床材料粒度分布の計算
@@ -9095,17 +9094,6 @@ contains
 				end do
 			end if
 
-!$omp do private(i,j,k)
-		do j=1,ny
-			do i=1,nx
-				if( dex(i,j)+emb(i,j)<0.d0 ) then
-					dex(i,j) = 0.d0
-					do k=1,nk
-						dex_mix(i,j,k) = 0.d0
-					end do
-				end if
-			end do
-		end do
    !
 		if( jrep==1 ) then
 !$omp do private(i,j,k)
@@ -9177,6 +9165,18 @@ contains
 				end do
 			end if
 		end if
+
+!$omp do private(i,j,k)
+		do j=1,ny
+			do i=1,nx
+				if( dex(i,j)+emb(i,j)<0.d0 ) then
+					dex(i,j) = 0.d0
+					do k=1,nk
+						dex_mix(i,j,k) = 0.d0
+					end do
+				end if
+			end do
+		end do
    !
    ! ------ cal. of sediment fraction changes in exchange layer ------
    !        河床高と河床材料粒度分布の計算
