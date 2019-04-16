@@ -4,7 +4,7 @@
 fatal: unable to access ‘https://github.com/i-RIC/v3_nays2dh’
 : Failed to connect to github.com port 443: Timed out
 
-などのエラーメッセージがでる場合、Proxyの設定をしておく
+などのエラーメッセージがでる場合、GitBashでProxyの設定をしておく
 ※プロキシサーバのURLは随時変更
 
 git config --global http.proxy http://proxy.host.com:8080
