@@ -1,0 +1,14 @@
+■proxy の設定が必要な場合
+※TortoiseGitで接続時にエラーが出る
+
+fatal: unable to access ‘https://github.com/i-RIC/v3_nays2dh’
+: Failed to connect to github.com port 443: Timed out
+
+などのエラーメッセージがでる場合、Proxyの設定をしておく
+※プロキシサーバのURLは随時変更
+
+git config --global http.proxy http://proxy.host.com:8080
+git config --global https.proxy http://proxy.host.com:8080
+
+参考URL
+https://git-manual.net/git-proxy-error/
