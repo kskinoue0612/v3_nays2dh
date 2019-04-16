@@ -12,3 +12,7 @@ git config --global https.proxy http://proxy.host.com:8080
 
 参考URL
 https://git-manual.net/git-proxy-error/
+
+
+または、TortoiseGitの設定からプロキシ設定をする
+TortoiseGit > 設定 > ネットワーク > プロキシサーバを有効にする
