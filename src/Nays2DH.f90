@@ -11704,7 +11704,7 @@ Program Shimizu
 
          if( time>=t_out_start ) then
         	   qptemp = qp
-        	   CALL Write_CGNS(time,qptemp,im,jm		&
+        	   CALL sync_and_output_result(time,qptemp,im,jm		&
             		,x,y,uxx,uyy,hsxx,z,z0,zb_g,voltex,c_g,dmn,phi_g,fr_g		&
               		, rho, us_g, ts_g,z_ave,z_min,h_ave,qbxx,qbyy,cc_m,nk,j_mix)
          end if
@@ -12014,14 +12014,15 @@ END PROGRAM Shimizu
 
 
 !--------------------------------------------------------------------------------
-! output for cgns file
+! synchronize with other model and output result
 !--------------------------------------------------------------------------------  
-subroutine write_cgns(time,disch,im,jm,x,y,u,v,hs,z		&
+subroutine sync_and_output_result(time,disch,im,jm,x,y,u,v,hs,z		&
 						,z0,zb,vort,c,dmn,phi,fr &
 						,rho, usta, ts,zave,zmin,have,qbx,qby,cc_m,nk,j_mix)
   use flag_op
+  use iricmi
+
   IMPLICIT NONE
-  INCLUDE "cgnslib_f.h"
   REAL(8), INTENT(IN) :: time, disch, rho
   INTEGER, INTENT(IN) :: im, jm, nk, j_mix
   real(8),dimension(0:im,0:jm),intent(in) :: u, v, hs, z, z0, zb, vort, qbx, qby
@@ -12041,8 +12042,8 @@ subroutine write_cgns(time,disch,im,jm,x,y,u,v,hs,z		&
   nx=im
   ny=jm
   
-  CALL CG_IRIC_WRITE_SOL_TIME_F(time, IER)
-  CALL CG_IRIC_WRITE_SOL_BASEITERATIVE_REAL_F('Discharge(m3s-1)', disch, IER)
+  call iricmi_rout_time(time, ier)
+  CALL iricmi_rout_real('Discharge(m3s-1)', disch, ier)
 
   ALLOCATE(xx(nx, ny), STAT=ier)
   ALLOCATE(yy(nx, ny), STAT=ier)
@@ -12095,33 +12096,34 @@ subroutine write_cgns(time,disch,im,jm,x,y,u,v,hs,z		&
      ENDDO
   ENDDO
 
-  CALL CG_IRIC_WRITE_SOL_GRIDCOORD2D_F(xx,yy,IER)
-  CALL CG_IRIC_WRITE_SOL_REAL_F("Velocity(ms-1)X",UData1,IER)
-  CALL CG_IRIC_WRITE_SOL_REAL_F("Velocity(ms-1)Y",VData1,IER)
-  CALL CG_IRIC_WRITE_SOL_REAL_F("Depth(m)",HData1,IER)
-  CALL CG_IRIC_WRITE_SOL_REAL_F("Elevation(m)",Zbdata1,IER)
-  CALL CG_IRIC_WRITE_SOL_REAL_F("WaterSurfaceElevation(m)",WSE,IER)
-  CALL CG_IRIC_WRITE_SOL_REAL_F("ShearStress(Nm-2)",ts0,IER)
+  !@todo grid change is not supported yet
+  !CALL CG_IRIC_WRITE_SOL_GRIDCOORD2D_F(xx,yy,IER)
+  call iricmi_rout_grid2d_real_node("Velocity(ms-1)X",UData1,IER)
+  call iricmi_rout_grid2d_real_node("Velocity(ms-1)Y",VData1,IER)
+  call iricmi_rout_grid2d_real_node("Depth(m)",HData1,IER)
+  call iricmi_rout_grid2d_real_node("Elevation(m)",Zbdata1,IER)
+  call iricmi_rout_grid2d_real_node("WaterSurfaceElevation(m)",WSE,IER)
+  call iricmi_rout_grid2d_real_node("ShearStress(Nm-2)",ts0,IER)
 
-  if( jop_dz  ==0 ) CALL CG_IRIC_WRITE_SOL_REAL_F("ElevationChange(m)",z01,IER)
-  if( jop_fb  ==0 ) CALL CG_IRIC_WRITE_SOL_REAL_F("FixedBedElevation(m)",zfixdata,IER)
-  !		CALL CG_IRIC_WRITE_SOL_INTEGER_F("IBC",IBC,IER)
-  if( jop_vort==0 ) CALL CG_IRIC_WRITE_SOL_REAL_F("Vorticity(s-1)",vort1,IER)
-  if( jop_md  ==0 ) CALL CG_IRIC_WRITE_SOL_REAL_F("MeanDiameter(mm)",dmn1,IER)
-  if( jop_fr  ==0 ) CALL CG_IRIC_WRITE_SOL_REAL_F("FroudeNumber",fr1,IER)
-!	  CALL CG_IRIC_WRITE_SOL_REAL_F("Phi",phi1,IER)
-  if( jop_sh  ==0 ) CALL CG_IRIC_WRITE_SOL_REAL_F("ShieldsNumber",ts1,IER)
-  if( jop_zmin==0 ) CALL CG_IRIC_WRITE_SOL_REAL_F("CrossSectionalMinBedElev(m)",zmin1,IER)
-  if( jop_zave==0 ) CALL CG_IRIC_WRITE_SOL_REAL_F("CrossSectionalAveBedElev(m)",zave1,IER)
-  if( jop_have==0 ) CALL CG_IRIC_WRITE_SOL_REAL_F("CrossSectionalAveWaterLevel(m)",have1,IER)
+  if( jop_dz  ==0 ) call iricmi_rout_grid2d_real_node("ElevationChange(m)",z01,IER)
+  if( jop_fb  ==0 ) call iricmi_rout_grid2d_real_node("FixedBedElevation(m)",zfixdata,IER)
+  !		call iricmi_rout_grid2d_integer_node("IBC",IBC,IER)
+  if( jop_vort==0 ) CALL iricmi_rout_grid2d_real_node("Vorticity(s-1)",vort1,IER)
+  if( jop_md  ==0 ) CALL iricmi_rout_grid2d_real_node("MeanDiameter(mm)",dmn1,IER)
+  if( jop_fr  ==0 ) CALL iricmi_rout_grid2d_real_node("FroudeNumber",fr1,IER)
+!	  call iricmi_rout_grid2d_real_node("Phi",phi1,IER)
+  if( jop_sh  ==0 ) CALL iricmi_rout_grid2d_real_node("ShieldsNumber",ts1,IER)
+  if( jop_zmin==0 ) CALL iricmi_rout_grid2d_real_node("CrossSectionalMinBedElev(m)",zmin1,IER)
+  if( jop_zave==0 ) CALL iricmi_rout_grid2d_real_node("CrossSectionalAveBedElev(m)",zave1,IER)
+  if( jop_have==0 ) CALL iricmi_rout_grid2d_real_node("CrossSectionalAveWaterLevel(m)",have1,IER)
   if( jop_qb  ==0 ) then
-  		CALL CG_IRIC_WRITE_SOL_REAL_F("BedloadFlux(m2s-1)X",qbxData1,IER)
-  		CALL CG_IRIC_WRITE_SOL_REAL_F("BedloadFlux(m2s-1)Y",qbyData1,IER)
+  		CALL iricmi_rout_grid2d_real_node("BedloadFlux(m2s-1)X",qbxData1,IER)
+  		CALL iricmi_rout_grid2d_real_node("BedloadFlux(m2s-1)Y",qbyData1,IER)
   end if
 
   if( jop_sc==0 ) then
 	  if( j_mix==0 ) then
-	  	   CALL CG_IRIC_WRITE_SOL_REAL_F("SuspendedSedimentConcentration",ssc,IER)
+	  	   CALL iricmi_rout_grid2d_real_node("SuspendedSedimentConcentration",ssc,IER)
 	  else
 	!  	do k=1,nk
 	!		write(cm,'(i1)') k
@@ -12141,12 +12143,14 @@ subroutine write_cgns(time,disch,im,jm,x,y,u,v,hs,z		&
 				end do
 			end do
 					
-	!		CALL CG_IRIC_WRITE_SOL_REAL_F(c_label,ssc,IER)
+	!		call iricmi_rout_grid2d_real_node(c_label,ssc,IER)
 	!	end do
 		
-		CALL CG_IRIC_WRITE_SOL_REAL_F("SuspendedSedimentConcentration",ssc,IER)
+		call iricmi_rout_grid2d_real_node("SuspendedSedimentConcentration",ssc,IER)
 		
 	  end if
   end if
 
-end subroutine write_cgns
+  call iricmi_model_sync(ier)
+
+end subroutine sync_and_output_result

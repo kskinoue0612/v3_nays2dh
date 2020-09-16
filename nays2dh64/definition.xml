@@ -1221,5 +1221,64 @@
 			</Definition>
 		</Item>
 		-->
+		<Output name="Velocity(ms-1)X" caption="Velocity(ms-1)X">
+			<Definition position="node" valueType="real" />
+		</Output>
+		<Output name="Velocity(ms-1)Y" caption="Velocity(ms-1)Y">
+			<Definition position="node" valueType="real" />
+		</Output>
+		<Output name="Depth(m)" caption="Depth(m)">
+			<Definition position="node" valueType="real" />
+		</Output>
+		<Output name="Elevation(m)" caption="Elevation(m)">
+			<Definition position="node" valueType="real" />
+		</Output>
+		<Output name="WaterSurfaceElevation(m)" caption="WaterSurfaceElevation(m)">
+			<Definition position="node" valueType="real" />
+		</Output>
+		<Output name="ShearStress(Nm-2)" caption="ShearStress(Nm-2)">
+			<Definition position="node" valueType="real" />
+		</Output>
+		<Output name="ElevationChange(m)" caption="ElevationChange(m)">
+			<Definition position="node" valueType="real" />
+		</Output>
+		<Output name="FixedBedElevation(m)" caption="FixedBedElevation(m)">
+			<Definition position="node" valueType="real" />
+		</Output>
+		<Output name="Vorticity(s-1)" caption="Vorticity(s-1)">
+			<Definition position="node" valueType="real" />
+		</Output>
+		<Output name="MeanDiameter(mm)" caption="MeanDiameter(mm)">
+			<Definition position="node" valueType="real" />
+		</Output>
+		<Output name="FroudeNumber" caption="FroudeNumber">
+			<Definition position="node" valueType="real" />
+		</Output>
+		<Output name="ShieldsNumber" caption="ShieldsNumber">
+			<Definition position="node" valueType="real" />
+		</Output>
+		<Output name="CrossSectionalMinBedElev(m)" caption="CrossSectionalMinBedElev(m)">
+			<Definition position="node" valueType="real" />
+		</Output>
+		<Output name="CrossSectionalAveBedElev(m)" caption="CrossSectionalAveBedElev(m)">
+			<Definition position="node" valueType="real" />
+		</Output>
+		<Output name="CrossSectionalAveWaterLevel(m)" caption="CrossSectionalAveWaterLevel(m)">
+			<Definition position="node" valueType="real" />
+		</Output>
+		<Output name="BedloadFlux(m2s-1)X" caption="BedloadFlux(m2s-1)X">
+			<Definition position="node" valueType="real" />
+		</Output>
+		<Output name="BedloadFlux(m2s-1)Y" caption="BedloadFlux(m2s-1)Y">
+			<Definition position="node" valueType="real" />
+		</Output>
+		<Output name="SuspendedSedimentConcentration" caption="SuspendedSedimentConcentration">
+			<Definition position="node" valueType="real" />
+		</Output>
 	</GridRelatedCondition>
+	<GlobalOutput>
+		<Output name="Discharge(m3s-1)" caption="Discharge(m3s-1)">
+			<Definition valueType="real" />
+		</Output>
+	</GlobalOutput>
 </SolverDefinition>
