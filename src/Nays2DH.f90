@@ -11708,17 +11708,6 @@ Program Shimizu
 !$omp single
 
          if( time>=t_out_start ) then
-
-             !guiがcgnsファイルを読込中か否かを判定
-	        do
-	            call iric_check_lock_f(condfile, istatus)
-	            if(istatus == 1) then
-	                call sleep(1)
-	            elseif(istatus == 0)then  !読込中でなければdoループを抜ける
-	                exit
-	            end if
-	        end do
-        
         	   qptemp = qp
         	   CALL Write_CGNS(condFile,time,qptemp,im,jm		&
             		,x,y,uxx,uyy,hsxx,z,z0,zb_g,voltex,c_g,dmn,phi_g,fr_g		&
