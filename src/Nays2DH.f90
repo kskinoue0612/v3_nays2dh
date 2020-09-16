@@ -10345,6 +10345,7 @@ Program Shimizu
   REAL(8) :: qptemp
   REAL(8), DIMENSION(:), ALLOCATABLE :: xtmp, ytmp, ytmp2
   INTEGER :: tmpint
+  integer :: iricmi_dump
   
   ! For Hot Stat
   integer :: i_re_flag_i, i_re_flag_o, n_rest, i_tmp_count
@@ -11595,6 +11596,7 @@ Program Shimizu
       end if
 
 !$omp end single
+	  iricmi_dump = 0
 
 !      if ( icount == 1.or.mod(icount-1,kmod) == 0 ) then		!h time=0‚ào—Í
       if ( icount == 0.or.mod(icount,kmod) == 0 ) then		!h time=0‚ào—Í
@@ -11702,13 +11704,10 @@ Program Shimizu
 
 !$omp single
 
-         if( time>=t_out_start ) then
-        	   qptemp = qp
-        	   CALL sync_and_output_result(time,qptemp,im,jm		&
-            		,x,y,uxx,uyy,hsxx,z,z0,zb_g,voltex,c_g,dmn,phi_g,fr_g		&
-              		, rho, us_g, ts_g,z_ave,z_min,h_ave,qbxx,qbyy,cc_m,nk,j_mix)
+		 if( time>=t_out_start ) then
+			iricmi_dump = 1
          end if
-        
+		 qptemp = qp
          !
          ! ------ CRT Output ------------------------
         
@@ -11797,6 +11796,10 @@ Program Shimizu
         if(i_tmp_count > n_rest) i_re_flag_o = 0
         !
      end if
+
+	 CALL sync_and_output_result(iricmi_dump,time,qptemp,im,jm		&
+	 ,x,y,uxx,uyy,hsxx,z,z0,zb_g,voltex,c_g,dmn,phi_g,fr_g		&
+	   , rho, us_g, ts_g,z_ave,z_min,h_ave,qbxx,qbyy,cc_m,nk,j_mix)
 
 !$omp end single
    !
@@ -12016,13 +12019,14 @@ END PROGRAM Shimizu
 !--------------------------------------------------------------------------------
 ! synchronize with other model and output result
 !--------------------------------------------------------------------------------  
-subroutine sync_and_output_result(time,disch,im,jm,x,y,u,v,hs,z		&
+subroutine sync_and_output_result(dump,time,disch,im,jm,x,y,u,v,hs,z		&
 						,z0,zb,vort,c,dmn,phi,fr &
 						,rho, usta, ts,zave,zmin,have,qbx,qby,cc_m,nk,j_mix)
   use flag_op
   use iricmi
 
   IMPLICIT NONE
+  integer, intent(in) :: dump
   REAL(8), INTENT(IN) :: time, disch, rho
   INTEGER, INTENT(IN) :: im, jm, nk, j_mix
   real(8),dimension(0:im,0:jm),intent(in) :: u, v, hs, z, z0, zb, vort, qbx, qby
@@ -12152,5 +12156,9 @@ subroutine sync_and_output_result(time,disch,im,jm,x,y,u,v,hs,z		&
   end if
 
   call iricmi_model_sync(ier)
+
+  if (dump == 1) then
+	call iricmi_model_dump(ier)
+  end if
 
 end subroutine sync_and_output_result
