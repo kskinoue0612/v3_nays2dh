@@ -11736,7 +11736,7 @@ Program Shimizu
 !$omp single
 
         ! ユーザがGUI上で "STOP" ボタンを押して実行をキャンセルしたか確認
-     call iric_check_cancel_f(istatus)
+     call iricmi_check_cancel(istatus, ier)
      if(istatus == 1) then
         write(*,*) "Solver is stopped because the STOP button was clicked."
         stop
