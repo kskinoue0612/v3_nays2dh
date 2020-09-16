@@ -10301,9 +10301,6 @@ Program Shimizu
   use iricmi
 
   implicit none
-  include "cgnslib_f.h"
-  include "iriclib_f.h"
-
   integer :: i,j,k
 
   real(8) :: snu00, h_down, bh_slope, upv_slope, upv_slope_t, h_slope &
