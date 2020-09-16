@@ -1213,11 +1213,13 @@
 				</Enumerations>
 			</Definition>
 		</Item>
+		<!--
 		<Item name="grainsize_distribution" caption="GrainSizeDistribution">
 			<Definition position="node" valueType="functional" option="true">
 				<Parameter valueType="integer" caption="Size Class" />
 				<Value valueType="real" caption="Ratio" />
 			</Definition>
 		</Item>
+		-->
 	</GridRelatedCondition>
 </SolverDefinition>

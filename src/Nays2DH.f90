@@ -10298,6 +10298,7 @@ Program Shimizu
   use vorticity_eq_m
   use cross_sectional_output
   
+  use iricmi
 
   implicit none
   include "cgnslib_f.h"
@@ -10373,27 +10374,7 @@ Program Shimizu
   
   lcount = 0
 
-  !	Add iargc for gfortran, g95
-  icount = nargs()
-  !      icount = iargc()
-  if ( icount.eq.2 ) then
-     !      if ( icount.eq.1 ) then
-     CALL GETARG (1, condFile, istatus)
-     !        CALL GETARG (1, condfile)
-  else
-     write( 6, * ) 'input filename: ?'
-     read( 5, *) condFile
-  endif
-
-     CALL cg_open_f(condFile, CG_MODE_MODIFY, FID, IER)
-     !        CALL cg_open_f(condFile, 0, FID, IER)
-     CALL CG_IRIC_INIT_F(FID, IER)
-     IF(IER .NE. 0) THEN
-        call cg_error_print_f()			
-     ENDIF
-
-     ! guiにcgnsファイルを読込みであることを知らせるファイルを生成
-     call iric_initoption_f(IRIC_OPTION_CANCEL, ier)
+  	 call iricmi_model_init(ier)
 
      call cg_iric_gotogridcoord2d_f(ni4, nj4, ier)
      allocate (x8(ni4,nj4), y8(ni4,nj4))
@@ -11739,13 +11720,9 @@ Program Shimizu
 	        end do
         
         	   qptemp = qp
-            call iric_write_sol_start_f(condFile, ier)   
         	   CALL Write_CGNS(condFile,time,qptemp,im,jm		&
             		,x,y,uxx,uyy,hsxx,z,z0,zb_g,voltex,c_g,dmn,phi_g,fr_g		&
               		, rho, us_g, ts_g,z_ave,z_min,h_ave,qbxx,qbyy,cc_m,nk,j_mix)
-            call cg_iric_flush_f(condFile, fid, ier)
-            call iric_write_sol_end_f(condFile, ier)
-            
          end if
         
          !
@@ -12047,7 +12024,7 @@ Program Shimizu
 
 !$omp end parallel
 
-     call cg_close_f(fid,ier)
+	call iricmi_model_terminate(ier)
 
 END PROGRAM Shimizu
 
