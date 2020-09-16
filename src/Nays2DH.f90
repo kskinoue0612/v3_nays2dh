@@ -11704,7 +11704,7 @@ Program Shimizu
 
          if( time>=t_out_start ) then
         	   qptemp = qp
-        	   CALL Write_CGNS(condFile,time,qptemp,im,jm		&
+        	   CALL Write_CGNS(time,qptemp,im,jm		&
             		,x,y,uxx,uyy,hsxx,z,z0,zb_g,voltex,c_g,dmn,phi_g,fr_g		&
               		, rho, us_g, ts_g,z_ave,z_min,h_ave,qbxx,qbyy,cc_m,nk,j_mix)
          end if
@@ -12016,13 +12016,12 @@ END PROGRAM Shimizu
 !--------------------------------------------------------------------------------
 ! output for cgns file
 !--------------------------------------------------------------------------------  
-subroutine write_cgns(InputFile,time,disch,im,jm,x,y,u,v,hs,z		&
+subroutine write_cgns(time,disch,im,jm,x,y,u,v,hs,z		&
 						,z0,zb,vort,c,dmn,phi,fr &
 						,rho, usta, ts,zave,zmin,have,qbx,qby,cc_m,nk,j_mix)
   use flag_op
   IMPLICIT NONE
   INCLUDE "cgnslib_f.h"
-  CHARACTER(*), INTENT(IN) :: InputFile
   REAL(8), INTENT(IN) :: time, disch, rho
   INTEGER, INTENT(IN) :: im, jm, nk, j_mix
   real(8),dimension(0:im,0:jm),intent(in) :: u, v, hs, z, z0, zb, vort, qbx, qby
