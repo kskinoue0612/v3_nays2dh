@@ -6314,7 +6314,6 @@ end module     snucal_m
 !-----------------------------------------------------------------------
 
 module hqtcal_m
-  
   use common_hh
   use common_cmhq
   use common_qhyd
@@ -6326,7 +6325,46 @@ module hqtcal_m
   use common_cmave_t
   use common_cmave_t2
   use common_cmconf1
+  implicit none
+
+  integer, private :: bsearch_func_mode 
+
 contains
+  ! function for bsearch
+  function bsearch_func(v)
+	real(8) :: bsearch_func
+	real(8), intent(in) :: v
+
+	bsearch_func = 0.0d0
+  end function bsearch_func
+
+  ! binary search for monotonous increase functions
+  function bsearch(v_min, v_max, tgt)
+    implicit none
+
+    real(8) :: bsearch
+	real(8), intent(in) :: v_min, v_max, tgt
+	real(8) :: v_min2, v_max2
+    real(8) :: err ! acceptable error
+    real(8) :: f_val
+	
+	err = tgt * 0.001d0
+	v_min2 = v_min
+	v_max2 = v_max
+
+	do
+	  bsearch = (v_min2 + v_max2) * 0.5d0
+	  f_val = bsearch_func(bsearch)
+	  if (dabs(f_val - tgt) < err) exit
+
+      if (f_val > tgt) then
+        v_max2 = bsearch
+	  else
+		v_min2 = bsearch
+	  end if
+	end do
+  end function
+
   !----------------------------------------------------------------
   subroutine hqtcal(nq,slope,slope_up,slope_up_t,hplus,j_wl,h_down,sn_g)
     implicit none
@@ -10346,6 +10384,7 @@ Program Shimizu
   REAL(8), DIMENSION(:), ALLOCATABLE :: xtmp, ytmp, ytmp2
   INTEGER :: tmpint
   integer :: iricmi_dump
+  real(8), parameter:: iricmi_dummy_dump_interval = -1 ! negative means manual output
   
   ! For Hot Stat
   integer :: i_re_flag_i, i_re_flag_o, n_rest, i_tmp_count
@@ -10558,6 +10597,9 @@ Program Shimizu
      call iricmi_read_integer('j_qbs', j_qbs, ier)
      call iricmi_read_real('t_out_start', t_out_start, ier)
    !
+	 call iricmi_rout_exchange_interval(dt, ier)
+	 call iricmi_rout_dump_interval(iricmi_dummy_dump_interval, ier)
+
    ! ---- Parameters for Numerical Calculation -----
    !
      call iricmi_read_integer('jrep', jrep, ier)
