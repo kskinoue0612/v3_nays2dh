@@ -6369,12 +6369,15 @@ contains
   subroutine hqtcal(nq,slope,slope_up,slope_up_t,hplus,j_wl,h_down,sn_g)
     implicit none
 
-    integer :: i,j, n
-    real(8) :: qmax, qmin, b_ups, slope, slope_up, slope_up_t, hplus, h_down, sn_g &
+	integer, intent(in) :: nq, j_wl
+	real(8), intent(in) :: slope_up_t, hplus, h_down, sn_g
+	real(8), intent(inout) :: slope, slope_up
+
+    integer :: i, j, n
+    real(8) :: qmax, qmin, b_ups &
          , qmax_t, qmin_t, b_dse, h00, hss, hsmax1, hsmax2, hsmax, hsmax2_t, hsmax2_t2 &
          , hmax1, hmin1, hh, qcc, hs1, as, u0, qs, qp_ttl
-    integer :: nq, j_wl, nnym, nnxm, jss1, jss2
-
+    integer :: nnym, nnxm, jss1, jss2
 
     qmax = maxval(q_ups)
     qmax_t=maxval(q_ups_t)	!h101019 conf
