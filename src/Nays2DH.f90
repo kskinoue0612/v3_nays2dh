@@ -6780,170 +6780,167 @@ end module     hqtcal_m
 
 !-----------------------------------------------------------------------
 module upstream_m
-  
-  use common_hh
-  use common_cmuv
-  use common_cmxy
-  use common_cmqxe
-  use common_cmquv
-  use common_cmhq
-  use common_cmsn
-  use common_cmsui
-  use common_cmconf1
-  
-  real(8),dimension(:),allocatable :: uinti, hsin
-  real(8),dimension(:),allocatable :: uinti2, hsin2
+	use common_hh
+	use common_cmuv
+	use common_cmxy
+	use common_cmqxe
+	use common_cmquv
+	use common_cmhq
+	use common_cmsn
+	use common_cmsui
+	use common_cmconf1
+	implicit none
 
+	real(8),dimension(:),allocatable :: uinti, hsin
+	real(8),dimension(:),allocatable :: uinti2, hsin2
 contains
-
   subroutine alloc_upstream_temp_variables
-    implicit none
-    
-    allocate( uinti(0:jm), hsin(0:jm) )
-    allocate( uinti2(0:im), hsin2(0:im) )
+		implicit none
 
-    uinti=0.d0; hsin=0.d0; uinti2=0.d0; hsin2=0.d0
-   
-  end subroutine alloc_upstream_temp_variables
-  
+		allocate( uinti(0:jm), hsin(0:jm) )
+		allocate( uinti2(0:im), hsin2(0:im) )
+
+		uinti=0.d0; hsin=0.d0; uinti2=0.d0; hsin2=0.d0
+
+	end subroutine alloc_upstream_temp_variables
+
   !----------------------------------------------------------------
-  subroutine upstream(hin,hin_t,qin,qin_t,slope,slope_t,j_upv)	!h101019
-    implicit none
-    
-    integer :: i,j
+	subroutine upstream(hin,hin_t,qin,qin_t,slope,slope_t,j_upv)	!h101019
+		implicit none
 
-    real(8) :: hin, hin_t, qin, qin_t, slope, slope_t, qc0, as, qdiff
-    integer :: j_upv, jss1, jss2
-    integer :: nnn, time_m
-    double precision :: rr, rp
+		integer :: i,j
 
-    !
-    ! Main channel
-    !
-    if(qin > 0.d0) then
-       qc0=0.d0
-       if(j_conf.eq.0) then			!h101019 conf
-          jss1=1
-          jss2=ny
-       else
-          jss1=j_m1+1
-          jss2=j_m2
-       end if
-       do j=jss1,jss2				!h101019 conf
-          if(j_upv == 1) then
-             hsin(j) = hin - eta(1,j)
-          else
-             hsin(j) = hs(1,j)
-          end if
-          hs(0,j)  = hs(1,j)
-          if(hsin(j) < 0.d0) hsin(j) = 0.d0
-          uinti(j)=1.d0 / snmm(1,j) * hsin(j)**(2.d0/3.d0) * dsqrt(slope)
-          if(ijo_in(1,j) == 0) then
-             as = hsin(j) * dn(0,j)
-          else
-             as = 0.d0
-          end if
-          qu(0,j) = uinti(j) * as
-          qc0 = qc0 + qu(0,j)
-       end do
-       qdiff = qc0 / qin
-       qc(0) = 0.d0
+		real(8) :: hin, hin_t, qin, qin_t, slope, slope_t, qc0, as, qdiff
+		integer :: j_upv, jss1, jss2
+		integer :: nnn, time_m
+		double precision :: rr, rp
 
-!       time_m = int(time/dt)
+		!
+		! Main channel
+		!
+		if (qin > 0.d0) then
+			qc0=0.d0
+			if (j_conf == 0) then			!h101019 conf
+				jss1 = 1
+				jss2 = ny
+			else
+				jss1 = j_m1 + 1
+				jss2 = j_m2
+			end if
+			do j=jss1, jss2				!h101019 conf
+				if(j_upv == 1) then
+					hsin(j) = hin - eta(1,j)
+				else
+					hsin(j) = hs(1,j)
+				end if
+				hs(0,j)  = hs(1,j)
+				if (hsin(j) < 0.d0) hsin(j) = 0.d0
+				uinti(j) = 1.d0 / snmm(1,j) * hsin(j) ** (2.d0/3.d0) * dsqrt(slope)
+				if (ijo_in(1,j) == 0) then
+					as = hsin(j) * dn(0,j)
+				else
+					as = 0.d0
+				end if
+				qu(0,j) = uinti(j) * as
+				qc0 = qc0 + qu(0,j)
+			end do
+			qdiff = qc0 / qin
+			qc(0) = 0.d0
 
-!		 if( mod(time_m, 100)==0 ) then
-!       	call system_clock(count=nnn)
-!       	call random_seed(put=(/nnn/))
-!       end if
+			!time_m = int(time / dt)
 
-       do j=1,ny
-!          call random_number(rr)
-!          rp = 1.d0-(rr-0.5)*0.05d0
-          if(ijo_in(1,j) == 0) then
-             yu(0,j) = uinti(j) / qdiff * xi_r_up(0,j)	!*rp
-          else
-             yu(0,j) = 0.d0
-          end if
-          qu(  0,j) = qu(0,j) / qdiff
-          q_xi(0,j) = yu(0,j) * hsin(j) / sj(1,j)
-          yun( 0,j) = yu(0,j)
-          qc(  0)   = qc(0) + qu(0,j)
-       end do
+			!if( mod(time_m, 100) == 0 ) then
+			!  call system_clock(count=nnn)
+			!  call random_seed(put=(/nnn/))
+			!end if
 
-    end if
-    !				!h101019 conf
-    !  Tributary
-    !
-    if(j_conf.eq.1.and.qin_t.gt.0.) then
-       qc0=0.d0
-       do j=j_t1+1,j_t2
-          if(j_upv.eq.1) then
-             hsin(j)=hin_t-eta(1,j)
-          else
-             hsin(j)=hs(1,j)
-          end if
-          hs(0,j)=hs(1,j)
-          if(hsin(j).le.hmin2) hsin(j)=0.d0
-          uinti(j)=1.d0/snmm(1,j)*hsin(j)**(2.d0/3.d0)*dsqrt(slope_t)
-          if(ijo_in(1,j).eq.0) then
-             as=hsin(j)*dn(0,j)
-          else
-             as=0.d0
-          end if
-          qu(0,j)=uinti(j)*as
-          qc0=qc0+qu(0,j)
-       end do
-       qdiff=qc0/qin_t
-       qc_t(0)=0.d0
-       do j=j_t1+1,j_t2
-          if(ijo_in(1,j).eq.0) then
-             yu(0,j)=uinti(j)/qdiff*xi_r_up(0,j)
-          else
-             yu(0,j)=0.d0
-          end if
-          qu(0,j)=qu(0,j)/qdiff
-          q_xi(0,j)=yu(0,j)*hsin(j)/sj(1,j)
-          yun(0,j)=yu(0,j)
-          qc_t(0)=qc_t(0)+qu(0,j)      
-       end do
-       !
-    else if(j_conf.ge.2.and.qin_t.gt.0.) then
-       qc0=0.d0
-       do i=i_t1+1,i_t2
-          if(j_upv.eq.1) then
-             hsin2(i)=hin_t-eta(i,j_t2+js2)
-          else
-             hsin2(i)=hs(i,j_t2+js2)
-          end if
-          hs(i,j_t2+js2+jxd)=hs(i,j_t2+js2)
-          if(hsin2(i).le.hmin2) hsin2(i)=0.d0
-          uinti2(i)=1.d0/snmm(i,j_t2+js2)*hsin2(i)**(2.d0/3.d0)*dsqrt(slope_t)
-          if(ijo_in(i,j_t2+js2).eq.0) then
-             as=hsin2(i)*ds(i,j_t2)
-          else
-             as=0.d0
-          end if
-          qv(i,j_t2)=-uinti2(i)*as*jxd
-          qc0=qc0+qv(i,j_t2)
-       end do
-       qdiff=qc0/qin_t
-       qc_t2(j_t2)=0.d0
-       do i=i_t1+1,i_t2
-          if(ijo_in(i,j_t2+js2).eq.0) then
-             yv(i,j_t2)=uinti2(i)/qdiff*et_r_vp(i,j_t2)
-          else 
-             yv(i,j_t2)=0.d0
-          end if
-          qv(i,j_t2)=qv(i,j_t2)/qdiff
-          q_et(i,j_t2)=yv(i,j_t2)*hsin2(i)/sj(i,j_t2)
-          yvn(i,j_t2)=yv(i,j_t2)
-          qc_t2(j_t2)=qc_t2(j_t2)+qv(i,j_t2)
-       end do
-    end if
-    !				!h101019 conf
-    
-  end subroutine upstream
-end module     upstream_m
+			do j=1, ny
+				!call random_number(rr)
+				!rp = 1.d0 - (rr - 0.5) * 0.05d0
+				if (ijo_in(1,j) == 0) then
+					yu(0,j) = uinti(j) / qdiff * xi_r_up(0,j)	!*rp
+				else
+					yu(0,j) = 0.d0
+				end if
+				qu(  0,j) = qu(0,j) / qdiff
+				q_xi(0,j) = yu(0,j) * hsin(j) / sj(1,j)
+				yun( 0,j) = yu(0,j)
+				qc(  0)   = qc(0) + qu(0,j)
+			end do
+		end if
+		!  !h101019 conf
+		!  Tributary
+		!
+		if (j_conf == 1 .and. qin_t > 0.) then
+			qc0 = 0.d0
+			do j = j_t1 + 1, j_t2
+				if (j_upv == 1) then
+					hsin(j) = hin_t - eta(1,j)
+				else
+					hsin(j) = hs(1,j)
+				end if
+				hs(0,j) = hs(1,j)
+				if (hsin(j) <= hmin2) hsin(j) = 0.d0
+				uinti(j) = 1.d0 / snmm(1,j) * hsin(j) ** (2.d0 / 3.d0) * dsqrt(slope_t)
+				if (ijo_in(1,j) == 0) then
+					as=hsin(j)*dn(0,j)
+				else
+					as=0.d0
+				end if
+				qu(0,j) = uinti(j) * as
+				qc0=qc0+qu(0,j)
+			end do
+			qdiff = qc0 / qin_t
+			qc_t(0) = 0.d0
+			do j = j_t1 + 1, j_t2
+				if (ijo_in(1,j) == 0) then
+					yu(0,j) = uinti(j) / qdiff * xi_r_up(0,j)
+				else
+					yu(0,j) = 0.d0
+				end if
+				qu(0,j) = qu(0,j) / qdiff
+				q_xi(0,j) = yu(0,j) * hsin(j) / sj(1,j)
+				yun(0,j) = yu(0,j)
+				qc_t(0) = qc_t(0) + qu(0,j)      
+			end do
+		!
+		else if(j_conf >= 2 .and. qin_t > 0.) then
+			qc0 = 0.d0
+			do i = i_t1 + 1, i_t2
+				if (j_upv == 1) then
+					hsin2(i) = hin_t - eta(i,j_t2+js2)
+				else
+					hsin2(i) = hs(i, j_t2+js2)
+				end if
+				hs(i,j_t2+js2+jxd) = hs(i,j_t2+js2)
+				if (hsin2(i) <= hmin2) hsin2(i) = 0.d0
+				uinti2(i) = 1.d0 / snmm(i, j_t2 + js2) * hsin2(i) ** (2.d0 / 3.d0) * dsqrt(slope_t)
+				if (ijo_in(i,j_t2+js2) == 0) then
+					as = hsin2(i) * ds(i, j_t2)
+				else
+					as = 0.d0
+				end if
+				qv(i,j_t2) = -uinti2(i) * as * jxd
+				qc0 = qc0 + qv(i, j_t2)
+			end do
+			qdiff = qc0 / qin_t
+			qc_t2(j_t2) = 0.d0
+			do i = i_t1 + 1, i_t2
+				if (ijo_in(i, j_t2 + js2) == 0) then
+					yv(i,j_t2) = uinti2(i) / qdiff * et_r_vp(i,j_t2)
+				else 
+					yv(i,j_t2) = 0.d0
+				end if
+				qv(i,j_t2) = qv(i,j_t2) / qdiff
+				q_et(i,j_t2) = yv(i,j_t2) * hsin2(i) / sj(i,j_t2)
+				yvn(i,j_t2) = yv(i,j_t2)
+				qc_t2(j_t2) = qc_t2(j_t2) + qv(i,j_t2)
+			end do
+		end if
+		! h101019 conf
+
+	end subroutine upstream
+end module upstream_m
 
 !-----------------------------------------------------------------------
 module downstream_m
