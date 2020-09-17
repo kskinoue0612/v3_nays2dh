@@ -6947,42 +6947,42 @@ end module     upstream_m
 
 !-----------------------------------------------------------------------
 module downstream_m
-  
-  use common_hh
-  use common_cmhq
-  use common_cmxy
-  use common_cmsui
+	use common_hh
+	use common_cmhq
+	use common_cmxy
+	use common_cmsui
+	implicit none
 contains
-  !----------------------------------------------------------------
-  subroutine downstream(j_wl, hnx)
-    implicit none
-	 integer, intent(in) :: j_wl
-    integer :: i,j
+	!----------------------------------------------------------------
+	subroutine downstream(j_wl, hnx)
+		implicit none
 
-    
-    real(8),intent(in) :: hnx
-	 if(j_wl ==3)then
-		 do j=1, ny
-			hn(nx,j) = h(  nx-1,j)
-			if(ijo_in(nx,j) == 0) then
-				hs(nx,j) = hnx - eta(nx,j)
-				if(hs(nx,j) < hmin)    hs(nx,j) = 0.d0
-				h( nx,j) = eta(nx,j) + hs(nx,j)
-				hn(nx,j) = h(  nx,j)
-			 end if
-		 end do
-	 else
-		 do j=1, ny
-			 if(ijo_in(nx,j) == 0) then
-				 hs(nx,j) = hnx - eta(nx,j)
-				 if(hs(nx,j) < hmin)    hs(nx,j) = 0.d0
-				 h( nx,j) = eta(nx,j) + hs(nx,j)
-				 hn(nx,j) = h(  nx,j)
-			 end if
-		 end do
-	 end if
-  end subroutine downstream
-end module     downstream_m
+		integer, intent(in) :: j_wl
+		real(8),intent(in) :: hnx
+		integer :: i,j
+
+		if(j_wl ==3)then
+			do j=1, ny
+				hn(nx,j) = h(  nx-1,j)
+				if(ijo_in(nx,j) == 0) then
+					hs(nx,j) = hnx - eta(nx,j)
+					if(hs(nx,j) < hmin)    hs(nx,j) = 0.d0
+					h( nx,j) = eta(nx,j) + hs(nx,j)
+					hn(nx,j) = h(  nx,j)
+				 end if
+			 end do
+		 else
+			 do j=1, ny
+				 if(ijo_in(nx,j) == 0) then
+					hs(nx,j) = hnx - eta(nx,j)
+					if(hs(nx,j) < hmin)    hs(nx,j) = 0.d0
+					h( nx,j) = eta(nx,j) + hs(nx,j)
+					hn(nx,j) = h(  nx,j)
+				end if
+			end do
+		end if
+	end subroutine downstream
+end module downstream_m
 
 !--------------------------------------------------------------------------------
 module snucal_ke_m
