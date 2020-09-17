@@ -6314,287 +6314,353 @@ end module     snucal_m
 !-----------------------------------------------------------------------
 
 module hqtcal_m
-  use common_hh
-  use common_cmhq
-  use common_qhyd
-  use common_cmave
-  use common_cmxy
-  use common_cmsui
-  use common_cmsn
-  use common_qhyd_t
-  use common_cmave_t
-  use common_cmave_t2
-  use common_cmconf1
-  implicit none
+	use common_hh
+	use common_cmhq
+	use common_qhyd
+	use common_cmave
+	use common_cmxy
+	use common_cmsui
+	use common_cmsn
+	use common_qhyd_t
+	use common_cmave_t
+	use common_cmave_t2
+	use common_cmconf1
+	implicit none
 
-  integer, private :: bsearch_func_mode 
+	integer, private :: bsearch_func_mode
+
+	real(8), private :: b_ups, b_dse
+	integer, private:: jss1, jss2
+	real(8), private:: l_slope ! copy of slope_up
+	real(8), private:: l_h_down   ! copy of h_down
 
 contains
-  ! function for bsearch
-  function bsearch_func(v)
-	real(8) :: bsearch_func
-	real(8), intent(in) :: v
+	! function for bsearch
+	function bsearch_func(v)
+		real(8) :: bsearch_func
+		real(8), intent(in) :: v
 
-	bsearch_func = 0.0d0
-  end function bsearch_func
+		bsearch_func = 0.d0
+		if (bsearch_func_mode == 1) then
+			bsearch_func = func_q_ups(v)
+		else if (bsearch_func_mode == 2) then
+			bsearch_func = func_q_ups_t(v)
+		else if (bsearch_func_mode == 3) then
+			bsearch_func = func_q_dse(v)
+		end if
 
-  ! binary search for monotonous increase functions
-  function bsearch(v_min, v_max, tgt)
-    implicit none
+	end function bsearch_func
 
-    real(8) :: bsearch
-	real(8), intent(in) :: v_min, v_max, tgt
-	real(8) :: v_min2, v_max2
-    real(8) :: err ! acceptable error
-    real(8) :: f_val
+	! binary search for monotonous increase functions
+	function bsearch(v_min, v_max, tgt)
+		implicit none
+
+		real(8) :: bsearch
+		real(8), intent(in) :: v_min, v_max, tgt
+		real(8) :: v_min2, v_max2
+		real(8) :: err   ! acceptable error
+		real(8) :: f_val ! value calculated by bsearch_func
 	
-	err = tgt * 0.001d0
-	v_min2 = v_min
-	v_max2 = v_max
+		err = tgt * 0.001d0
+		v_min2 = v_min
+		v_max2 = v_max
 
-	do
-	  bsearch = (v_min2 + v_max2) * 0.5d0
-	  f_val = bsearch_func(bsearch)
-	  if (dabs(f_val - tgt) < err) exit
+		do
+			bsearch = (v_min2 + v_max2) * 0.5d0
+			f_val = bsearch_func(bsearch)
+			if (dabs(f_val - tgt) < err) exit
 
-      if (f_val > tgt) then
-        v_max2 = bsearch
-	  else
-		v_min2 = bsearch
-	  end if
-	end do
+			if (f_val > tgt) then
+				v_max2 = bsearch
+			else
+				v_min2 = bsearch
+			end if
+		end do
   end function
 
-  !----------------------------------------------------------------
-  subroutine hqtcal(nq,slope,slope_up,slope_up_t,hplus,j_wl,h_down,sn_g)
-    implicit none
+	! Initialization. calculate module variables
+	subroutine hqtcal_init(slope, slope_up, h_down, sn_g, q)
+		implicit none
+		real(8), intent(inout) :: slope, slope_up
+		real(8), intent(in) :: h_down, sn_g, q
 
-	integer, intent(in) :: nq, j_wl
-	real(8), intent(in) :: slope_up_t, hplus, h_down, sn_g
-	real(8), intent(inout) :: slope, slope_up
+		integer:: j
+		real(8) :: h00
 
-    integer :: i, j, n
-    real(8) :: qmax, qmin, b_ups &
-         , qmax_t, qmin_t, b_dse, h00, hss, hsmax1, hsmax2, hsmax, hsmax2_t, hsmax2_t2 &
-         , hmax1, hmin1, hh, qcc, hs1, as, u0, qs, qp_ttl
-    integer :: nnym, nnxm, jss1, jss2
+		! calculate b_ups
+		b_ups = 0.d0
+		do j = 1, ny
+			if (    ijobst(0, j-1) + ijobst(0, j) == 0) then
+				b_ups = b_ups + dn(0, j)
+			elseif (ijobst(0, j-1) + ijobst(0, j) == 1) then
+				b_ups = b_ups + dn(0, j) * 0.5d0
+			end if
+		end do
+	
+		! calculate b_dse
+		b_dse = 0.d0
+		do j = 1, ny
+			if (    ijobst(nx, j-1) + ijobst(nx, j) == 0) then
+				b_dse = b_dse + dn(nx,j)
+			elseif (ijobst(nx, j-1) + ijobst(nx, j) == 1) then
+				b_dse = b_dse + dn(nx,j) * 0.5d0
+			end if
+		end do
+	
+		! update slope if needed
+		if (slope < 1e-8) then
+			if (h_down > -100.d0) then
+				h00 = h_down   - emin(nx)
+			else 
+				h00 = h_dse(0) - emin(nx)
+			end if
 
-    qmax = maxval(q_ups)
-    qmax_t=maxval(q_ups_t)	!h101019 conf
-    qmin = qmax/1000.d0
-    qmin_t=qmax_t/1000.d0	!h101019 conf
-    
-    !
-    b_ups = 0.d0
-    do j = 1, ny
-       if(    ijobst( 0,j-1)+ijobst( 0,j) == 0) then
-          b_ups = b_ups+dn( 0,j)
-       elseif(ijobst( 0,j-1)+ijobst( 0,j) == 1) then
-          b_ups = b_ups+dn( 0,j) * 0.5d0
-       end if
-    end do
+			if (h00 < 1e-4) h00 = 1e-4
+			slope = (sn_g * q / b_ups / h00 ** (5.d0 / 3.d0)) ** 2
+		end if
 
-    b_dse=0.d0
-    do j=1,ny
-       if(    ijobst(nx,j-1)+ijobst(nx,j) == 0) then
-          b_dse = b_dse+dn(nx,j)
-       elseif(ijobst(nx,j-1)+ijobst(nx,j) == 1) then
-          b_dse = b_dse+dn(nx,j) * 0.5d0
-       end if
-    end do
-    !
-    if( slope < 1e-8 ) then
-       if(h_down > -100.d0) then
-          h00 = h_down   - emin(nx)
-       else 
-          h00 = h_dse(0) - emin(nx)
-       end if
-       if(h00 < 1e-4) h00 = 1e-4
-       slope = (sn_g*qmax/b_ups/h00**(5.d0/3.d0))**2
-    end if
-    !
-    if(slope_up.lt.1e-8) then
-       if(h_down.gt.-100.d0) then
-          h00=h_down-emin(nx)
-       else 
-          h00=h_dse(0)-emin(nx)
-       end if
-       if(h00.lt.1e-4) h00=1e-4
-       slope_up=(sn_g*qmax/b_ups/h00**(5.d0/3.d0))**2
-    end if
-    !
-    hsmax1=(snmm(1,nym)*qmax/(chb(1)*dsqrt(slope)))**(3.d0/5.d0)*100.d0
-    hsmax2=(snmm(1,nym)*qmax/(chb(1)*dsqrt(slope_up)))**(3.d0/5.d0)*100.d0
-    hsmax=max(hsmax1,hsmax2)
-    !				!h101019 conf
-    nnym=(j_t2+j_t1)/2
-    nnxm=(i_t2+i_t1)/2
-    if(j_conf.eq.1) then
-       hsmax2_t=(snmm(1,nnym)*qmax_t/(chb_t(1)*dsqrt(slope_up_t)))**(3.d0/5.d0)*100.d0
-    else if(j_conf.ge.2) then
-       hsmax2_t2=(snmm(nnxm,j_t2+js2)*qmax_t/(chb_t2(j_t2)*dsqrt(slope_up_t)))**(3.d0/5.d0)*100.d0
-    end if
-    !				!h101019 conf
-    !
-    do n=0,nq
-       !
-       ! è„ó¨í[êÖà ÇÃåvéZ
-       !
-       if(q_ups(n) <= 1e-6) then
-          !  h_ups(n) = h(1,j)
-          h_ups(n) = emin(1)
-          goto 100		!h101019 debug 103 > 100
-       end if
-       hmax1 = eave(1)+hsmax*10.d0
-       hmin1 = emin(1)
-120    hh    = (hmax1+hmin1)*.5d0
-       qcc = 0.d0
-       if(j_conf.eq.0) then		!h101019 conf
-          jss1=1
-          jss2=ny
-       else 
-          jss1=j_m1+1
-          jss2=j_m2
-       end if
-       do j=jss1,jss2			!h101019 conf
-          hs1 = hh - eta(1,j)
-          if( hs1 > 0. .and. ijo_in(1,j)==0 ) then
-             as  = hs1 * dn(0,j)
-             u0  = 1.d0 / snmm(1,j) * hs1**(2.d0/3.d0) * dsqrt(slope_up)
-             qs  = as * u0
-             qcc = qcc + qs
-          end if
-       end do
-!       if( dabs(qcc-q_ups(n)) < qmin) goto 100
-       if( dabs(qcc-q_ups(n)) < q_ups(n)*0.001d0) goto 100
-       if(   qcc > q_ups(n) ) then
-          hmax1 = hh
-       else
-          hmin1 = hh
-       end if
-       goto 120
-100    continue
-       h_ups(n) = hh
-       !				!h101019 conf
-       ! è„ó¨í[êÖà ÇÃåvéZÅiéxêÏë§Åj
-       !
-       if(j_conf.eq.1) then
-          if(q_ups_t(n).le.1e-6) then
-             !  h_ups_t(n)=h(1,j)
-             h_ups_t(n) = emin_t(1)
-             goto 105
-          end if
-          hmax1=eave_t(1)+hsmax2_t*10.d0
-          hmin1=emin_t(1)
-125       hh=(hmax1+hmin1)*.5d0
-          qcc=0.
-          do j=j_t1+1,j_t2
-             hs1=hh-eta(1,j)
-             if(hs1.gt.0. .and. ijo_in(1,j)==0 ) then
-                as=hs1*dn(0,j)
-                u0=1.d0/snmm(1,j)*hs1**(2.d0/3.d0)*dsqrt(slope_up_t)
-                qs=as*u0
-                qcc=qcc+qs
-             end if
-          end do
-!          if(dabs(qcc-q_ups_t(n))<qmin_t) goto 105
-          if(dabs(qcc-q_ups_t(n))<q_ups_t(n)*0.001d0) goto 105
-          if(qcc.gt.q_ups_t(n)) then
-             hmax1=hh
-          else
-             hmin1=hh
-          end if
-          goto 125
-105       continue
-          h_ups_t(n)=hh
-          !
-       else if(j_conf.ge.2) then
-          if(q_ups_t(n).le.1e-6) then
-             !   h_ups_t(n)=h(i,j_t2+js2)
-             h_ups_t(n) = emin_t2(j_t2+js2)
-             goto 104
-          end if
-          hmax1=eave_t2(j_t2+js2)+hsmax2_t2*10.d0
-          hmin1=emin_t2(j_t2+js2)
-124       hh=(hmax1+hmin1)*.5d0
-          qcc=0.
-          do i=i_t1+1,i_t2
-             hs1=hh-eta(i,j_t2+js2)
-             
-             if(hs1.gt.0. .and. ijo_in(i,j_t2+js2)==0 ) then
-                as=hs1*dn(i,j_t2+js2)
-                u0=1.d0/snmm(i,j_t2+js2)*hs1**(2.d0/3.d0)*dsqrt(slope_up_t)
-                qs=as*u0
-                qcc=qcc+qs
-             end if
-          end do
-!          if(dabs(qcc-q_ups_t(n)).lt.qmin_t) goto 104
-          if(dabs(qcc-q_ups_t(n))<q_ups_t(n)*0.001d0) goto 104
-          if(qcc.gt.q_ups_t(n)) then
-             hmax1=hh
-          else
-             hmin1=hh
-          end if
-          goto 124
-104       continue
-          h_ups_t(n)=hh
-       end if
-       !				!h101019 conf
-       !
-       ! â∫ó¨í[êÖà ÇÃåvéZ
-       !
-       if( j_wl == 1 .or. j_wl == 3) then
-          jss1=1				!h101019 conf
-          jss2=ny
-          if(j_conf.ge.1) then
-             qp_ttl=q_ups(n)+q_ups_t(n)
-             if(j_conf.ge.2) then
-                jss1=j_m1+1
-                jss2=j_m2
-             end if
-          else
-             qp_ttl=q_ups(n)
-          end if				!h101019 conf
-          if( qp_ttl <= 1e-6 ) then	!h101019 conf
-             h_dse(n) = h_down
-             goto 103
-          end if
-          hmax1 = eave(nx) + hsmax * 10.d0
-          hmin1 = emin(nx)
-121       hh    = ( hmax1 + hmin1 ) * 0.5d0
-          qcc = 0.d0
-          do j = jss1, jss2		!h101019 conf
-             hss = hh - eta(nx,j)
-             if(hss > 0.d0 .and. ijo_in(nx,j)==0 ) then
-                as  = hss*dn(nx,j)
-                u0  = 1.d0 / snmm(nx,j) * hss**(2.d0/3.d0) * dsqrt(slope)
-                qs  =  as * u0
-                qcc = qcc + qs
-             end if
-          end do
-!          if( dabs(qcc-qp_ttl) < qmin ) goto 101	!h101019 conf
-          if( dabs(qcc-qp_ttl) < qp_ttl*0.001d0 ) goto 101	!h101019 conf
-          if( qcc   > qp_ttl ) then		!h101019 conf
-             hmax1 = hh
-          else
-             hmin1 = hh
-          end if
-          goto 121
-101       continue
-          h_dse(n) = hh + hplus
-       elseif( j_wl == 0 ) then
-          h_dse(n) = h_down
-			 
-       end if
-103    continue
-       if( j_wl/=1 ) then
-         if( h_dse(n) <= emin(nx) ) then
-            write(*,*) 'Given Downstream Water Surface is below Bed'
-            stop
-         end if
-       end if
-    end do
+		! update slope_up if needed
+		if (slope_up < 1e-8) then
+			if (h_down > -100.d0) then
+				h00 = h_down   - emin(nx)
+			else
+				h00 = h_dse(0) - emin(nx)
+			end if
+			if (h00 < 1e-4) h00 = 1e-4
+			slope_up = (sn_g * q / b_ups / h00 ** (5.d0 / 3.d0)) ** 2
+		end if
 
+		! copy of h_down
+		l_h_down = h_down
+	end subroutine
+
+	! function to calculate q_ups from h for standard river
+	function func_q_ups(h)
+		implicit none
+		real(8) :: func_q_ups
+		real(8), intent(in) :: h
+
+		integer :: j
+		real(8) :: as, hs, u0, qs
+
+		func_q_ups = 0.d0
+
+		do j = jss1, jss2
+			hs = h - eta(1, j)
+			if (hs > 0. .and. ijo_in(1, j) == 0) then
+				as = hs * dn(0, j)
+				u0 = 1.d0 / snmm(1, j) * hs ** (2.d0 / 3.d0) * dsqrt(l_slope)
+				qs = as * u0
+				func_q_ups = func_q_ups + qs
+			end if
+		end do
+  end function
+
+	! function to calculate q_ups from h for river with tributary
+	function func_q_ups_t(h)
+		implicit none
+		real(8) :: func_q_ups_t
+		real(8), intent(in) :: h
+
+		integer :: i, j_edge
+		real(8) :: as, hs, u0, qs
+
+		j_edge = j_t2 + js2
+
+		func_q_ups_t = 0.d0
+
+		do i = jss1, jss2
+			hs = h - eta(i, j_edge)
+			if (hs > 0. .and. ijo_in(i, j_edge) == 0) then
+				as = hs * dn(i, j_edge)
+				u0 = 1.d0 / snmm(i, j_edge) * hs ** (2.d0 / 3.d0) * dsqrt(l_slope)
+				qs = as * u0
+				func_q_ups_t = func_q_ups_t + qs
+			end if
+		end do
+  end function
+
+	! function to calculate q_dse from h
+	function func_q_dse(h)
+		implicit none
+		real(8) :: func_q_dse
+		real(8), intent(in) :: h
+
+		integer :: j
+		real(8) :: as, hs, u0, qs
+
+		func_q_dse = 0.d0
+
+		do j = jss1, jss2
+			hs = h - eta(nx, j)
+			if (hs > 0. .and. ijo_in(nx, j) == 0) then
+				as = hs * dn(nx, j)
+				u0 = 1.d0 / snmm(nx, j) * hs ** (2.d0 / 3.d0) * dsqrt(l_slope)
+				qs = as * u0
+				func_q_dse = func_q_dse + qs
+			end if
+		end do
+  end function
+
+	function calc_h_ups(q_ups, slope, slope_up)
+		implicit none
+		real(8) :: calc_h_ups
+		real(8), intent(in) :: q_ups, slope, slope_up
+	
+		real(8) :: hmin, hmax
+
+		if (q_ups <= 1e-6) then
+			calc_h_ups = emin(1)
+			return
+		end if
+
+		! setup jss1, jss2
+		if (j_conf == 0) then
+			jss1 = 1
+			jss2 = ny
+		else 
+			jss1 = j_m1 + 1
+			jss2 = j_m2
+		end if
+
+		! copy slope_up
+		l_slope = slope_up
+
+		hmax = 10000
+		hmin = emin(1)
+
+		! use func_q_ups
+		bsearch_func_mode = 1
+		calc_h_ups = bsearch(hmin, hmax, q_ups)
+	end function
+
+	function calc_h_ups_t(q_ups_t, slope_up_t)
+		implicit none
+		real(8) :: calc_h_ups_t
+		real(8), intent(in) :: q_ups_t, slope_up_t
+
+		real(8) :: hmin, hmax
+		integer :: j_edge
+
+		if (j_conf == 1) then
+			if (q_ups_t < 1e-6) then
+				calc_h_ups_t = emin_t(1)
+				return
+			end if
+
+			! setup jss1, jss2
+			jss1 = j_t1 + 1
+			jss2 = j_t2
+
+			! copy slope_up
+			l_slope = slope_up_t
+
+			hmax = 10000
+			hmin = emin_t(1)
+
+			! use func_q_ups
+			bsearch_func_mode = 1
+			calc_h_ups_t = bsearch(hmin, hmax, q_ups_t)
+
+		else if (j_conf >= 2) then
+			if (q_ups_t < 1e-6) then
+				calc_h_ups_t = emin_t2(j_edge)
+				return
+			end if
+
+			j_edge = j_t2 + js2
+
+			! setup jss1, jss2
+			jss1 = i_t1 + 1
+			jss2 = i_t2
+
+			! copy slope_up
+			l_slope = slope_up_t
+
+			hmax = 10000
+			hmin = emin_t2(j_edge)
+
+			! use func_q_ups_t
+			bsearch_func_mode = 2
+			calc_h_ups_t = bsearch(hmin, hmax, q_ups_t)
+		end if
+  end function
+
+	function calc_h_dse(q_ups, q_ups_t, slope, j_wl)
+		implicit none
+		real(8) :: calc_h_dse
+		real(8), intent(in) :: q_ups, q_ups_t, slope
+		integer, intent(in) :: j_wl
+
+		real(8) :: q_ups_total
+		real(8) :: hmin, hmax
+
+		if (j_wl == 0) then
+			! constant value
+			calc_h_dse = l_h_down
+			return
+		else if (j_wl == 1 .or. j_wl == 3) then
+			! uniform flow or free outflow
+			jss1 = 1
+			jss2 = ny
+
+			! copy slope
+			l_slope = slope
+
+			if (j_conf == 0) then
+				! standard
+				q_ups_total = q_ups
+			else
+				! with tributary
+				q_ups_total = q_ups + q_ups_t
+				if (j_conf >= 2) then
+					jss1 = j_m1 + 1
+					jss2 = j_m2
+				end if
+			end if
+			if (q_ups_total <= 1e-6 ) then
+				calc_h_dse = l_h_down
+				return
+			end if
+
+			hmax = 10000
+			hmin = emin(nx)
+
+			! use func_q_dse
+			bsearch_func_mode = 3
+			calc_h_dse = bsearch(hmin, hmax, q_ups_total)
+		else
+			! given from time series data
+			! @todo implement this
+		end if
+	end function
+
+
+	!----------------------------------------------------------------
+	subroutine hqtcal(nq, slope, slope_up, slope_up_t, j_wl)
+		implicit none
+
+		integer, intent(in) :: nq, j_wl
+		real(8), intent(in) :: slope, slope_up, slope_up_t
+
+		integer :: n
+
+		do n = 0, nq
+			! è„ó¨í[êÖà ÇÃåvéZ
+			h_ups(n) = calc_h_ups(q_ups(n), slope, slope_up)
+
+			! è„ó¨í[êÖà ÇÃåvéZÅiéxêÏë§Åj
+			h_ups_t(n) = calc_h_ups_t(q_ups_t(n), slope_up_t)
+
+			! â∫ó¨í[êÖà ÇÃåvéZ
+			h_dse(n) = calc_h_dse(q_ups(n), q_ups_t(n), slope, j_wl)
+			if (j_wl /= 1) then
+				if( h_dse(n) <= emin(nx) ) then
+					write(*,*) 'Given Downstream Water Surface is below Bed'
+					stop
+				end if
+			end if
+		end do
   end subroutine hqtcal
 
 	subroutine upstream_h( q_main, q_tri, slope, slope_up, slope_up_t, sn_g, h_main, h_tri )
@@ -11451,8 +11517,9 @@ Program Shimizu
     !   Cal. of time series of upstream water surface elevation 
     !   by uniform flow calculation.
     !c	!h101019 conf  &  initl <-> hqtcal
-    
-    call hqtcal( nq, slope, slope_up, slope_up_t, hplus, j_wl, h_down, sn_g )
+
+    call hqtcal_init(slope, slope_up, h_down, sn_g, maxval(q_ups))
+    call hqtcal(nq, slope, slope_up, slope_up_t, j_wl)
     !
     hnx = h_dse(0)
     
