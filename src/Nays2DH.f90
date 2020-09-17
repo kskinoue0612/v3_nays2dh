@@ -10250,534 +10250,517 @@ end module cross_sectional_output
 !--------------------------------------------------------------------------------
 Program Shimizu
 
-  use common_hh
-  use flag_op
-  use common_cmuv
-  use common_cmc
-  use common_cmuvp
-  use common_cmhq
-  use common_cmgrd
-  use common_cmxy
-  use common_cmxiet
-  use common_cmtst
-  use common_cmuxy
-  use common_cmave
-  use common_cmsr
-  use common_cmqb
-  use common_cmet
-  use common_cmsui
-  use common_cmsn
-  use common_cmxxyy
-  use common_qhyd
-  use common_cmke
-  use common_cmkep
-  use common_cmcf
-  use common_cmyp
-  use common_cmsnu
-  use common_cmchunk
-  use mix
-  use common_qhyd_t
-  use common_cmconf1
-  use common_cmave_t
-  use common_cmave_t2
-  use fixed_bed
-  use supplying_sediment
-  use secondary_flow
-  !
-  use avgeo_m
-  use gcoefs_m
-  use initl_m
-  use uvpcal_m
-  use uxuycal_m
-  use voltexcal_m
-  use uxxyycal_m
-  use hsxxcal_m
-  use cell2grid_m
-  use taustacal_m
-  use hcal_v_m
-  use hcal_m
-  use diffusion_m
-  use diffusion_c_m
-  use newgrd_m
-  use bound_m
-  use upstream_c_m
-  use gbound_m
-  use dcip2d_m
-  use shift_m
-  use dryck_m
-  use ndr_m
-  use srcal_m
-  use qbcal_w_m
-  use etacal_m
-  use bank_shift_m
-  use cbcal_m
-  use qsucal_m
-  use c_secondary_m
-  use ecoefs_m
-  use hqtcal_m
-  use upstream_m
-  use downstream_m
-  use snucal_m
-  use snucal_ke_m
-  use source_ke
-  use ypcal_ini_m
-  use ypcal_m
-  use wall_ke_m
-  use phkecal_m
-  use schange_m
-  use alloc_var_m
-  use initial_0_m
-  use mix_m
-  use ebank_m
-  use func_fixed_bed
-  use c_transport_m
-  use vorticity_eq_m
-  use cross_sectional_output
+	use common_hh
+	use flag_op
+	use common_cmuv
+	use common_cmc
+	use common_cmuvp
+	use common_cmhq
+	use common_cmgrd
+	use common_cmxy
+	use common_cmxiet
+	use common_cmtst
+	use common_cmuxy
+	use common_cmave
+	use common_cmsr
+	use common_cmqb
+	use common_cmet
+	use common_cmsui
+	use common_cmsn
+	use common_cmxxyy
+	use common_qhyd
+	use common_cmke
+	use common_cmkep
+	use common_cmcf
+	use common_cmyp
+	use common_cmsnu
+	use common_cmchunk
+	use mix
+	use common_qhyd_t
+	use common_cmconf1
+	use common_cmave_t
+	use common_cmave_t2
+	use fixed_bed
+	use supplying_sediment
+	use secondary_flow
+	!
+	use avgeo_m
+	use gcoefs_m
+	use initl_m
+	use uvpcal_m
+	use uxuycal_m
+	use voltexcal_m
+	use uxxyycal_m
+	use hsxxcal_m
+	use cell2grid_m
+	use taustacal_m
+	use hcal_v_m
+	use hcal_m
+	use diffusion_m
+	use diffusion_c_m
+	use newgrd_m
+	use bound_m
+	use upstream_c_m
+	use gbound_m
+	use dcip2d_m
+	use shift_m
+	use dryck_m
+	use ndr_m
+	use srcal_m
+	use qbcal_w_m
+	use etacal_m
+	use bank_shift_m
+	use cbcal_m
+	use qsucal_m
+	use c_secondary_m
+	use ecoefs_m
+	use hqtcal_m
+	use upstream_m
+	use downstream_m
+	use snucal_m
+	use snucal_ke_m
+	use source_ke
+	use ypcal_ini_m
+	use ypcal_m
+	use wall_ke_m
+	use phkecal_m
+	use schange_m
+	use alloc_var_m
+	use initial_0_m
+	use mix_m
+	use ebank_m
+	use func_fixed_bed
+	use c_transport_m
+	use vorticity_eq_m
+	use cross_sectional_output
+
+	use iricmi
+
+	implicit none
+	integer :: i,j,k
+
+	real(8) :: snu00, h_down, bh_slope, upv_slope, upv_slope_t, h_slope &
+		, h_slope_t, x_bk, h_slope_1,h_slope_2,h_slope_12t, tantc, t_out_start &
+		, bheight, ti_smg, c_tree, hdry,ti_fill,alh, rho, slambda,dsmt,ttt &
+		, hplus, r_tantc, sn_g, dummy, t_xx, thstart,qp,etime,dm0,cw,c_mu0,sigma_k, sigma_e &
+		, c_1e, c_2e, calculated_slope, calculated_slope_t,bh1, qp_t &
+		, bh2, slope, slope_t, slope_up, slope_up_t, h0, hs_dse, u0, us0, fr0, phi0, ts0, c_f &
+		, errmax,usci, theta_b, tan_tb, cos_tb, gamma, gamma_m, rsgd, snu_0, c_k0, c_e0 &
+		, ye00, yk00, dtanmax, wf, theta_cx, hnx, dt2, h_input, h_input_t &
+		, q_input, q_input_t, sst, err, qc_ave, hs_ave, dermax, sigma, total_budget		&
+		, pi_bed, snst
+
+
+	integer :: ii, icount, istatus, i_sec_hour, j_wl, j_slope,j_upv, j_upv_slope 				&
+		, i_flow, j_snu, j_cip, j_bank, i_erosion_start, j_chunk, j_smooth, i_smooth 		&
+		, j_smg, mtime, mave, j_fill,iii, icelck, n, nq, is, kend, kmod, ktismg, ktfill 		&
+		, ktifill, iofrg, ndeposit, ierr_tmp, nx2, ny2, nk2, lcount, ndry, iier, i_erosion_end
+
+	integer :: n_parallel
+
+	character(50) :: mix_label, cm
+
   
-  use iricmi
+!	CHARACTER (LEN=3), EXTERNAL :: get_extension !rmcd iRIC
 
-  implicit none
-  integer :: i,j,k
+	!ccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+	!
+	!       Array for gridFile 
+	!
+	!ccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+	!
+	integer(4), dimension(:,:), pointer :: obst4, fm4, mix_cell
+	real(8)   , dimension(:,:), pointer :: x8, y8, z8, hs8, zb8
+	real(8)   , dimension(:,:), pointer :: vege4, roughness4, vegeh
+	integer(4) ni4,nj4,iobst4
+	real(8) hmin8
 
-  real(8) :: snu00, h_down, bh_slope, upv_slope, upv_slope_t, h_slope &
-       , h_slope_t, x_bk, h_slope_1,h_slope_2,h_slope_12t, tantc, t_out_start &
-       , bheight, ti_smg, c_tree, hdry,ti_fill,alh, rho, slambda,dsmt,ttt &
-       , hplus, r_tantc, sn_g, dummy, t_xx, thstart,qp,etime,dm0,cw,c_mu0,sigma_k, sigma_e &
-       , c_1e, c_2e, calculated_slope, calculated_slope_t,bh1, qp_t &
-       , bh2, slope, slope_t, slope_up, slope_up_t, h0, hs_dse, u0, us0, fr0, phi0, ts0, c_f &
-       , errmax,usci, theta_b, tan_tb, cos_tb, gamma, gamma_m, rsgd, snu_0, c_k0, c_e0 &
-       , ye00, yk00, dtanmax, wf, theta_cx, hnx, dt2, h_input, h_input_t &
-       , q_input, q_input_t, sst, err, qc_ave, hs_ave, dermax, sigma, total_budget		&
-       , pi_bed, snst
+	! for cngs i/0
+	INTEGER :: IER
+	REAL(8) :: qptemp
+	REAL(8), DIMENSION(:), ALLOCATABLE :: xtmp, ytmp, ytmp2
+	INTEGER :: tmpint
+	integer :: iricmi_dump
+	real(8), parameter:: iricmi_dummy_dump_interval = -1 ! negative means manual output
 
+	! For Hot Stat
+	integer :: i_re_flag_i, i_re_flag_o, n_rest, i_tmp_count
+	real(8) :: opt_tmp(0:9)
+	character(len = strMax) :: tmp_file_o(0:9), tmp_caption(0:9) &
+		,tmp_file_i, tmp_dummy, tmp_pass
+	i_tmp_count = 0
+	do ii = 0,9
+		tmp_dummy = "tmp0.d"
+		write(tmp_dummy(4:4),'(i1)') ii
+		tmp_file_o(ii) = tmp_dummy
+		tmp_dummy = "outtime_tmp0"
+		write(tmp_dummy(12:12),'(i1)') ii
+		tmp_caption(ii) = tmp_dummy
+	end do
+	!
+	write(*,*) 'Nays2DH on iRIC 3.x'
+	write(*,*) 'Copyright(C)2003-2018 by Yasuyuki SHIMIZU, Hokkaido Univ., Japan, and Hiroshi TAKEBAYASHI, Kyoto Univ., Japan, All Right Reserved'
+	!
+	!
+	g     = 9.81d0
+	skp   = 0.41d0
+	snu00 = 1e-6
 
-  integer :: ii, icount, istatus, i_sec_hour, j_wl, j_slope,j_upv, j_upv_slope 				&
-       , i_flow, j_snu, j_cip, j_bank, i_erosion_start, j_chunk, j_smooth, i_smooth 		&
-       , j_smg, mtime, mave, j_fill,iii, icelck, n, nq, is, kend, kmod, ktismg, ktfill 		&
-       , ktifill, iofrg, ndeposit, ierr_tmp, nx2, ny2, nk2, lcount, ndry, iier, i_erosion_end
+	lcount = 0
 
-  integer :: n_parallel
-  
-  character(50) :: mix_label, cm
+	call iricmi_model_init(ier)
 
-  
-!  CHARACTER (LEN=3), EXTERNAL :: get_extension !rmcd iRIC
-  
-  !ccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-  !
-  !       Array for gridFile 
-  !
-  !ccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-  !
-  integer(4), dimension(:,:), pointer :: obst4, fm4, mix_cell
-  real(8)   , dimension(:,:), pointer :: x8, y8, z8, hs8, zb8
-  real(8)   , dimension(:,:), pointer :: vege4, roughness4, vegeh
-  integer(4) ni4,nj4,iobst4
-  real(8) hmin8
-  
-  ! for cngs i/0
-  INTEGER :: FID, IER
-  CHARACTER (LEN=3) :: fext  ! For file extension query.
-  REAL(8) :: qptemp
-  REAL(8), DIMENSION(:), ALLOCATABLE :: xtmp, ytmp, ytmp2
-  INTEGER :: tmpint
-  integer :: iricmi_dump
-  real(8), parameter:: iricmi_dummy_dump_interval = -1 ! negative means manual output
-  
-  ! For Hot Stat
-  integer :: i_re_flag_i, i_re_flag_o, n_rest, i_tmp_count
-  real(8) :: opt_tmp(0:9)
-  character(len = strMax) :: tmp_file_o(0:9), tmp_caption(0:9) &
-       ,tmp_file_i, tmp_dummy, tmp_pass
-  i_tmp_count = 0
-  do ii=0,9
-     tmp_dummy = "tmp0.d"
-     write(tmp_dummy(4:4),'(i1)') ii
-     tmp_file_o(ii) = tmp_dummy
-     tmp_dummy = "outtime_tmp0"
-     write(tmp_dummy(12:12),'(i1)') ii
-     tmp_caption(ii) = tmp_dummy
-  end do
-  !
-  write(*,*) 'Nays2DH on iRIC 3.x'
-  write(*,*) 'Copyright(C)2003-2018 by Yasuyuki SHIMIZU, Hokkaido Univ., Japan, and Hiroshi TAKEBAYASHI, Kyoto Univ., Japan, All Right Reserved'
-  !
-  !
-  g     = 9.81d0
-  skp   = 0.41d0
-  snu00 = 1e-6
-  
-  lcount = 0
+	call iricmi_read_grid2d_str_size(ni4, nj4, ier)
+	allocate (x8(ni4,nj4), y8(ni4,nj4))
+	call iricmi_read_grid2d_coords(x8, y8, ier)
 
-  	 call iricmi_model_init(ier)
+	allocate (z8(ni4,nj4))
+	allocate (zb8(ni4,nj4))
+	allocate (hs8(ni4,nj4))
 
-     call iricmi_read_grid2d_str_size(ni4, nj4, ier)
-     allocate (x8(ni4,nj4), y8(ni4,nj4))
-     call iricmi_read_grid2d_coords(x8, y8, ier)
+	allocate (obst4(     ni4-1, nj4-1))
+	allocate (fm4(       ni4-1, nj4-1))
+	allocate (vege4(     ni4-1, nj4-1))
+	allocate (roughness4(ni4-1, nj4-1))
+	allocate (vegeh     (ni4-1, nj4-1))
+	allocate (mix_cell  (ni4-1, nj4-1))
 
-     allocate (z8(ni4,nj4))
-     allocate (zb8(ni4,nj4))
-     allocate (hs8(ni4,nj4))
-     
-     allocate (obst4(     ni4-1, nj4-1))
-     allocate (fm4(       ni4-1, nj4-1))
-     allocate (vege4(     ni4-1, nj4-1))
-     allocate (roughness4(ni4-1, nj4-1))
-     allocate (vegeh     (ni4-1, nj4-1))
-     allocate (mix_cell  (ni4-1, nj4-1))
-     
-     call iricmi_read_grid2d_real_node('Elevation', z8, ier)
-     call iricmi_read_grid2d_real_node('Elevation_zb', zb8, ier)
-     call iricmi_read_grid2d_integer_cell('Obstacle', obst4, ier)
-     call iricmi_read_grid2d_integer_cell('Fix_movable', fm4, ier)
-     call iricmi_read_grid2d_real_cell('vege_density', vege4, ier)
-     call iricmi_read_grid2d_real_cell('vege_height', vegeh, ier)
-     call iricmi_read_grid2d_real_cell('roughness_cell', roughness4, ier)
-     call iricmi_read_grid2d_integer_cell('mix_cell', mix_cell, ier)
-     
-     call iricmi_read_integer('i_sec_hour', i_sec_hour, ier)
+	call iricmi_read_grid2d_real_node('Elevation', z8, ier)
+	call iricmi_read_grid2d_real_node('Elevation_zb', zb8, ier)
+	call iricmi_read_grid2d_integer_cell('Obstacle', obst4, ier)
+	call iricmi_read_grid2d_integer_cell('Fix_movable', fm4, ier)
+	call iricmi_read_grid2d_real_cell('vege_density', vege4, ier)
+	call iricmi_read_grid2d_real_cell('vege_height', vegeh, ier)
+	call iricmi_read_grid2d_real_cell('roughness_cell', roughness4, ier)
+	call iricmi_read_grid2d_integer_cell('mix_cell', mix_cell, ier)
 
-     call iricmi_read_integer('edition', edition, ier)
-     
-   ! ---- Parameters for Confluence -----
-   !
-     
-     call iricmi_read_integer('j_conf', j_conf, ier)
-   !
-   !  j_conf = 0 合流点無し
-   !  j_conf = 1 合流点あり(タイプA分岐合流)
-   !  j_conf = 2 合流点あり(タイプB横流入合流、左岸から)
-   !  j_conf = 3 合流点あり(タイプB横流入合流、右岸から)
-   !  本川 j_m1--j_m2
-   !  支川 j_t1--j_t2
-     !
-     if(j_conf.eq.1) then
-        write(*,*) 'Confluence TYPE-A'
-     else if(j_conf.eq.2) then
-        write(*,*) 'Confluence TYPE-B(from left bank)'
-     else if(j_conf.eq.3) then
-        write(*,*) 'Confluence TYPE-B(from right bank)'
-     end if
-     !
-     if(j_conf.ge.1) then
-        call iricmi_read_integer('j_m1', j_m1, ier)
-        call iricmi_read_integer('j_m2', j_m2, ier)
-        call iricmi_read_integer('j_t1', j_t1, ier)
-        call iricmi_read_integer('j_t2', j_t2, ier)
-        call iricmi_read_integer('i_t1', i_t1, ier)
-        call iricmi_read_integer('i_t2', i_t2, ier)
-        j_m1 = j_m1-1
-        j_m2 = j_m2-1
-        j_t1 = j_t1-1
-        j_t2 = j_t2-1
-        i_t1 = i_t1-1
-        i_t2 = i_t2-1
-        jxd=1
-        js1=0
-        js2=0
-        if( j_conf==2 ) then
-           jxd=1
-           js1=1
-           js2=0
-        else if( j_conf==3 ) then
-           jxd=-1
-           js1=0
-           js2=1
-        end if
-     end if
-   !
-   ! ---- Parameters for Downstream Water Surface Elevation -----
-   !
-     call iricmi_read_integer('j_wl', j_wl, ier)
-   !
-   !   j_wl = 0 ...下流端水位一定値を与える(h_down)
-   !   j_wl = 1 ...下流端水位は等流計算で求める
-   !   j_wl = 2 ...下流端水位はファイルから読み込む
+	call iricmi_read_integer('i_sec_hour', i_sec_hour, ier)
+
+	call iricmi_read_integer('edition', edition, ier)
+
+	! ---- Parameters for Confluence -----
+	!
+
+	call iricmi_read_integer('j_conf', j_conf, ier)
+	!
+	!  j_conf = 0 合流点無し
+	!  j_conf = 1 合流点あり(タイプA分岐合流)
+	!  j_conf = 2 合流点あり(タイプB横流入合流、左岸から)
+	!  j_conf = 3 合流点あり(タイプB横流入合流、右岸から)
+	!  本川 j_m1--j_m2
+	!  支川 j_t1--j_t2
+	!
+	if(j_conf.eq.1) then
+		write(*,*) 'Confluence TYPE-A'
+	else if(j_conf.eq.2) then
+		write(*,*) 'Confluence TYPE-B(from left bank)'
+	else if(j_conf.eq.3) then
+		write(*,*) 'Confluence TYPE-B(from right bank)'
+	end if
+	!
+	if (j_conf >= 1) then
+		call iricmi_read_integer('j_m1', j_m1, ier)
+		call iricmi_read_integer('j_m2', j_m2, ier)
+		call iricmi_read_integer('j_t1', j_t1, ier)
+		call iricmi_read_integer('j_t2', j_t2, ier)
+		call iricmi_read_integer('i_t1', i_t1, ier)
+		call iricmi_read_integer('i_t2', i_t2, ier)
+		j_m1 = j_m1-1
+		j_m2 = j_m2-1
+		j_t1 = j_t1-1
+		j_t2 = j_t2-1
+		i_t1 = i_t1-1
+		i_t2 = i_t2-1
+		jxd = 1
+		js1 = 0
+		js2 = 0
+		if( j_conf == 2 ) then
+			jxd = 1
+			js1 = 1
+			js2 = 0
+		else if( j_conf == 3 ) then
+			jxd = -1
+			js1 = 0
+			js2 = 1
+		end if
+	end if
+	!
+	! ---- Parameters for Downstream Water Surface Elevation -----
+	!
+	call iricmi_read_integer('j_wl', j_wl, ier)
+	!
+	!   j_wl = 0 ...下流端水位一定値を与える(h_down)
+	!   j_wl = 1 ...下流端水位は等流計算で求める
+	!   j_wl = 2 ...下流端水位はファイルから読み込む
 	!   j_wl = 3 ...下流端水位は自由流出
 
-     call iricmi_read_real('h_down', h_down, ier)
-   !
-   !   h_dwown = 下流端水位の値(上記j_wl=0の時のみ有効)
-   
-     call iricmi_read_integer('j_slope', j_slope, ier)
-   !
-   !   上記j_wl=1の時等流計算に用いる勾配を
-   !   j_slope=0.... 河床データから自動的に計算する
-   !   j_slope=1.... 与える→この時は与える値は次のbh_slopeの値
+	call iricmi_read_real('h_down', h_down, ier)
+	!
+	!   h_dwown = 下流端水位の値(上記j_wl=0の時のみ有効)
 
-     call iricmi_read_real('bh_slope', bh_slope, ier)
-   !
-   !   上記j_wl=1でj_slope=1の場合に与える勾配 = bh_slope
-   !
-   ! ------ Parameters for Upstream Boundary ------
-   !
-     call iricmi_read_integer('j_upv', j_upv, ier)
-   !
-   !  j_upv =1 上流端の流速を等流計算で与える
-   !  j_upv =2 上流端の流速を、上流端の水深を使って流量から逆算する
-   !
-     call iricmi_read_integer('j_upv_slope', j_upv_slope, ier)
-   !
-   !  上記j_upv=1のときの等流計算に使用する勾配の与え方
-   !
-   !    j_upv_slope=0 .... 河床データから自動的に計算
-   !    j_upv_slope=1 .... 値を与える→この場合は次の項目のuvp_slope
-   !
-     call iricmi_read_real('upv_slope', upv_slope, ier)
-     call iricmi_read_real('upv_slope_t', upv_slope_t, ier)
-   !                       
-   !   上記j_upv=1でj_upv_slope=1の場合に与える勾配 = upv_slope
-   !   支川側の勾配 = upv_slope_t
-   !
-   ! ---- Parameters for Initial Water Surface Profile-----
-   !
-     call iricmi_read_integer('i_flow', i_flow, ier)
-   !
-   !   i_flow=0 初期水面形は直線(一定勾配)
-   !   i_flow=1 初期水面形は折線(１折点と２直線)
-   !   i_flow=2 初期水面形は等流計算
-   !   i_flow=3 初期水面形は不等流計算
+	call iricmi_read_integer('j_slope', j_slope, ier)
+	!
+	!   上記j_wl=1の時等流計算に用いる勾配を
+	!   j_slope=0.... 河床データから自動的に計算する
+	!   j_slope=1.... 与える→この時は与える値は次のbh_slopeの値
 
-     call iricmi_read_real('h_slope', h_slope, ier)
-     call iricmi_read_real('h_slope_t', h_slope_t, ier)
-   !
-   !  上記i_flow=0のときの初期水面勾配  
-   !  上記i_flow=0のときの支川の初期水面勾配  
+	call iricmi_read_real('bh_slope', bh_slope, ier)
+	!
+	!   上記j_wl=1でj_slope=1の場合に与える勾配 = bh_slope
+	!
+	! ------ Parameters for Upstream Boundary ------
+	!
+	call iricmi_read_integer('j_upv', j_upv, ier)
+	!
+	!  j_upv =1 上流端の流速を等流計算で与える
+	!  j_upv =2 上流端の流速を、上流端の水深を使って流量から逆算する
+	!
+	call iricmi_read_integer('j_upv_slope', j_upv_slope, ier)
+	!
+	!  上記j_upv=1のときの等流計算に使用する勾配の与え方
+	!
+	!    j_upv_slope=0 .... 河床データから自動的に計算
+	!    j_upv_slope=1 .... 値を与える→この場合は次の項目のuvp_slope
+	!
+	call iricmi_read_real('upv_slope', upv_slope, ier)
+	call iricmi_read_real('upv_slope_t', upv_slope_t, ier)
+	!                       
+	!   上記j_upv=1でj_upv_slope=1の場合に与える勾配 = upv_slope
+	!   支川側の勾配 = upv_slope_t
+	!
+	! ---- Parameters for Initial Water Surface Profile-----
+	!
+	call iricmi_read_integer('i_flow', i_flow, ier)
+	!
+	!   i_flow=0 初期水面形は直線(一定勾配)
+	!   i_flow=1 初期水面形は折線(１折点と２直線)
+	!   i_flow=2 初期水面形は等流計算
+	!   i_flow=3 初期水面形は不等流計算
 
-     call iricmi_read_real('x_bk', x_bk, ier)
-   !
-   !  上記i_flow=1のときの勾配変化点の下流からの距離 x_bk
-   !   
-     call iricmi_read_real('h_slope_1', h_slope_1, ier)
-     call iricmi_read_real('h_slope_2', h_slope_2, ier)
-     call iricmi_read_real('h_slope_12t', h_slope_12t, ier)
-   !
-   !  上記i_flow=1のときの初期水面勾配(下流側)h_slope_1
-   !  上記i_flow=1のときの初期水面勾配(上流側)h_slope_2
-   !  上記i_flow=1のときの初期水面勾配(上流側支川)h_slope_12t
-   !
-   ! ---- Parameters for Bed Material  -----
-   !
-     call iricmi_read_real('diam', diam, ier)
-     
-     call iricmi_read_real('tantc', tantc, ier)
+	call iricmi_read_real('h_slope', h_slope, ier)
+	call iricmi_read_real('h_slope_t', h_slope_t, ier)
+	!
+	!  上記i_flow=0のときの初期水面勾配  
+	!  上記i_flow=0のときの支川の初期水面勾配  
 
-     diam    = diam/1000.d0
-     r_tantc = 1.d0 / tantc
+	call iricmi_read_real('x_bk', x_bk, ier)
+	!
+	!  上記i_flow=1のときの勾配変化点の下流からの距離 x_bk
+	!   
+	call iricmi_read_real('h_slope_1', h_slope_1, ier)
+	call iricmi_read_real('h_slope_2', h_slope_2, ier)
+	call iricmi_read_real('h_slope_12t', h_slope_12t, ier)
+	!
+	!  上記i_flow=1のときの初期水面勾配(下流側)h_slope_1
+	!  上記i_flow=1のときの初期水面勾配(上流側)h_slope_2
+	!  上記i_flow=1のときの初期水面勾配(上流側支川)h_slope_12t
+	!
+	! ---- Parameters for Bed Material  -----
+	!
+	call iricmi_read_real('diam', diam, ier)
+	call iricmi_read_real('tantc', tantc, ier)
 
-   ! ---- Parameters for sediment transport -----
-   !  
-   !  j_qbqs    : sediment transport type, 0: bedload, 1: bedload+suspended load
-   !  j_bedload : bedload transport formula for uniform sediment
-   !              0: M.P.M, 1: Ashida & Michiue's
-   !  j_qsu		: formula of upward flux of suspended load from river bed
-   !			  0: Itakura and Kishi formula,  1: Lane-Kalinske formula
-   !  j_collaps : slope collaps model 0: no, 1: yes
-   !  j_qb_vec	: How to calculate bedload transport vector at cell boundaries
-   !			  0: Watanabe formula, 1: Ashida, Egashira and Liu formula
+	diam    = diam / 1000.d0
+	r_tantc = 1.d0 / tantc
 
-     call iricmi_read_integer('j_qbqs', j_qbqs, ier)
+	! ---- Parameters for sediment transport -----
+	!
+	!  j_qbqs    : sediment transport type, 0: bedload, 1: bedload+suspended load
+	!  j_bedload : bedload transport formula for uniform sediment
+	!              0: M.P.M, 1: Ashida & Michiue's
+	!  j_qsu     : formula of upward flux of suspended load from river bed
+	!              0: Itakura and Kishi formula,  1: Lane-Kalinske formula
+	!  j_collaps : slope collaps model 0: no, 1: yes
+	!  j_qb_vec  : How to calculate bedload transport vector at cell boundaries
+	!              0: Watanabe formula, 1: Ashida, Egashira and Liu formula
 
-     call iricmi_read_integer('j_bedload', j_bedload, ier)
+	call iricmi_read_integer('j_qbqs', j_qbqs, ier)
+	call iricmi_read_integer('j_bedload', j_bedload, ier)
 
-     call iricmi_read_integer('j_qb_vec', j_qb_vec, ier)
+	call iricmi_read_integer('j_qb_vec', j_qb_vec, ier)
 
-     call iricmi_read_integer('j_qsu', j_qsu, ier)
+	call iricmi_read_integer('j_qsu', j_qsu, ier)
 
-     call iricmi_read_integer('j_collaps', j_collaps, ier)
+	call iricmi_read_integer('j_collaps', j_collaps, ier)
 
-   !
-   ! ---- Parameters on Time Setting -----
-   !
-     call iricmi_read_real('tuk', tuk, ier)
-     call iricmi_read_real('dt', dt, ier)
-     call iricmi_read_real('ster', ster, ier)
-     call iricmi_read_integer('j_qbs', j_qbs, ier)
-     call iricmi_read_real('t_out_start', t_out_start, ier)
-   !
+	!
+	! ---- Parameters on Time Setting -----
+	!
+	call iricmi_read_real('tuk', tuk, ier)
+	call iricmi_read_real('dt', dt, ier)
+	call iricmi_read_real('ster', ster, ier)
+	call iricmi_read_integer('j_qbs', j_qbs, ier)
+	call iricmi_read_real('t_out_start', t_out_start, ier)
+	!
 	 call iricmi_rout_exchange_interval(dt, ier)
 	 call iricmi_rout_dump_interval(iricmi_dummy_dump_interval, ier)
 
-   ! ---- Parameters for Numerical Calculation -----
-   !
-     call iricmi_read_integer('jrep', jrep, ier)
-     call iricmi_read_integer('j_snu', j_snu, ier)
-     call iricmi_read_integer('j_cip', j_cip, ier)
-     call iricmi_read_real('snst', snst, ier)
-     call iricmi_read_integer('j_sf', j_sf, ier)
-     
-     if( j_snu==1 ) then
-     	call iricmi_read_real('a_snu', a_snu, ier)
-     	call iricmi_read_real('b_snu', b_snu, ier)
-     else
-     	a_snu = 1.d0
-     	b_snu = 0.d0
-     end if
-     
+	! ---- Parameters for Numerical Calculation -----
+	!
+	call iricmi_read_integer('jrep', jrep, ier)
+	call iricmi_read_integer('j_snu', j_snu, ier)
+	call iricmi_read_integer('j_cip', j_cip, ier)
+	call iricmi_read_real('snst', snst, ier)
+	call iricmi_read_integer('j_sf', j_sf, ier)
+
+	if( j_snu == 1 ) then
+		call iricmi_read_real('a_snu', a_snu, ier)
+		call iricmi_read_real('b_snu', b_snu, ier)
+	else
+		a_snu = 1.d0
+		b_snu = 0.d0
+	end if
+
 	! ---- Parameter for parallel computation ----
 
-		call iricmi_read_integer('n_parallel', n_parallel, ier)
-     
-    ! n_parallel = 2
-     
-   !
-   ! ------ Parameters for Bank Erosion ------
-   !
-     call iricmi_read_integer('j_bank', j_bank, ier)
-     call iricmi_read_integer &
-          ('i_erosion_start', i_erosion_start, ier)
-     call iricmi_read_integer('i_erosion_end', i_erosion_end, ier)
-     call iricmi_read_real('bheight', bheight, ier)
-   !
-   ! ------ Parameters for Chunk Block ------
-   !
-     !!     j_chunk = nayslib_get_integerList(condfile, "j_chunk")
-     !      call iricmi_read_integer('j_chunk', j_chunk, ier)
-     !!     t_chunk = nayslib_get_real(condfile, "t_chunk")
-     !      call iricmi_read_real('t_chunk', t_chunk, ier)
-     !!     d_chunk = nayslib_get_real(condfile, "d_chunk")
-     !      call iricmi_read_real('d_chunk', d_chunk, ier)
-     !!     h_chunk = nayslib_get_real(condfile, "h_chunk")
-     !      call iricmi_read_real('h_chunk', h_chunk, ier)
-     !!
-     j_chunk=0
-     t_chunk=10.d0
-     d_chunk=0.1d0
-     h_chunk=0.1d0
-     
-   !
-   ! ---- Parameters for Bank Smoothing -----
-   !
-     call iricmi_read_integer('j_smooth', j_smooth, ier)
-     call iricmi_read_integer('i_smooth', i_smooth, ier)
-   !
-   ! ----- Parameter for Bank Re-distribution -----
-   !
-     !!     j_smg  = nayslib_get_integerList(condfile, "j_smg")
-     !      call iricmi_read_integer('j_smg', j_smg, ier)
-     !!     ti_smg = nayslib_get_real(condfile, "ti_smg")
-     !      call iricmi_read_real('ti_smg', ti_smg, ier)
-     !!     mtime  = nayslib_get_integer(condfile, "mtime")
-     !      call iricmi_read_integer('mtime', mtime, ier)
-     !!     mave   = nayslib_get_integer(condfile, "mave")
-     !      call iricmi_read_integer('mave', mave, ier)
-     !
-     j_smg  = 0
-     ti_smg = 100.d0
-     mtime  =  10
-     mave   = 1
-   !
-   ! ----- Parameters for Vegatation -----
-   !
-     call iricmi_read_real('c_tree', c_tree, ier)
-     
-     call iricmi_read_integer('j_vege', j_vege, ier)
+	call iricmi_read_integer('n_parallel', n_parallel, ier)
 
-   !
-   !! ----- Parameters for Inner Bend Refilling -----
-   !!
-     !!     j_fill  = nayslib_get_integerList(condfile, "j_fill")
-     !      call iricmi_read_integer('j_fill', j_fill, ier)
-     !!     hdry    = nayslib_get_real(condfile, "hdry")
-     !      call iricmi_read_real('hdry', hdry, ier)
-     !!     ti_fill = nayslib_get_real(condfile, "ti_fill")
-     !      call iricmi_read_real('ti_fill', ti_fill, ier)
-     !!
-     j_fill  = 0
-     hdry    = 0.01d0
-     ti_fill = 100.d0
+	! n_parallel = 2
 
-   !
-   ! --- Other Parameters and Constants -----
-   !
-     call iricmi_read_integer('lmax', lmax, ier)
-     call iricmi_read_real('alh', alh, ier)
-     call iricmi_read_real('rho', rho, ier)
-     call iricmi_read_real('spec', spec, ier)
-     call iricmi_read_real('slambda', slambda, ier)
+	!
+	! ------ Parameters for Bank Erosion ------
+	!
+	call iricmi_read_integer('j_bank', j_bank, ier)
+	call iricmi_read_integer('i_erosion_start', i_erosion_start, ier)
+	call iricmi_read_integer('i_erosion_end', i_erosion_end, ier)
+	call iricmi_read_real('bheight', bheight, ier)
+	!
+	! ------ Parameters for Chunk Block ------
+	!
+	! call iricmi_read_integer('j_chunk', j_chunk, ier)
+	! call iricmi_read_real('t_chunk', t_chunk, ier)
+	!	call iricmi_read_real('d_chunk', d_chunk, ier)
+	! call iricmi_read_real('h_chunk', h_chunk, ier)
 
-     dsmt = 1.d0/(1.d0-slambda)
-   !
-   ! --- Parameters for Hot Start ---
-   !
-     call iricmi_read_integer('write_flag', i_re_flag_o, ier)
-     call iricmi_read_integer('read_flag', i_re_flag_i, ier)
-     call iricmi_read_integer('n_tempfile', n_rest, ier)
-     call iricmi_read_string('tmp_readfile', tmp_file_i, ier)
-     call iricmi_read_string('tmp_pass', tmp_pass, ier)
+	j_chunk = 0
+	t_chunk = 10.d0
+	d_chunk = 0.1d0
+	h_chunk = 0.1d0
+     
+	!
+	! ---- Parameters for Bank Smoothing -----
+	!
+	call iricmi_read_integer('j_smooth', j_smooth, ier)
+	call iricmi_read_integer('i_smooth', i_smooth, ier)
+	!
+	! ----- Parameter for Bank Re-distribution -----
+	!
+	! call iricmi_read_integer('j_smg', j_smg, ier)
+	! call iricmi_read_real('ti_smg', ti_smg, ier)
+	! call iricmi_read_integer('mtime', mtime, ier)
+	! call iricmi_read_integer('mave', mave, ier)
 
-     do ii=0,9
-        call iricmi_read_real(tmp_caption(ii), opt_tmp(ii), ier)
-     end do
-     !
-     do iii=1,n_rest
-        do ii=0,n_rest-1
-           if(opt_tmp(ii) /= opt_tmp(ii+1) &
-                .or.opt_tmp(ii+1) < opt_tmp(ii)+dt) then
-              if(opt_tmp(ii) > opt_tmp(ii+1)) then
-                 ttt = opt_tmp(ii)
-                 opt_tmp(ii) = opt_tmp(ii+1)
-                 opt_tmp(ii+1) = ttt
-              end if
-           else
-              opt_tmp(ii+1) = opt_tmp(ii+1)+dt
-           end if
-        end do
-     end do
-     
-   ! ----- Parameters for supplying sediment transport rate from the upstream end ------ !
-   
-     call iricmi_read_integer('j_qbup', j_qbup, ier)
-     
-     if( j_qbup==0 ) then
-        cse = 1.d0
-     else
-        call iricmi_read_real('cse', cse, ier)
-        cse = cse*0.01d0
-     end if
-   
-   !
-   ! ----- Parameters for mixture model -----
-   !
-     call iricmi_read_integer('j_mix', j_mix, ier)
-     call iricmi_read_integer('j_mix_dis', j_mix_dis, ier)
-     call iricmi_read_integer('j_mix_dis_dep', j_mix_dis_dep, ier)
-     call iricmi_read_real('e_m', e_m, ier)
-     call iricmi_read_real('e_d', e_d, ier)
-     call iricmi_read_real('e_thick', e_thick, ier)
-     call iricmi_read_integer('nm', nm, ier)
-     
-     if( j_qbs==0 ) then
-     	j_mix = 0
-     end if
-     
-     if( j_mix==0 ) then
-     	e_m = diam			! とりあえず
-     end if
-     
-     if( j_mix==1 ) then
-       nm_cell = 9
-     end if
-     !
+	j_smg  = 0
+	ti_smg = 100.d0
+	mtime  =  10
+	mave   = 1
+	!
+	! ----- Parameters for Vegatation -----
+	!
+	call iricmi_read_real('c_tree', c_tree, ier)
+	call iricmi_read_integer('j_vege', j_vege, ier)
 
-   ! ------ Morphological factor ------ !
-   
-     if( edition==0 ) then
-        csm = 1.d0
-     else
-        call iricmi_read_real('csm', csm, ier)
-     end if
+	!
+	! ----- Parameters for Inner Bend Refilling -----
+	! call iricmi_read_integer('j_fill', j_fill, ier)
+	! call iricmi_read_real('hdry', hdry, ier)
+	! call iricmi_read_real('ti_fill', ti_fill, ier)
+
+	j_fill  = 0
+	hdry    = 0.01d0
+	ti_fill = 100.d0
+
+	!
+	! --- Other Parameters and Constants -----
+	!
+	call iricmi_read_integer('lmax', lmax, ier)
+	call iricmi_read_real('alh', alh, ier)
+	call iricmi_read_real('rho', rho, ier)
+	call iricmi_read_real('spec', spec, ier)
+	call iricmi_read_real('slambda', slambda, ier)
+
+	dsmt = 1.d0/(1.d0-slambda)
+
+	!
+	! --- Parameters for Hot Start ---
+	!
+	call iricmi_read_integer('write_flag', i_re_flag_o, ier)
+	call iricmi_read_integer('read_flag', i_re_flag_i, ier)
+	call iricmi_read_integer('n_tempfile', n_rest, ier)
+	call iricmi_read_string('tmp_readfile', tmp_file_i, ier)
+	call iricmi_read_string('tmp_pass', tmp_pass, ier)
+
+	do ii = 0,9
+		call iricmi_read_real(tmp_caption(ii), opt_tmp(ii), ier)
+	end do
+	!
+	do iii = 1, n_rest
+		do ii = 0, n_rest - 1
+			if (opt_tmp(ii) /= opt_tmp(ii+1) &
+				.or. opt_tmp(ii+1) < opt_tmp(ii) + dt) then
+				if(opt_tmp(ii) > opt_tmp(ii+1)) then
+					ttt = opt_tmp(ii)
+					opt_tmp(ii) = opt_tmp(ii + 1)
+					opt_tmp(ii+1) = ttt
+				end if
+			else
+				opt_tmp(ii+1) = opt_tmp(ii+1)+dt
+			end if
+		end do
+	end do
+
+	! ----- Parameters for supplying sediment transport rate from the upstream end ------ !
+
+	call iricmi_read_integer('j_qbup', j_qbup, ier)
+
+	if (j_qbup == 0 ) then
+		cse = 1.d0
+	else
+		call iricmi_read_real('cse', cse, ier)
+		cse = cse * 0.01d0
+	end if
+
+	!
+	! ----- Parameters for mixture model -----
+	!
+	call iricmi_read_integer('j_mix', j_mix, ier)
+	call iricmi_read_integer('j_mix_dis', j_mix_dis, ier)
+	call iricmi_read_integer('j_mix_dis_dep', j_mix_dis_dep, ier)
+	call iricmi_read_real('e_m', e_m, ier)
+	call iricmi_read_real('e_d', e_d, ier)
+	call iricmi_read_real('e_thick', e_thick, ier)
+	call iricmi_read_integer('nm', nm, ier)
+     
+	if( j_qbs == 0 ) then
+		j_mix = 0
+	end if
+
+	if ( j_mix == 0 ) then
+		e_m = diam			! とりあえず
+	end if
+
+	if( j_mix == 1 ) then
+		nm_cell = 9
+	end if
+
+	! ------ Morphological factor ------ !
+
+	if( edition == 0 ) then
+		csm = 1.d0
+	else
+		call iricmi_read_real('csm', csm, ier)
+	end if
 
 	! ------ flag parameter for output variables ------ !
 
-	if( edition==0 ) then
+	if( edition == 0 ) then
 		jop_vort = 0
 		jop_fr   = 0
 		jop_zmin = 0
 		jop_zave = 0
 		jop_have = 0
 		
-		if( j_qbs==0 ) then
+		if( j_qbs == 0 ) then
 			jop_dz = 1
 			jop_fb = 1
 			jop_sh = 1
@@ -10790,7 +10773,7 @@ Program Shimizu
 			jop_sh = 0
 			jop_qb = 0
 			
-			if( j_qbqs==0 ) then
+			if( j_qbqs == 0 ) then
 				jop_sc = 1
 			else
 				jop_sc = 0
@@ -10804,14 +10787,14 @@ Program Shimizu
 		end if
 		
 	else
-	
+
 		call iricmi_read_integer('jop_vort', jop_vort, ier)
 		call iricmi_read_integer('jop_fr'  , jop_fr  , ier)
 		call iricmi_read_integer('jop_zmin', jop_zmin, ier)
 		call iricmi_read_integer('jop_zave', jop_zave, ier)
 		call iricmi_read_integer('jop_have', jop_have, ier)
 		
-		if( j_qbs==0 ) then
+		if( j_qbs == 0 ) then
 			jop_dz = 1
 			jop_fb = 1
 			jop_sh = 1
@@ -10825,7 +10808,7 @@ Program Shimizu
 			call iricmi_read_integer('jop_sh', jop_sh, ier)
 			call iricmi_read_integer('jop_qb', jop_qb, ier)
 			
-			if( j_qbqs==0 ) then
+			if( j_qbqs == 0 ) then
 				jop_sc = 1
 			else
 				call iricmi_read_integer('jop_sc', jop_sc, ier)
@@ -10841,123 +10824,119 @@ Program Shimizu
 	
 	end if
 
-     call iricmi_read_integer('j_zb', j_zb, ier)
+	call iricmi_read_integer('j_zb', j_zb, ier)
      
-     if( j_zb==0 ) then
-     	do j=1,nj4
-     		do i=1,ni4
-     			zb8(i,j) = z8(i,j)-99999.d0
-     		end do
-     	end do
-     else
-     	do j=1,nj4
-     		do i=1,ni4
-     			if( zb8(i,j)>z8(i,j) ) then
-     				write(*,'(A,i5,A,i5)') 'The elevation of fixed bed is higher than the bed elevation at i= ',i,'j=',j
-     				write(*,'(A)') 'The elevation of fixed bed you set is set to be the initial bed elevation.'
-     				zb8(i,j) = z8(i,j)
-     			end if
-     		end do
-     	end do
-     end if
+	if( j_zb == 0 ) then
+		do j = 1, nj4
+			do i = 1, ni4
+				zb8(i,j) = z8(i,j)-99999.d0
+			end do
+		end do
+	else
+		do j = 1, nj4
+			do i = 1,ni4
+				if( zb8(i,j) > z8(i,j) ) then
+					write(*,'(A,i5,A,i5)') 'The elevation of fixed bed is higher than the bed elevation at i= ',i,'j=',j
+					write(*,'(A)') 'The elevation of fixed bed you set is set to be the initial bed elevation.'
+					zb8(i,j) = z8(i,j)
+				end if
+			end do
+		end do
+	end if
 
-   !
-   im = ni4
-   jm = nj4
-   call alloc_var1(im,jm)
-   call initial_01
+	!
+	im = ni4
+	jm = nj4
+	call alloc_var1(im,jm)
+	call initial_01
 
-   !
-   nx = ni4 - 1
-   ny = nj4 - 1
-   do j = 1, nj4
-      do i = 1, ni4
-         x (i-1,j-1) =  x8(i,j)
-         y (i-1,j-1) =  y8(i,j)
-         z (i-1,j-1) =  z8(i,j)
-         zb(i-1,j-1) = zb8(i,j)
-      end do
-   end do
+	!
+	nx = ni4 - 1
+	ny = nj4 - 1
+	do j = 1, nj4
+		do i = 1, ni4
+			x (i-1,j-1) =  x8(i,j)
+			y (i-1,j-1) =  y8(i,j)
+			z (i-1,j-1) =  z8(i,j)
+			zb(i-1,j-1) = zb8(i,j)
+		end do
+	end do
 
-   dxi = 1.d0 / dble(nx)
-   det = 1.d0 / dble(ny)
+	dxi = 1.d0 / dble(nx)
+	det = 1.d0 / dble(ny)
     
-   r_dxi = 1.d0/dxi
-   r_det = 1.d0/det
-    
-   call alloc_avgeo_temp_variables
-   call alloc_gcoefs_temp_variables
-   call alloc_initl_temp_variables
-   call alloc_voltexcal_temp_variables
-   call alloc_uxxyycal_temp_variables
-   call alloc_diffusion_temp_variables
-   call alloc_diffusion_c_temp_variables
-   call alloc_advection_temp_variables
-   call alloc_qbcal_temp_variables
-   call alloc_bank_shift_temp_variables
-   call alloc_ebank_temp_variables
-   call alloc_c_secondary_temp_variables
-   call alloc_upstream_temp_variables
-   call alloc_ypcal_ini_variables
-   call alloc_schange_temp_variables
-   call alloc_c_transport_temp_variables
-   call alloc_vorticity_eq_temp_variables
+	r_dxi = 1.d0/dxi
+	r_det = 1.d0/det
 
-   !
-   ! ---- check i_erosion_start and i_erosion_end ------
-   !
+	call alloc_avgeo_temp_variables
+	call alloc_gcoefs_temp_variables
+	call alloc_initl_temp_variables
+	call alloc_voltexcal_temp_variables
+	call alloc_uxxyycal_temp_variables
+	call alloc_diffusion_temp_variables
+	call alloc_diffusion_c_temp_variables
+	call alloc_advection_temp_variables
+	call alloc_qbcal_temp_variables
+	call alloc_bank_shift_temp_variables
+	call alloc_ebank_temp_variables
+	call alloc_c_secondary_temp_variables
+	call alloc_upstream_temp_variables
+	call alloc_ypcal_ini_variables
+	call alloc_schange_temp_variables
+	call alloc_c_transport_temp_variables
+	call alloc_vorticity_eq_temp_variables
 
-   if(i_erosion_start >= nx ) i_erosion_start=nx
-   if(i_erosion_end   >= nx ) i_erosion_end=nx
+	!
+	! ---- check i_erosion_start and i_erosion_end ------
+	!
 
-   !
-   ! ------ set cell status -----
-   !
+	if(i_erosion_start >= nx ) i_erosion_start=nx
+	if(i_erosion_end   >= nx ) i_erosion_end=nx
 
-   icelck=0
-   do j=1,ny
-      do i=1,nx
-       !
-       ! ----- set obstacle cells -----
+	!
+	! ------ set cell status -----
+	!
 
-         ijo_in(i,j) = obst4(i,j)
+	icelck=0
+	do j=1,ny
+		do i=1,nx
+			!
+			! ----- set obstacle cells -----
+			ijo_in(i,j) = obst4(i,j)
 
-				! 0: normal cell, 1: obstacle cell
+			! 0: normal cell, 1: obstacle cell
 
-         if( obst4(i,j) == 1 ) icelck=icelck+1
-       !
-       ! ----- set fixed bed cells -----
+			if( obst4(i,j) == 1 ) icelck = icelck + 1
 
-         ij_ero(i,j) = fm4(i,j)
+			! ----- set fixed bed cells -----
+			ij_ero(i,j) = fm4(i,j)
          
-         	! 0: movable bed, 1: fixed bed
+			! 0: movable bed, 1: fixed bed
 
-       !
-       ! ----- set vegetation condition -----
-         
-         cd_veg(i,j) = vege4(i,j)*c_tree*0.5d0
-         !
-      end do
-   end do
-   
-   !
-   if(icelck == 0) then
-      iobst4=0
-   else
-      iobst4=1
-   end if
-   !      
-   ijobst = 0
-   do i = 1, nx
-      do j = 1, ny
-         if(ijo_in(i,j) == 1) then
-            ijobst(i  ,j  ) = 1
-            ijobst(i-1,j  ) = 1
-            ijobst(i  ,j-1) = 1
-            ijobst(i-1,j-1) = 1
-         end if
-      end do
-   end do
+			! ----- set vegetation condition -----
+			cd_veg(i,j) = vege4(i,j)*c_tree*0.5d0
+
+		end do
+ 	end do
+
+	!
+	if (icelck == 0) then
+		iobst4=0
+	else
+		iobst4=1
+	end if
+
+	ijobst = 0
+	do i = 1, nx
+		do j = 1, ny
+			if(ijo_in(i,j) == 1) then
+				ijobst(i  ,j  ) = 1
+				ijobst(i-1,j  ) = 1
+				ijobst(i  ,j-1) = 1
+				ijobst(i-1,j-1) = 1
+			end if
+		end do
+	end do
 
 	do j=1,ny
 		do i=0,nx
@@ -10979,1083 +10958,1070 @@ Program Shimizu
 		end do
 	end do
 
-    !
-    if( j_bank < 0.or.j_bank > 2 ) then
-       write(*,*) 'Wrong Value of j_bank'
-       stop
-    end if
-    !
-    
-    hplus = 0.
-    !
-    !   Add some value as hplus if initial delpth becomes 0 
-    !   then set hplus=****.
-    !   j_drg = 0 .... roughness is calculated from bed material
-    !   j_drg = 1 .... roughness is given
-    !
+	!
+	if( j_bank < 0.or.j_bank > 2 ) then
+		write(*,*) 'Wrong Value of j_bank'
+		stop
+	end if
+	!
 
-    !cccccccccccccccccccccccccccccccccccccccccccccccccccc
-    !
-    sn_g    = diam**(1.d0/6.d0) / 6.8d0 / dsqrt(g)
-    !
-    jt1 =  0
-    jt2 = ny
-    nym = ny / 2
-    !
-    !cccccccccccccccccccccccccccccccccccccccccccccccccccc
-    !
-    !
-  ! ------ read boundary condition (discharge, water level) ---------- !
+	hplus = 0.
+	!
+	!   Add some value as hplus if initial delpth becomes 0 
+	!   then set hplus=****.
+	!   j_drg = 0 .... roughness is calculated from bed material
+	!   j_drg = 1 .... roughness is given
+	!
 
-       CALL CG_IRIC_READ_FUNCTIONALSIZE_F('discharge_waterlevel',tmpint,ier)
+	!cccccccccccccccccccccccccccccccccccccccccccccccccccc
+	!
+	sn_g    = diam**(1.d0/6.d0) / 6.8d0 / dsqrt(g)
+	!
+	jt1 =  0
+	jt2 = ny
+	nym = ny / 2
+	!
+	!cccccccccccccccccccccccccccccccccccccccccccccccccccc
+	!
+	!
+	! ------ read boundary condition (discharge, water level) ---------- !
 
-       allocate(xtmp(tmpint),ytmp(tmpint),ytmp2(tmpint))
+	CALL CG_IRIC_READ_FUNCTIONALSIZE_F('discharge_waterlevel',tmpint,ier)
 
-       CALL CG_IRIC_READ_FUNCTIONALWITHNAME_F("discharge_waterlevel","time",xtmp,ier)
-       CALL CG_IRIC_READ_FUNCTIONALWITHNAME_F("discharge_waterlevel","discharge",ytmp,ier)
-       CALL CG_IRIC_READ_FUNCTIONALWITHNAME_F("discharge_waterlevel","water_level",ytmp2,ier)
+	allocate(xtmp(tmpint),ytmp(tmpint),ytmp2(tmpint))
 
-       IF(ier.eq.0) THEN
-          nq = tmpint-1
-          mm = nq
-          call alloc_var2(mm)
-          call initial_02
-       ENDIF
-       DO I= 0,nq
-          if(i_sec_hour == 1) THEN
-             t_hyd(i) = xtmp(i+1)
-          ELSE
-             t_hyd(i) = xtmp(i+1)*3600.d0
-          ENDIF
-          q_ups(i) = ytmp(i+1)
-          h_dse(i) = ytmp2(i+1)
-       ENDDO
-       DEALLOCATE(xtmp, STAT = ier)
-       DEALLOCATE(ytmp, STAT = ier)
-       DEALLOCATE(ytmp2, STAT = ier)
-       
-       if(j_conf/=0) then
-          CALL CG_IRIC_READ_FUNCTIONALSIZE_F('discharge_t',tmpint,ier)
+	CALL CG_IRIC_READ_FUNCTIONALWITHNAME_F("discharge_waterlevel","time",xtmp,ier)
+	CALL CG_IRIC_READ_FUNCTIONALWITHNAME_F("discharge_waterlevel","discharge",ytmp,ier)
+	CALL CG_IRIC_READ_FUNCTIONALWITHNAME_F("discharge_waterlevel","water_level",ytmp2,ier)
 
-          if( nq/=tmpint-1 ) then
-            write(*,*) "The number of discharge data for tributary is different from the number of discharge data for main river!"
-            write(*,*) "The number of data and time should be same in both main and tributary rivers"
-            stop
-          end if
+	IF (ier == 0) THEN
+		nq = tmpint-1
+		mm = nq
+		call alloc_var2(mm)
+		call initial_02
+	ENDIF
+	DO I = 0, nq
+		if(i_sec_hour == 1) THEN
+			t_hyd(i) = xtmp(i+1)
+		ELSE
+			t_hyd(i) = xtmp(i+1) * 3600.d0
+		ENDIF
+		q_ups(i) = ytmp(i + 1)
+		h_dse(i) = ytmp2(i + 1)
+	ENDDO
+	DEALLOCATE(xtmp, STAT = ier)
+	DEALLOCATE(ytmp, STAT = ier)
+	DEALLOCATE(ytmp2, STAT = ier)
 
-          allocate(xtmp(tmpint),ytmp(tmpint))
-          CALL CG_IRIC_READ_functional_f('discharge_t',xtmp,ytmp,ier)
-          DO I= 0,nq
-             
-             q_ups_t(i) = ytmp(i+1)
-          ENDDO
-          DEALLOCATE(xtmp, STAT = ier)
-          DEALLOCATE(ytmp, STAT = ier)
-       end if
-       !
-    !
-    thstart = t_hyd(0)
+	if (j_conf /= 0) then
+		CALL CG_IRIC_READ_FUNCTIONALSIZE_F('discharge_t',tmpint,ier)
 
-    do n = 0, nq
-       t_hyd(n) = t_hyd(n) - thstart
-    end do
+		if( nq /= tmpint-1 ) then
+			write(*,*) "The number of discharge data for tributary is different from the number of discharge data for main river!"
+			write(*,*) "The number of data and time should be same in both main and tributary rivers"
+			stop
+		end if
 
-    qp    = q_ups(0)
-    if(j_conf.ge.1) qp_t=q_ups_t(0)		!h101019 conf
-    etime = t_hyd(nq)
-    if( ster < 0.) then
-    	ster = etime
+		allocate(xtmp(tmpint),ytmp(tmpint))
+		CALL CG_IRIC_READ_functional_f('discharge_t',xtmp,ytmp,ier)
+		DO I= 0,nq
+			q_ups_t(i) = ytmp(i+1)
+		ENDDO
+		DEALLOCATE(xtmp, STAT = ier)
+		DEALLOCATE(ytmp, STAT = ier)
+	end if
+
+	thstart = t_hyd(0)
+
+	do n = 0, nq
+		t_hyd(n) = t_hyd(n) - thstart
+	end do
+
+	qp    = q_ups(0)
+	if (j_conf >= 1) qp_t = q_ups_t(0)		!h101019 conf
+	etime = t_hyd(nq)
+	if ( ster < 0.) then
+		ster = etime
 		j_qbs = 0
 		j_mix = 0
 	end if
-    !
-    is = -1
-    do ii=0,n_rest-1
-       if(opt_tmp(ii) < thstart) is=ii
-    end do
-    i_tmp_count = is+1
 
-  !
-  ! ------- read the initial grain size distribution --------
-  !
-    if( j_mix == 1) then
-       
-       if( j_mix_dis==0 ) then
-    
-          call iricmi_read_functional_size('mixfile_pp',tmpint,ier)
-          allocate(xtmp(tmpint),ytmp(tmpint))
-!         CALL iricmi_read_functional_vals('mixfile_pp',xtmp,ytmp,ier)
+	is = -1
+	do ii = 0, n_rest - 1
+		if (opt_tmp(ii) < thstart) is = ii
+	end do
+	i_tmp_count = is+1
 
-          IF(ier == 0) THEN
-             nk = tmpint-1
-             mm = nk
-             call alloc_var_mix(im, jm, mm, nm, nm_cell)
-             call initial_mix
-          ENDIF
+	!
+	! ------- read the initial grain size distribution --------
+	!
+	if( j_mix == 1) then
+		if( j_mix_dis == 0 ) then
 
-          call iricmi_read_functional_valwithname('mixfile_pp', 'diameter_k', xtmp, ier)
-       
-          do k=0,nk
-             ddist_mm(k) = xtmp(k+1)
-          end do
-       
-          do n=0,nm_cell
-             write(cm,'(i1)') n
-             mix_label = 'pp'//trim(cm)
+			call iricmi_read_functional_size('mixfile_pp',tmpint,ier)
+			allocate(xtmp(tmpint),ytmp(tmpint))
+			!call iricmi_read_functional_vals('mixfile_pp',xtmp,ytmp,ier)
+
+			IF (ier == 0) THEN
+				nk = tmpint-1
+				mm = nk
+				call alloc_var_mix(im, jm, mm, nm, nm_cell)
+				call initial_mix
+			ENDIF
+
+			call iricmi_read_functional_valwithname('mixfile_pp', 'diameter_k', xtmp, ier)
+
+			do k = 0, nk
+				ddist_mm(k) = xtmp(k+1)
+			end do
+
+			do n = 0, nm_cell
+				write(cm,'(i1)') n
+				mix_label = 'pp'//trim(cm)
+
+				call iricmi_read_functional_valwithname('mixfile_pp', mix_label, ytmp, ier)
           
-             call iricmi_read_functional_valwithname('mixfile_pp', mix_label, ytmp, ier)
-          
-             do k=0,nk
-                pdist_m_100(k,n) = ytmp(k+1)
-             end do
-                    
-          end do
-       
-          DEALLOCATE(xtmp, STAT = ier)
-          DEALLOCATE(ytmp, STAT = ier)
-          
-          if( j_mix_dis_dep==1 ) then
+				do k = 0, nk
+					pdist_m_100(k,n) = ytmp(k+1)
+				end do
+			end do
+
+			DEALLOCATE(xtmp, STAT = ier)
+			DEALLOCATE(ytmp, STAT = ier)
+
+			if ( j_mix_dis_dep == 1 ) then
+
+				call iricmi_read_functional_size('mixfile_pp_d',tmpint,ier)
+				allocate(xtmp(tmpint),ytmp(tmpint))
+
+				if( tmpint-1 /= nk ) then
+					write(*,*) "The sediment size class in deposited layer is different from in the mixed layer."
+					write(*,*) "The sediment size class (number of class and each diameter) must be same in both layers."
+					stop
+				end if
+
+				do n = 0, nm_cell
+					write(cm,'(i1)') n
+					mix_label = 'pp'//trim(cm)
+
+					call iricmi_read_functional_valwithname('mixfile_pp_d', mix_label, ytmp, ier)
+
+					do k = 0, nk
+						pdist_d_100(k,n) = ytmp(k+1)
+					end do
+				end do
+
+				DEALLOCATE(xtmp, STAT = ier)
+				DEALLOCATE(ytmp, STAT = ier)
+
+			end if
+		else
+
+			call iricmi_read_functional_size('mixfile_fr',tmpint,ier)
+			allocate(xtmp(tmpint),ytmp(tmpint))
+			!call iricmi_read_functional_vals('mixfile_fr',xtmp,ytmp,ier)
+
+			IF (ier == 0) THEN
+				nk = tmpint
+				mm = nk
+				call alloc_var_mix(im, jm, mm, nm, nm_cell)
+				call initial_mix
+			ENDIF
+
+			call iricmi_read_functional_valwithname('mixfile_fr', 'diameter_k', xtmp, ier)
+
+			do k = 1, nk
+				ddist_mm(k) = xtmp(k)
+			end do
+
+			do n = 0, nm_cell
+				write(cm,'(i1)') n
+				mix_label = 'fraction'//trim(cm)
+
+				call iricmi_read_functional_valwithname('mixfile_fr', mix_label, ytmp, ier)
+
+				do k = 1, nk
+					pdist_m_100(k,n) = ytmp(k)
+				end do
+			end do
+
+			DEALLOCATE(xtmp, STAT = ier)
+			DEALLOCATE(ytmp, STAT = ier)
+
+			if ( j_mix_dis_dep == 1 ) then
              
-             call iricmi_read_functional_size('mixfile_pp_d',tmpint,ier)
-             allocate(xtmp(tmpint),ytmp(tmpint))
+				call iricmi_read_functional_size('mixfile_fr_d',tmpint,ier)
+				allocate(xtmp(tmpint),ytmp(tmpint))
 
-             if( tmpint-1/=nk ) then
-                write(*,*) "The sediment size class in deposited layer is different from in the mixed layer."
-                write(*,*) "The sediment size class (number of class and each diameter) must be same in both layers."
-                stop
-             end if
-       
-             do n=0,nm_cell
-                write(cm,'(i1)') n
-                mix_label = 'pp'//trim(cm)
-          
-                call iricmi_read_functional_valwithname('mixfile_pp_d', mix_label, ytmp, ier)
-          
-                do k=0,nk
-                   pdist_d_100(k,n) = ytmp(k+1)
-                end do
-                    
-             end do
-       
-             DEALLOCATE(xtmp, STAT = ier)
-             DEALLOCATE(ytmp, STAT = ier)
-             
-          end if
-          
-       else
-       
-          call iricmi_read_functional_size('mixfile_fr',tmpint,ier)
-          allocate(xtmp(tmpint),ytmp(tmpint))
-!         CALL iricmi_read_functional_vals('mixfile_fr',xtmp,ytmp,ier)
+				if( tmpint /= nk ) then
+					write(*,*) "The sediment size class in deposited layer is different from one in the mixed layer."
+					write(*,*) "The sediment size class (number of class and each diameter) must be same in both layers."
+					stop
+				end if
 
-          IF(ier == 0) THEN
-             nk = tmpint
-             mm = nk
-             call alloc_var_mix(im, jm, mm, nm, nm_cell)
-             call initial_mix
-          ENDIF
+				do n = 0, nm_cell
+					write(cm,'(i1)') n
+					mix_label = 'fraction'//trim(cm)
 
-          call iricmi_read_functional_valwithname('mixfile_fr', 'diameter_k', xtmp, ier)
-       
-          do k=1,nk
-             ddist_mm(k) = xtmp(k)
-          end do
-       
-          do n=0,nm_cell
-             write(cm,'(i1)') n
-             mix_label = 'fraction'//trim(cm)
-          
-             call iricmi_read_functional_valwithname('mixfile_fr', mix_label, ytmp, ier)
-          
-             do k=1,nk
-                pdist_m_100(k,n) = ytmp(k)
-             end do
-                    
-          end do
-       
-          DEALLOCATE(xtmp, STAT = ier)
-          DEALLOCATE(ytmp, STAT = ier)
+					call iricmi_read_functional_valwithname('mixfile_fr_d', mix_label, ytmp, ier)
 
-          if( j_mix_dis_dep==1 ) then
-             
-             call iricmi_read_functional_size('mixfile_fr_d',tmpint,ier)
-             allocate(xtmp(tmpint),ytmp(tmpint))
+					do k = 0, nk
+						pdist_d_100(k,n) = ytmp(k)
+					end do
 
-             if( tmpint/=nk ) then
-                write(*,*) "The sediment size class in deposited layer is different from one in the mixed layer."
-                write(*,*) "The sediment size class (number of class and each diameter) must be same in both layers."
-                stop
-             end if
-       
-             do n=0,nm_cell
-                write(cm,'(i1)') n
-                mix_label = 'fraction'//trim(cm)
-          
-                call iricmi_read_functional_valwithname('mixfile_fr_d', mix_label, ytmp, ier)
-          
-                do k=0,nk
-                   pdist_d_100(k,n) = ytmp(k)
-                end do
-                    
-             end do
-       
-             DEALLOCATE(xtmp, STAT = ier)
-             DEALLOCATE(ytmp, STAT = ier)
-             
-          end if
-          
-       end if
-          !
-    else
-    	nk = 1
-    end if
-    !
-    if( j_mix == 1) then
-       call mixini(snu00,dm0)
-       call alloc_mix_temp_variables(nk)
-       sn_g    = dm0**(1.d0/6.d0) / 6.8d0 / dsqrt(g)
-       
-       do j=1,ny
-          do i=1,nx
-             flg_mix(i,j) = mix_cell(i,j)
-          end do
-       end do
-       
-    end if
+				end do
 
-    allocate( cc_m(0:im,0:jm,nk) )
+				DEALLOCATE(xtmp, STAT = ier)
+				DEALLOCATE(ytmp, STAT = ier)
 
-    !
-    ! ----- set bed friction parameter -----
-    !
-    do j = 0, ny              !不要だが念のため
-       do i = 0, nx
-          snmm( i,j) = sn_g
-       end do
-    end do
-    
-    do j=1,ny
-       do i=1,nx
-          snmm(i,j)=roughness4(i,j)
-          if(snmm(i,j)<=0.d0) then
-             write(*,'(a30,i5,a1,i5,a4,f10.3)') &
-                  'Manning roughness coefficient(',i,',',j,') is',snmm(i,j)
-             write(*,*) 'This coefficient should be larger than 0'
-             stop
-          end if
-       end do
-    end do
-    !
-    do i = 0, nx
-       do j = 1, ny
-          if(i > 0.and.i < nx) then
-             sn_up(i,j) = ( snmm(i,j) + snmm(i+1,j) ) * 0.5
-          else if(i == 0) then
-             sn_up(i,j) = snmm(i+1,j)
-          else
-             sn_up(i,j) = snmm(i,j)
-          end if
-       end do
-    end do
+			end if
 
-    do i = 1, nx
-       do j = 0, ny
-          if( j > 0.and.j < ny ) then
-             sn_vp(i,j) = ( snmm(i,j) + snmm(i,j+1) ) * 0.5
-          else if(j == 0) then
-             sn_vp(i,j) = snmm(i,j+1)
-          else
-             sn_vp(i,j) = snmm(i,j)
-          end if
-       end do
-    end do
-    
-  ! ---- The rate of sediment transport to an equilibrium state ---- !
-  
-    do j=1,ny
-    	do i=1,nx
-    		if( i==1 ) then
-    			c_se(i,j) = cse
-    		else
-    			c_se(i,j) = 1.d0
-    		end if
-    	end do
-    end do
-    
-    if( j_conf>=2 ) then
-       do i=i_t1+1,i_t2
-          c_se(i,j_t2+js2) = cse
-       end do
-    end if
+		end if
 
-  ! ------------------------------------------
+	else
+		nk = 1
+	end if
 
-    cw      =  0.00d0
-    c_mu0   =  0.09d0
-    sigma = 1.0d0
-    sigma_k = 1.0d0
-    sigma_e = 1.3d0
-    c_1e    = 1.44d0
-    c_2e    = 1.92d0
-    kend = int( etime / dt + 0.5d0 )
-    kmod = int( tuk   / dt + 0.5d0 )
-  !-------------------------------------------
+	if( j_mix == 1) then
+		call mixini(snu00,dm0)
+		call alloc_mix_temp_variables(nk)
+		sn_g    = dm0**(1.d0/6.d0) / 6.8d0 / dsqrt(g)
 
-    if( ti_smg > 0.d0 ) then
-       ktismg = int( ti_smg / dt + 0.5d0 )
-    else
-       ktismg = - 100
-    end if
-    !
-    if(ti_fill > 0.d0) then
-       ktifill = int( ti_fill / dt + 0.5d0 )
-    else
-       ktifill = - 100
-    end if
-    !
-    if(j_conf.eq.0) then
-       call avgeo( calculated_slope, bheight )
-       calculated_slope_t = calculated_slope
-    else
-       call avgeo_t( calculated_slope, calculated_slope_t, bheight )
-    end if
-    !
+		do j = 1, ny
+			do i = 1, nx
+				flg_mix(i,j) = mix_cell(i,j)
+			end do
+		end do
+	end if
+
+	allocate( cc_m(0:im,0:jm,nk) )
+
+	!
+	! ----- set bed friction parameter -----
+	!
+	do j = 0, ny              !不要だが念のため
+		do i = 0, nx
+			snmm( i,j) = sn_g
+		end do
+	end do
+
+	do j = 1, ny
+		do i = 1, nx
+			snmm(i,j) = roughness4(i,j)
+			if (snmm(i,j) <= 0.d0) then
+				write(*,'(a30,i5,a1,i5,a4,f10.3)') &
+					'Manning roughness coefficient(',i,',',j,') is',snmm(i,j)
+				write(*,*) 'This coefficient should be larger than 0'
+					stop
+			end if
+		end do
+	end do
+	!
+	do i = 0, nx
+		do j = 1, ny
+			if (i > 0 .and. i < nx) then
+				sn_up(i,j) = ( snmm(i,j) + snmm(i+1,j) ) * 0.5
+			else if(i == 0) then
+				sn_up(i,j) = snmm(i+1,j)
+			else
+				sn_up(i,j) = snmm(i,j)
+			end if
+		end do
+	end do
+
+	do i = 1, nx
+		do j = 0, ny
+			if( j > 0 .and. j < ny ) then
+				sn_vp(i,j) = ( snmm(i,j) + snmm(i,j+1) ) * 0.5
+			else if(j == 0) then
+				sn_vp(i,j) = snmm(i,j+1)
+			else
+				sn_vp(i,j) = snmm(i,j)
+			end if
+		end do
+	end do
+
+	! ---- The rate of sediment transport to an equilibrium state ---- !
+
+	do j = 1, ny
+		do i = 1, nx
+			if( i == 1 ) then
+				c_se(i,j) = cse
+			else
+				c_se(i,j) = 1.d0
+			end if
+		end do
+	end do
+
+	if ( j_conf >= 2 ) then
+		do i = i_t1 + 1, i_t2
+			c_se(i,j_t2+js2) = cse
+		end do
+	end if
+
+	! ------------------------------------------
+
+	cw      =  0.00d0
+	c_mu0   =  0.09d0
+	sigma = 1.0d0
+	sigma_k = 1.0d0
+	sigma_e = 1.3d0
+	c_1e    = 1.44d0
+	c_2e    = 1.92d0
+	kend = int( etime / dt + 0.5d0 )
+	kmod = int( tuk   / dt + 0.5d0 )
+	!-------------------------------------------
+
+	if( ti_smg > 0.d0 ) then
+		ktismg = int( ti_smg / dt + 0.5d0 )
+	else
+		ktismg = - 100
+	end if
+	!
+	if(ti_fill > 0.d0) then
+		ktifill = int( ti_fill / dt + 0.5d0 )
+	else
+		ktifill = - 100
+	end if
+	!
+	if(j_conf == 0) then
+		call avgeo( calculated_slope, bheight )
+		calculated_slope_t = calculated_slope
+	else
+		call avgeo_t( calculated_slope, calculated_slope_t, bheight )
+	end if
 
 	! ----- calculate the elevation of vegetation ------ !
 
-   do j=1,ny
-   	do i=1,nx
-   		if( cd_veg(i,j)<=0.d0 ) then
-   			vege_el(i,j) = eta(i,j)-99999.d0
-   		else
-   			if( j_vege==0 ) then
-   				vege_el(i,j) = eta(i,j)+99999.d0
-   			else
-   				vege_el(i,j) = eta(i,j)+vegeh(i,j)
-   			end if
-   		end if
-   	end do
-   end do
-   
-    !  --- calculate the elevation of fixed bed at cell center --- !
-    
-    do j=1,ny
-    	do i=1,nx
-    		eta_zb(i,j) = ( zb(i-1,j-1)+zb(i,j-1)+zb(i-1,j)+zb(i,j) )*0.25d0
-    		if( ij_ero(i,j)==1 ) eta_zb(i,j) = eta(i,j)
-    	end do
-    end do
+	do j = 1, ny
+		do i = 1, nx
+			if( cd_veg(i,j)<=0.d0 ) then
+				vege_el(i,j) = eta(i,j)-99999.d0
+			else
+				if( j_vege==0 ) then
+					vege_el(i,j) = eta(i,j)+99999.d0
+				else
+					vege_el(i,j) = eta(i,j)+vegeh(i,j)
+				end if
+			end if
+		end do
+	end do
+
+	!  --- calculate the elevation of fixed bed at cell center --- !
+
+	do j = 1 ,ny
+		do i = 1, nx
+			eta_zb(i,j) = ( zb(i-1,j-1)+zb(i,j-1)+zb(i-1,j)+zb(i,j) )*0.25d0
+			if( ij_ero(i,j) == 1 ) eta_zb(i,j) = eta(i,j)
+		end do
+	end do
 
 	call phical
 
-    if( j_mix==1 ) then
-       call ini_layer(snu00)
-       call cell2grid(dm_m,dmxx)
-       call dmcal
-    end if
+	if( j_mix == 1 ) then
+		call ini_layer(snu00)
+		call cell2grid(dm_m,dmxx)
+		call dmcal
+	end if
 
-    !
-    call hsxxcal(eta0, z0, hs, hsxx)
-    !
-    
-    if( j_wl == 0.and.h_down < -10. ) then
-       write(*,*) 'Downstream Water Surface Value is Wrong!!!'            !j090219e
-       stop
-    end if
+	!
+	call hsxxcal(eta0, z0, hs, hsxx)
+	!
 
-    if( j_wl /= 0 ) h_down = - 999.
-  !
-  !    slope 等流計算をするための勾配
-  !
-    if(j_slope == 1.or.calculated_slope <= 0.) then
-       slope = bh_slope
-       slope_t = bh_slope		!h101019 conf
-    else
-       slope = calculated_slope
-       slope_t=calculated_slope_t	!h101019 conf
-    end if
+	if( j_wl == 0 .and. h_down < -10. ) then
+		write(*,*) 'Downstream Water Surface Value is Wrong!!!'            !j090219e
+		stop
+	end if
 
-  !
-  !    slope_up slope for the uniform flow calculation of the upstream end
-  !
+	if( j_wl /= 0 ) h_down = - 999.
+	!
+	!    slope 等流計算をするための勾配
+	!
+	if(j_slope == 1 .or. calculated_slope <= 0.) then
+		slope = bh_slope
+		slope_t = bh_slope		!h101019 conf
+	else
+		slope = calculated_slope
+		slope_t = calculated_slope_t	!h101019 conf
+	end if
 
-    if(j_upv_slope.eq.0) then
-       slope_up=calculated_slope
-       slope_up_t=calculated_slope_t	!h101019 conf
-    else
-       slope_up=upv_slope
-       slope_up_t=upv_slope_t		!h101019 conf
-    end if
+	!
+	!    slope_up slope for the uniform flow calculation of the upstream end
+	!
 
-    !
-    call gcoefs(0)
-    !
-    ! ------------------------------------------
-    if( qp < 1e-6 ) then
-       h0     = 0.d0
-       hs_dse = h_dse(0) - eave(nx)
-       h0     = max( hs_dse, h0 )
-    else
-       h0 = ( snmm(nx,nym) * qp / ( width * dsqrt(slope) ) )**(3.d0/5.d0)
-    end if
-    
-    u0   = 1.d0 / snmm(nx,nym) * h0**(2.d0/3.d0) * dsqrt(slope)
-    us0  = dsqrt( g * h0 * slope )
-    fr0  = u0 / dsqrt( g * h0 )
-    phi0 = u0 / us0
-    ts0  = h0 * slope / ( spec *diam )
-    c_f  = us0**2 / u0**2
-    !
-    hmin    = h0   / 100.d0
-!    errmax  = hmin * 0.00000000001d0
-!	errmax = 1e-7
-	 errmax = hmin*0.01d0
-    hmin2   = hmin * 2.d0
+	if (j_upv_slope == 0) then
+		slope_up = calculated_slope
+		slope_up_t = calculated_slope_t	!h101019 conf
+	else
+		slope_up = upv_slope
+		slope_up_t = upv_slope_t		!h101019 conf
+	end if
 
-    call usc( diam, usci, spec, snu00, g )
-    tsc     = usci**2 / ( spec * g * diam )
-    theta_b = datan(slope)
-    tan_tb  = dtan(theta_b)
-    cos_tb  = dcos(theta_b) 
-    mu_s = 0.7d0	!0.84d0
-    mu_k = 0.7d0	!0.56d0
-    gamma = dsqrt( tsc / (mu_s*mu_k) )
-    gamma_m = dsqrt( 1.d0 / (mu_s*mu_k) )
-!    gamma   = dsqrt( tsc * cos_tb / 0.7d0 )
-!    gamma_m = dsqrt( cos_tb / 0.7d0 )
-    rsgd    = dsqrt( spec * g * diam )
-    pi_bed = 0.85d0+1.d0/mu_s
-    !
-    if(j_snu == 0) then
-       snu_0 = snu00
-    else
-       snu_0 = 0.4d0 / 6.d0 * us0 * h0*a_snu + b_snu
-    end if
-    c_k0 = phi0
-    c_e0 = 3.6d0*c_2e / c_f**(3.d0/4.d0) * dsqrt(c_mu0)
-    ye00 = 0.d0
-    yk00 = 0.d0
-    dtanmax = 0.0001d0
+	!
+	call gcoefs(0)
+	!
+	! ------------------------------------------
+	if( qp < 1e-6 ) then
+		h0     = 0.d0
+		hs_dse = h_dse(0) - eave(nx)
+		h0     = max( hs_dse, h0 )
+	else
+		h0 = ( snmm(nx,nym) * qp / ( width * dsqrt(slope) ) )**(3.d0/5.d0)
+	end if
 
-    call wfcal( spec, diam, snu00, wf, g )
-    call ypcal_ini( us0, h0, snu00, rho )
-    if( j_qbqs == 3 ) call ecoefs( phi0, h0, us0, wf, theta_cx )
+	u0   = 1.d0 / snmm(nx,nym) * h0**(2.d0/3.d0) * dsqrt(slope)
+	us0  = dsqrt( g * h0 * slope )
+	fr0  = u0 / dsqrt( g * h0 )
+	phi0 = u0 / us0
+	ts0  = h0 * slope / ( spec *diam )
+	c_f  = us0**2 / u0**2
+	!
+	hmin    = h0   / 100.d0
+	!errmax  = hmin * 0.00000000001d0
+	!errmax = 1e-7
+	errmax = hmin*0.01d0
+	hmin2   = hmin * 2.d0
 
-  ! ------ Initial Condition -----
-    !
-    !   Cal. of time series of upstream water surface elevation 
-    !   by uniform flow calculation.
-    !c	!h101019 conf  &  initl <-> hqtcal
+	call usc( diam, usci, spec, snu00, g )
+	tsc     = usci**2 / ( spec * g * diam )
+	theta_b = datan(slope)
+	tan_tb  = dtan(theta_b)
+	cos_tb  = dcos(theta_b) 
+	mu_s = 0.7d0	!0.84d0
+	mu_k = 0.7d0	!0.56d0
+	gamma = dsqrt( tsc / (mu_s*mu_k) )
+	gamma_m = dsqrt( 1.d0 / (mu_s*mu_k) )
+	!gamma   = dsqrt( tsc * cos_tb / 0.7d0 )
+	!gamma_m = dsqrt( cos_tb / 0.7d0 )
+	rsgd    = dsqrt( spec * g * diam )
+	pi_bed = 0.85d0+1.d0/mu_s
+	!
+	if (j_snu == 0) then
+		snu_0 = snu00
+	else
+		snu_0 = 0.4d0 / 6.d0 * us0 * h0*a_snu + b_snu
+	end if
+	c_k0 = phi0
+	c_e0 = 3.6d0*c_2e / c_f**(3.d0/4.d0) * dsqrt(c_mu0)
+	ye00 = 0.d0
+	yk00 = 0.d0
+	dtanmax = 0.0001d0
 
-    call hqtcal_init(slope, slope_up, h_down, sn_g, maxval(q_ups))
-    call hqtcal(nq, slope, slope_up, slope_up_t, j_wl)
-    !
-    hnx = h_dse(0)
-    
-    call initl( qp, qp_t, hnx, us0, snu_0, ye00, yk00, h0 &
-         ,i_flow, slope, slope_t, h_slope, h_slope_t, x_bk &
-         , h_slope_1, h_slope_2, h_slope_12t )	!h101019 conf
-    
-    call bound_u(yu )
-    call bound_v(yv )
-    call bound_u(yun)
-    call bound_v(yvn)
-    call bound_h(h ,hs,eta)
-    call bound_h(hn,hs,eta)
+	call wfcal( spec, diam, snu00, wf, g )
+	call ypcal_ini( us0, h0, snu00, rho )
+	if( j_qbqs == 3 ) call ecoefs( phi0, h0, us0, wf, theta_cx )
 
-    time     = 0.d0
-    icount   = 0
-    iofrg    = 0
-    ndeposit = 0
+	! ------ Initial Condition -----
+	!
+	!   Cal. of time series of upstream water surface elevation 
+	!   by uniform flow calculation.
+	!   h101019 conf  &  initl <-> hqtcal
 
-    !
-    ! ----- Read tempfile for hot start ----
-    !
-    if(i_re_flag_i == 1) then
-       !
-       open(501,file=tmp_file_i,status='old',iostat = ierr_tmp,form='unformatted')
-       if(ierr_tmp /= 0) then
-          write(6,*) 'Input file error!'
-          write(6,*) 'Temporary file for Hot Start does not exist'
-          pause
-          stop
-       end if
-       !
-       read(501) time,icount,dt2
-       !
-       time=(icount-1)*dt2
-       icount=time/dt
-       !
-       read(501) nx2, ny2
-       if(nx /= nx2.or.ny /= ny2) then
-          write(6,*) 'Number of grid is different between grid file and temporary file!'
-          pause
-          stop
-       end if
-       !
-       read(501) ((x(i,j),i=0,nx2),j=0,ny2)
-       read(501) ((y(i,j),i=0,nx2),j=0,ny2)
-       read(501) ((eta_t(i,j),i=0,nx2),j=0,ny2)
-       read(501) ((hs(i,j),i=1,nx2),j=1,ny2)
-       read(501) ((eta(i,j),i=1,nx2),j=1,ny2)
-       read(501) ((h(i,j),i=1,nx2),j=1,ny2)
-       read(501) ((ycn(i,j),i=1,nx2),j=1,ny2)
-       read(501) ((yun(i,j),i=0,nx2+1),j=0,ny2+1)
-       read(501) ((yvn(i,j),i=0,nx2+1),j=0,ny2+1)
-       read(501) ((gux(i,j),i=0,nx2+1),j=0,ny2+1)
-       read(501) ((guy(i,j),i=0,nx2+1),j=0,ny2+1)
-       read(501) ((gvx(i,j),i=0,nx2+1),j=0,ny2+1)
-       read(501) ((gvy(i,j),i=0,nx2+1),j=0,ny2+1)
-       read(501) ((snu(i,j),i=0,nx2),j=0,ny2)
-       read(501) ((snu_x(i,j),i=0,nx2),j=0,ny2)
-       read(501) ((ykn(i,j),i=0,nx2+1),j=0,ny2+1)
-       read(501) ((yepn(i,j),i=0,nx2+1),j=0,ny2+1)
-       read(501) ((an(i,j),i=0,nx2+1),j=0,ny2+1)
-       read(501) ((vort(i,j),i=0,nx2+1),j=0,ny2+1)
-       if(j_mix == 1) then
-          read(501) nk2
-          
-          if( nk2/=nk ) write(*,*) "The number of grain size class is different between grid file and temporary file!"
-          
-          read(501) (((yck(i,j,k),i=0,nx2+1),j=0,ny2+1),k=1,nk2)
-          read(501) ((e_t(i,j),i=1,nx2),j=1,ny2)
-          read(501) (((p_m(i,j,k),i=1,nx2),j=1,ny2),k=1,nk2)
-          read(501) (((p_t(i,j,k),i=1,nx2),j=1,ny2),k=1,nk2)
-          read(501) ((nb(i,j),i=1,nx2),j=1,ny2)
-          do i=1,nx2
-             do j=1,ny2
-                do n=1,nb(i,j)
-                   do k=1,nk2
-                      read(501) p_d(i,j,nb(i,j),k)
-                   end do
-                end do
-             end do
-          end do
-       end if
-       !
-       do j=1,ny2
-          do i=1,nx2
-             hn(i,j) = h(i,j)
-             yc(i,j) = ycn(i,j)
-          end do
-       end do
-       !
-       do j=0,ny2+1
-          do i=0,nx2+1
-             yu(i,j) = yun(i,j)
-             yv(i,j) = yvn(i,j)
-             yk(i,j) = ykn(i,j)
-             yep(i,j)= yepn(i,j)
-          end do
-       end do
-       !
-       close(501)
-       !
-       call gcoefs(1)
-       !
-       is = -1
-       do ii=0,n_rest-1
-          if(opt_tmp(ii) < time) is=ii
-       end do
-       !
-       i_tmp_count = is+1
-       !
-    end if
-  !
-  !cccccccccccccccccccccccccccccccccccccccccccccccccccc
-  !
-  !     Start Point of the Main Computational Loop
-  !
-  !ccccccccccccccccccccccccccccccccccccccccccccccccccccc
-  !
+	call hqtcal_init(slope, slope_up, h_down, sn_g, maxval(q_ups))
+	call hqtcal(nq, slope, slope_up, slope_up_t, j_wl)
 
-! ------------- Time loop -------------
+	hnx = h_dse(0)
 
-!$	call omp_set_num_threads(n_parallel)
+	call initl( qp, qp_t, hnx, us0, snu_0, ye00, yk00, h0 &
+		,i_flow, slope, slope_t, h_slope, h_slope_t, x_bk &
+		, h_slope_1, h_slope_2, h_slope_12t )	!h101019 conf
 
-!$omp parallel
+	call bound_u(yu )
+	call bound_v(yv )
+	call bound_u(yun)
+	call bound_v(yvn)
+	call bound_h(h ,hs,eta)
+	call bound_h(hn,hs,eta)
 
-  do					!  Time loop
-!2000 continue
+	time     = 0.d0
+	icount   = 0
+	iofrg    = 0
+	ndeposit = 0
 
-!$omp single
-    
-    !-------------------------------------------
-    if( time <= 0.d0 ) then
-        h_input   = h_ups( 0)
-        h_input_t = h_ups_t( 0)		!h101019 conf
-        q_input   = q_ups( 0)
-        q_input_t = q_ups_t( 0)		!h101019 conf
-     else if( time > t_hyd(nq) ) then
-        h_input   = h_ups(nq)
-        h_input_t = h_ups_t(nq)		!h101019 conf
-        q_input   = q_ups(nq)
-        q_input_t = q_ups_t(nq)		!h101019 conf
-     else
-        do n = 1, nq
-           if(time >= t_hyd(n-1).and.time <= t_hyd(n)) then
-              sst = ( time - t_hyd(n-1) ) / ( t_hyd(n) - t_hyd(n-1) )
-              h_input   = h_ups(n-1) + (h_ups(n)-h_ups(n-1)) * sst
-              h_input_t = h_ups_t(n-1) + (h_ups_t(n)-h_ups_t(n-1)) * sst	!h101019
-              q_input   = q_ups(n-1) + (q_ups(n)-q_ups(n-1)) * sst
-              q_input_t = q_ups_t(n-1) + (q_ups_t(n)-q_ups_t(n-1)) * sst	!h101019
-           end if
-        end do
-     end if
+	!
+	! ----- Read tempfile for hot start ----
+	!
+	if(i_re_flag_i == 1) then
+		!
+		open(501,file=tmp_file_i,status='old',iostat = ierr_tmp,form='unformatted')
+		if (ierr_tmp /= 0) then
+			write(6,*) 'Input file error!'
+			write(6,*) 'Temporary file for Hot Start does not exist'
+			pause
+			stop
+		end if
+		!
+		read(501) time,icount,dt2
+		!
+		time=(icount-1)*dt2
+		icount=time/dt
+		!
+		read(501) nx2, ny2
+		if(nx /= nx2.or.ny /= ny2) then
+			write(6,*) 'Number of grid is different between grid file and temporary file!'
+			pause
+			stop
+		end if
+		!
+		read(501) ((x(i,j),i=0,nx2),j=0,ny2)
+		read(501) ((y(i,j),i=0,nx2),j=0,ny2)
+		read(501) ((eta_t(i,j),i=0,nx2),j=0,ny2)
+		read(501) ((hs(i,j),i=1,nx2),j=1,ny2)
+		read(501) ((eta(i,j),i=1,nx2),j=1,ny2)
+		read(501) ((h(i,j),i=1,nx2),j=1,ny2)
+		read(501) ((ycn(i,j),i=1,nx2),j=1,ny2)
+		read(501) ((yun(i,j),i=0,nx2+1),j=0,ny2+1)
+		read(501) ((yvn(i,j),i=0,nx2+1),j=0,ny2+1)
+		read(501) ((gux(i,j),i=0,nx2+1),j=0,ny2+1)
+		read(501) ((guy(i,j),i=0,nx2+1),j=0,ny2+1)
+		read(501) ((gvx(i,j),i=0,nx2+1),j=0,ny2+1)
+		read(501) ((gvy(i,j),i=0,nx2+1),j=0,ny2+1)
+		read(501) ((snu(i,j),i=0,nx2),j=0,ny2)
+		read(501) ((snu_x(i,j),i=0,nx2),j=0,ny2)
+		read(501) ((ykn(i,j),i=0,nx2+1),j=0,ny2+1)
+		read(501) ((yepn(i,j),i=0,nx2+1),j=0,ny2+1)
+		read(501) ((an(i,j),i=0,nx2+1),j=0,ny2+1)
+		read(501) ((vort(i,j),i=0,nx2+1),j=0,ny2+1)
+		if (j_mix == 1) then
+			read(501) nk2
 
-     qp = q_input
-     !-------------------------------------------
-     if( h_down < -100.d0 ) then
-        if( time <= 0.d0 ) then
-           hnx = h_dse( 0)
-        elseif( time > t_hyd(nq) ) then
-           hnx = h_dse(nq)
-        else
-           do n = 1, nq
-              if(time >= t_hyd(n-1).and.time <= t_hyd(n)) then
-                 sst = ( time - t_hyd(n-1) ) / ( t_hyd(n) - t_hyd(n-1) )
-                 hnx = h_dse(n-1) + ( h_dse(n) - h_dse(n-1) ) * sst
-              end if
-           end do
-        end if
-     else
-        hnx = h_down
-     end if
-     !
-     !-------------------------------------------
-     if( jrep == 0 ) then
-        if( j_qbup==1 ) then
-           call upstream_h( q_input, q_input_t, slope_up, slope_up_t, h_input, h_input_t )
-        end if
-        
-        call upstream( h_input, h_input_t, q_input, q_input_t, slope_up, slope_up_t, j_upv )
-        call downstream(j_wl, hnx)
-     end if
+			if( nk2/=nk ) write(*,*) "The number of grain size class is different between grid file and temporary file!"
 
-      if( j_mix==1 ) then
-         call dmtscm(snu00)
-      end if
-
-!$omp end single
-	  iricmi_dump = 0
-
-!      if ( icount == 1.or.mod(icount-1,kmod) == 0 ) then		!h time=0も出力
-      if ( icount == 0.or.mod(icount,kmod) == 0 ) then		!h time=0も出力
-         if( iofrg == 0 ) then
-            iofrg = 1
-            if( i_re_flag_i == 0 ) then
-               call hsxxcal( eta0, z, hs, hsxx )
-            else
-               call hsxxcal( eta , z, hs, hsxx )
-            end if
-         else
-            call hsxxcal( eta , z, hs, hsxx )
-         end if
-
-         call cell2grid( eta_zb, zb_g )
-
-         if( j_mix==1 ) then
-        	   call cell2grid(dm_m,dmxx)
-         end if
-         !
-         if( j_mix==0 ) then
-!$omp do private(i,j)
-        	   do j=0,ny
-        		   do i=0,nx
-        			   dmn(i,j) = diam*1000.d0
-        		   end do
-        	   end do
-         else
-!$omp do private(i,j)
-        	   do j=0,ny
-        		   do i=0,nx
-        			   dmn(i,j) = dmxx(i,j)*1000.d0
-        		   end do
-        	   end do
-         end if
-        
-!$omp do private(i,j)
-         do j=1,ny
-        	   do i=1,nx
-        		   if( hs(i,j)<=hmin .or. ijo_in(i,j)==1 ) then
-        			   fr_c(i,j) = 0.d0
-        		   else
-        			   fr_c(i,j) = vti(i,j)/dsqrt(g*hs(i,j))
-        		   end if
-        	   end do
-         end do
-        
-         call cell2grid( fr_c, fr_g )
-         call cell2grid( tausta, ts_g )
-			call cell2grid( usta, us_g )
-         !
-         call cell2grid( ycn, c_g )
-         call uxxyycal( yu, yv, uxx, uyy )
-         call voltexcal( yu, yv, voltex )
-
-		   if( j_qb_vec==0 ) then
-            call uxxyycal( qb_xi, qb_et, qbxx, qbyy )
-         else
-!$omp single
-            qbxx( 0, 0) = qbxc( 1, 1)
-            qbyy( 0, 0) = qbyc( 1, 1)
-            qbxx( 0,ny) = qbxc( 1,ny)
-            qbyy( 0,ny) = qbyc( 1,ny)
-            qbxx(nx, 0) = qbxc(nx, 1)
-            qbyy(nx, 0) = qbyc(nx, 1)
-            qbxx(nx,ny) = qbxc(nx,ny)
-            qbyy(nx,ny) = qbyc(nx,ny)
-!$omp end single
-             
-!$omp do private(j)
-            do j=1,ny-1
-               qbxx( 0,j) = ( qbxc( 1,j)+qbxc( 1,j+1) )*0.5d0
-               qbyy( 0,j) = ( qbyc( 1,j)+qbyc( 1,j+1) )*0.5d0
-               qbxx(nx,j) = ( qbxc(nx,j)+qbxc(nx,j+1) )*0.5d0
-               qbyy(nx,j) = ( qbyc(nx,j)+qbyc(nx,j+1) )*0.5d0
-            end do
-           
-!$omp do private(i)
-            do i=1,nx-1
-               qbxx(i, 0) = ( qbxc(i, 1)+qbxc(i+1, 1) )*0.5d0
-               qbyy(i, 0) = ( qbyc(i, 1)+qbyc(i+1, 1) )*0.5d0
-               qbxx(i,ny) = ( qbxc(i,ny)+qbxc(i+1,ny) )*0.5d0
-               qbyy(i,ny) = ( qbyc(i,ny)+qbyc(i+1,ny) )*0.5d0
-            end do
-           
-!$omp do private(i,j)
-            do j=1,ny-1
-               do i=1,nx-1
-                  qbxx(i,j) = ( qbxc(i,j)+qbxc(i+1,j)+qbxc(i,j+1)+qbxc(i+1,j+1) )*0.25d0
-                  qbyy(i,j) = ( qbyc(i,j)+qbyc(i+1,j)+qbyc(i,j+1)+qbyc(i+1,j+1) )*0.25d0
-               end do
-            end do
-           
-         end if
-        
-         call cross_section_variables
-        
-         if( j_mix==1 ) then
-			   call center2grid_4(yck, cc_m, nk)
-		   end if
-		
-		   call cell2grid( phi, phi_g )
-
-!$omp barrier
-
-!$omp single
-
-		 if( time>=t_out_start ) then
-			iricmi_dump = 1
-         end if
-		 qptemp = qp
-         !
-         ! ------ CRT Output ------------------------
-        
-         if( time < t_out_start ) then
-            if(j_conf.eq.0) then		!h101019 conf
-               write(*,'(f10.3,2f10.4,i4)')    time,q_input,hnx,lcount
-            else
-               write(*,'(f10.3,3f10.4,i4)')    time,q_input,q_input_t,hnx,lcount
-            end if
-         else
-            if(j_conf.eq.0) then		!h101019 conf
-               write(*,'(f10.3,2f10.4,i4,a4)') time,q_input,hnx,lcount,'out'
-            else
-               write(*,'(f10.3,3f10.4,i4,a4)')  &
-                   time,q_input,q_input_t,hnx,lcount,'out'
-            end if
-            !
-         end if
-!$omp end single
-
-      end if
-     !
-     !------- output temporary file for hot start -----------
-     !
-!$omp single
-
-        ! ユーザがGUI上で "STOP" ボタンを押して実行をキャンセルしたか確認
-     call iricmi_check_cancel(istatus, ier)
-     if(istatus == 1) then
-        write(*,*) "Solver is stopped because the STOP button was clicked."
-        stop
-     end if
-
-
-     if(i_re_flag_o == 1 .and. time > opt_tmp(i_tmp_count)) then
-        !
-        tmp_file_o(i_tmp_count)=trim(tmp_pass)//tmp_file_o(i_tmp_count)  !i110419
-        !       write(*,*) 'pastuki',tmp_file_o(i_tmp_count)
-        open(502,file=tmp_file_o(i_tmp_count) &
-             ,status='unknown',form='unformatted')
-        !
-        write(502) time,icount,dt
-        write(502) nx,ny
-        !
-        write(502) ((x(i,j),i=0,nx),j=0,ny)
-        write(502) ((y(i,j),i=0,nx),j=0,ny)
-        write(502) ((eta_t(i,j),i=0,nx),j=0,ny)
-        write(502) ((hs(i,j),i=1,nx),j=1,ny)
-        write(502) ((eta(i,j),i=1,nx),j=1,ny)
-        write(502) ((h(i,j),i=1,nx),j=1,ny)
-        write(502) ((ycn(i,j),i=1,nx),j=1,ny)
-        write(502) ((yun(i,j),i=0,nx+1),j=0,ny+1)
-        write(502) ((yvn(i,j),i=0,nx+1),j=0,ny+1)
-        write(502) ((gux(i,j),i=0,nx+1),j=0,ny+1)
-        write(502) ((guy(i,j),i=0,nx+1),j=0,ny+1)
-        write(502) ((gvx(i,j),i=0,nx+1),j=0,ny+1)
-        write(502) ((gvy(i,j),i=0,nx+1),j=0,ny+1)
-        write(502) ((snu(i,j),i=0,nx),j=0,ny)
-        write(502) ((snu_x(i,j),i=0,nx),j=0,ny)
-        write(502) ((ykn(i,j),i=0,nx+1),j=0,ny+1)
-        write(502) ((yepn(i,j),i=0,nx+1),j=0,ny+1)
-        write(502) ((an(i,j),i=0,nx+1),j=0,ny+1)
-        write(502) ((vort(i,j),i=0,nx+1),j=0,ny+1)
-        if(j_mix == 1) then
-           write(502) nk
-           write(502) (((yck(i,j,k),i=0,nx+1),j=0,ny+1),k=1,nk)
-           write(502) ((e_t(i,j),i=1,nx),j=1,ny)
-           write(502) (((p_m(i,j,k),i=1,nx),j=1,ny),k=1,nk)
-           write(502) (((p_t(i,j,k),i=1,nx),j=1,ny),k=1,nk)
-           write(502) ((nb(i,j),i=1,nx),j=1,ny)
-           do i=1,nx
-              do j=1,ny
-                 do n=1,nb(i,j)
-                    do k=1,nk
-                       write(502) p_d(i,j,nb(i,j),k)
-                    end do
-                 end do
-              end do
-           end do
-        end if
-        !
-        close(502)
-        !
-        i_tmp_count = i_tmp_count + 1
-        !
-        if(i_tmp_count > n_rest) i_re_flag_o = 0
-        !
-     end if
-
-	 CALL sync_and_output_result(iricmi_dump,time,qptemp,im,jm		&
-	 ,x,y,uxx,uyy,hsxx,z,z0,zb_g,voltex,c_g,dmn,phi_g,fr_g		&
-	   , rho, us_g, ts_g,z_ave,z_min,h_ave,qbxx,qbyy,cc_m,nk,j_mix)
-
-!$omp end single
-   !
-   !-------------------------------------------
-     call vegetation_height
-     call hcal( errmax, err, lcount, alh, qc_ave, hs_ave )
-     if( jrep == 1 ) call hcal_v(     qp, qc_ave, hs_ave )
-     call bound_h( hn, hs, eta )
-     call bound_u( yun )
-     call bound_v( yvn )
-   ! -------------------------------------------
-     call diffusion( cw )
-     call bound_u( yun )
-     call newgrd_u(yun, yu, gux, guy, ijobst )
-     call bound_v( yvn )
-     call newgrd_v(yvn, yv, gvx, gvy, ijobst )
-   !------------------------------------------------
-     if( j_cip == 1 ) then
-        call upwind2d_u( yun, gux, guy )
-     else
-        call dcip2d_u( yun, gux, guy )
-     end if
-     call dryck_u( yun, hs, gux, guy )
-     call bound_u( yun )
-     if(jrep == 1) then
-        call gbound( gux )
-        call gbound( guy )
-     end if
-   !-------------------------------------------
-     if(j_cip == 1) then
-        call upwind2d_v( yvn, gvx, gvy )
-     else
-        call dcip2d_v( yvn, gvx, gvy )
-     end if
-     call dryck_v( yvn, hs, gvx, gvy )
-     call bound_v( yvn )
-     if( jrep == 1 ) then
-        call gbound( gvx )
-        call gbound( gvy )
-     end if
-   !-------------------------------------------
-!$omp single
-     call ndr( hs, hn, eta, ndry )
-!$omp end single
-     call shift_u( yun, yu )
-     call shift_v( yvn, yv )
-   !--------------------------------------------
-     call uvpcal( yun, yvn, up, vp, hs )
-     call uxuycal( up, vp, ux, uy )
-
-     if( j_mix==0 ) then
-	    call taustacal_uni( snu00 )
-	 else
-	 	call taustacal_mix( snu00 )
-	 end if
-	 
-	 call phical
-	 
-     !--------------------------------------------
-     call ypcal( usta, h0, snu00 ,rho )
-     call phkecal( c_k0, c_e0, c_mu0, c_2e )
-     call bound_phke( strain, ph, pkv, pev )
-     if(j_snu > 0) then
-        call snucal( usta, hs, snu00, snu, snu_x )
-        if(j_snu > 1) call snucal_ke(hs,yk,yep,c_mu0,snu00,snuk,snuk_x)
-     end if
-     if(j_snu == 2) then
-!$omp do private(i,j)
-		do j=1,ny
-			do i=1,nx
-				snu(i,j) = snuk(i,j)
-				snu_x(i,j) = snuk_x(i,j)
+			read(501) (((yck(i,j,k),i=0,nx2+1),j=0,ny2+1),k=1,nk2)
+			read(501) ((e_t(i,j),i=1,nx2),j=1,ny2)
+			read(501) (((p_m(i,j,k),i=1,nx2),j=1,ny2),k=1,nk2)
+			read(501) (((p_t(i,j,k),i=1,nx2),j=1,ny2),k=1,nk2)
+			read(501) ((nb(i,j),i=1,nx2),j=1,ny2)
+			do i = 1, nx2
+				do j = 1, ny2
+					do n = 1, nb(i,j)
+						do k = 1, nk2
+							read(501) p_d(i,j,nb(i,j),k)
+						end do
+					end do
+				end do
+			end do
+		end if
+		!
+		do j = 1, ny2
+			do i = 1, nx2
+				hn(i,j) = h(i,j)
+				yc(i,j) = ycn(i,j)
 			end do
 		end do
+		!
+		do j = 0, ny2+1
+			do i = 0, nx2+1
+				yu(i,j) = yun(i,j)
+				yv(i,j) = yvn(i,j)
+				yk(i,j) = ykn(i,j)
+				yep(i,j)= yepn(i,j)
+			end do
+		end do
+		!
+		close(501)
+		!
+		call gcoefs(1)
+		!
+		is = -1
+		do ii = 0, n_rest-1
+			if(opt_tmp(ii) < time) is=ii
+		end do
+		!
+		i_tmp_count = is+1
+		!
+	end if
+	!
+	!cccccccccccccccccccccccccccccccccccccccccccccccccccc
+	!
+	!     Start Point of the Main Computational Loop
+	!
+	!ccccccccccccccccccccccccccccccccccccccccccccccccccccc
+	!
 
-        call source_k( yk, ykn, yep, hs )
-        call source_e( yep, yepn, yk, hs, c_1e, c_2e )
-        call wall_ke( ykn, yepn, c_mu0, usta )
-        call diffusion_c( ykn, sigma_k )
-        call diffusion_c( yepn, sigma_e )
-        call bound_ke( ykn, yepn )
-        call newgrd_c( ykn, yk, gkx, gky )
-        call newgrd_c( yepn, ye, gex, gey )
-        !      if(j_cip == 1) then
-        call upwind2d_c( ykn, gkx, gky )
-        call upwind2d_c( yepn, gex, gey )
-        !      else
-        !        call dcip2d_c(   ykn, gkx, gky )
-        !        call dcip2d_c(   yepn, gex, gey )
-        !      end if
-        call dryck_c(  ykn, hs, gkx, gky )
-        call dryck_c(  yepn, hs, gex, gey )
-        call bound_ke( ykn, yepn )
-        if( jrep == 1 ) then
-           call gbound( gkx )
-           call gbound( gky )
-           call gbound( gex )
-           call gbound( gey )
-        end if
-        call shift_ke( ykn, yk )
-        call shift_ke( yepn, yep )
-     end if
-     !--------------------------------------------
-     if(  j_qbqs >= 1) then
-        if(j_qbqs >= 2) then
-           if(j_mix == 0) then
-              call qsucal( wf, rsgd )
-              call cbcal(    ycn, ycb, hs, wf,  usta )
+	! ------------- Time loop -------------
 
-              if(j_qbqs == 3) call c_secondary( ycn, up, hs, sr, theta_cx )
+	!$	call omp_set_num_threads(n_parallel)
 
-              if( jrep==0 ) call upstream_c( ycn, ycb, wf, qsu, usta )
+	!$omp parallel
 
-              call c_transport(wf,dsmt)
+	do ! Time loop
 
-!              call diffusion_c( ycn, sigma )
-              call bound_c( ycn )
+		!$omp single
+		!-------------------------------------------
+		if( time <= 0.d0 ) then
+			h_input   = h_ups( 0)
+			h_input_t = h_ups_t( 0)		!h101019 conf
+			q_input   = q_ups( 0)
+			q_input_t = q_ups_t( 0)		!h101019 conf
+		else if( time > t_hyd(nq) ) then
+			h_input   = h_ups(nq)
+			h_input_t = h_ups_t(nq)		!h101019 conf
+			q_input   = q_ups(nq)
+			q_input_t = q_ups_t(nq)		!h101019 conf
+		else
+			do n = 1, nq
+				if(time >= t_hyd(n-1).and.time <= t_hyd(n)) then
+					sst = ( time - t_hyd(n-1) ) / ( t_hyd(n) - t_hyd(n-1) )
+					h_input   = h_ups(n-1) + (h_ups(n)-h_ups(n-1)) * sst
+					h_input_t = h_ups_t(n-1) + (h_ups_t(n)-h_ups_t(n-1)) * sst	!h101019
+					q_input   = q_ups(n-1) + (q_ups(n)-q_ups(n-1)) * sst
+					q_input_t = q_ups_t(n-1) + (q_ups_t(n)-q_ups_t(n-1)) * sst	!h101019
+				end if
+			end do
+		end if
 
-           else
-           		call qsucal_mix( qsuk, tsk, tsck, p_m, tsci0, wfk, ddk, usta, hs, vti, nk )
-           		call cbcal_mix( yck, ycbk, wfk, hs, usta, nk )
-           		if( jrep==0 ) call upstream_c_mix( yck, ycbk, wfk, qsuk, usta, nk )
-           		call c_transport_mix( dsmt )
-           		call bound_c_mix           		
-           end if
-        end if
-        !-------------------------------------------
-        if( j_qbs==1 ) then
-        
-           call srcal( ux, uy, up, sr, snst )
-           
-           if( j_sf==1 ) call vorticity_eq
-           
-           if( time > ster ) then
-              if( j_mix == 0 ) then
-                 call qbcal_w    ( ux,uy,hs,gamma,pi_bed,dsmt,tantc,j_bank 			&
-                      				,i_erosion_start,i_erosion_end,bheight )
-              else
-                 call qbcal_w_mix( ux,uy,hs,gamma_m,dsmt,pi_bed,tantc 					&
-                      				,j_bank,i_erosion_start,i_erosion_end,bheight )
-              end if
-              if(j_qbqs == 1) then
-                 if(j_mix == 0) then
-                    call etacal( qb_xi, qb_et, dsmt )
-                 else
-                    call etacal_mix( dsmt )
-                 end if
-              else if(j_qbqs == 2) then
-                 if( j_mix==0 ) then
-                 	call cbcal(    ycn, ycb, hs, wf, usta )
-                 	call etacal_c( qb_xi, qb_et, dsmt, qsu, wf, ycb )
-                 else
-                 	call etacal_mix_c( dsmt )
-                 end if
-              end if
+		qp = q_input
+		!-------------------------------------------
+		if( h_down < -100.d0 ) then
+			if( time <= 0.d0 ) then
+				hnx = h_dse( 0)
+			elseif( time > t_hyd(nq) ) then
+				hnx = h_dse(nq)
+			else
+				do n = 1, nq
+					if(time >= t_hyd(n-1).and.time <= t_hyd(n)) then
+						sst = ( time - t_hyd(n-1) ) / ( t_hyd(n) - t_hyd(n-1) )
+						hnx = h_dse(n-1) + ( h_dse(n) - h_dse(n-1) ) * sst
+					end if
+				end do
+			end if
+		else
+			hnx = h_down
+		end if
+		!
+		!-------------------------------------------
+		if ( jrep == 0 ) then
+			if ( j_qbup == 1 ) then
+				call upstream_h( q_input, q_input_t, slope_up, slope_up_t, h_input, h_input_t )
+			end if
 
-              call phical
-!$omp single
-              if( j_collaps==1 ) then
-                 if( j_mix==0 ) then
-                    call ebank( tantc, dtanmax )
-                 else
-                    call ebank_mix( tantc, dtanmax )
-                 end if
-              end if
-              
-              if(j_bank == 1) then
-                 call pshift( r_tantc, qb_et, slambda, dermax, j_chunk &
-                      ,i_erosion_start, i_erosion_end, j_smooth, i_smooth, iier )
-                 if(j_fill >= 1.and.mod(icount-1,ktifill) == 0 ) then
-                    call bkfill(j_fill,hdry,bheight,ndeposit,j_smooth,i_smooth)
-                    write(*,*) time,ktifill,icount,'bkfill'
-                 end if
-                 if( j_smg >= 1 .and. mod(icount-1,ktismg) == 0 ) then
-                    call schange( mtime, x, y, mave )
-                    write(*,*) time, ktismg, icount, 'schange'
-                 end if
-              end if
-!$omp end single
-           end if
-        end if
-     end if
-     !-------------------------------------------
-     call hshift( hn, h )
-     
-!$omp do private(i,j)
-     do j=1,ny
-        do i=1,nx
-           if( isnan(h(i,j)) ) then
-              write(*,*) 'Calculation is failure!'
-              stop
-           end if
-        end do
-     end do
-     !-------------------------------------------
-!     if( icount-1 > kend ) goto 3000
-     if(  icount > kend ) exit
+			call upstream( h_input, h_input_t, q_input, q_input_t, slope_up, slope_up_t, j_upv )
+			call downstream(j_wl, hnx)
+		end if
 
-!$omp barrier
+		if ( j_mix == 1 ) then
+			call dmtscm(snu00)
+		end if
 
-!$omp single
-    icount	= icount + 1
-    time		= dble( icount ) * dt
-!$omp end single
+		!$omp end single
+	  iricmi_dump = 0
+
+		!if ( icount == 1.or.mod(icount-1,kmod) == 0 ) then		!h time=0も出力
+		if ( icount == 0 .or. mod(icount,kmod) == 0 ) then		!h time=0も出力
+			if( iofrg == 0 ) then
+				iofrg = 1
+				if( i_re_flag_i == 0 ) then
+					call hsxxcal( eta0, z, hs, hsxx )
+				else
+					call hsxxcal( eta , z, hs, hsxx )
+				end if
+			else
+				call hsxxcal( eta , z, hs, hsxx )
+			end if
+
+			call cell2grid( eta_zb, zb_g )
+
+			if( j_mix == 1 ) then
+				call cell2grid(dm_m,dmxx)
+			end if
+			!
+			if( j_mix == 0 ) then
+				!$omp do private(i,j)
+				do j = 0, ny
+					do i = 0, nx
+						dmn(i,j) = diam * 1000.d0
+					end do
+				end do
+			else
+				!$omp do private(i,j)
+				do j = 0, ny
+					do i = 0 ,nx
+						dmn(i,j) = dmxx(i,j)*1000.d0
+					end do
+				end do
+			end if
+
+			!$omp do private(i,j)
+			do j = 1, ny
+				do i = 1, nx
+					if( hs(i,j)<=hmin .or. ijo_in(i,j)==1 ) then
+						fr_c(i,j) = 0.d0
+					else
+						fr_c(i,j) = vti(i,j)/dsqrt(g*hs(i,j))
+					end if
+				end do
+			end do
+
+			call cell2grid( fr_c, fr_g )
+			call cell2grid( tausta, ts_g )
+			call cell2grid( usta, us_g )
+			!
+			call cell2grid( ycn, c_g )
+			call uxxyycal( yu, yv, uxx, uyy )
+			call voltexcal( yu, yv, voltex )
+
+			if ( j_qb_vec == 0 ) then
+				call uxxyycal( qb_xi, qb_et, qbxx, qbyy )
+			else
+				!$omp single
+				qbxx( 0, 0) = qbxc( 1, 1)
+				qbyy( 0, 0) = qbyc( 1, 1)
+				qbxx( 0,ny) = qbxc( 1,ny)
+				qbyy( 0,ny) = qbyc( 1,ny)
+				qbxx(nx, 0) = qbxc(nx, 1)
+				qbyy(nx, 0) = qbyc(nx, 1)
+				qbxx(nx,ny) = qbxc(nx,ny)
+				qbyy(nx,ny) = qbyc(nx,ny)
+				!$omp end single
+
+				!$omp do private(j)
+				do j = 1, ny-1
+					qbxx( 0,j) = ( qbxc( 1,j)+qbxc( 1,j+1) )*0.5d0
+					qbyy( 0,j) = ( qbyc( 1,j)+qbyc( 1,j+1) )*0.5d0
+					qbxx(nx,j) = ( qbxc(nx,j)+qbxc(nx,j+1) )*0.5d0
+					qbyy(nx,j) = ( qbyc(nx,j)+qbyc(nx,j+1) )*0.5d0
+				end do
+
+				!$omp do private(i)
+				do i = 1, nx-1
+					qbxx(i, 0) = ( qbxc(i, 1)+qbxc(i+1, 1) )*0.5d0
+					qbyy(i, 0) = ( qbyc(i, 1)+qbyc(i+1, 1) )*0.5d0
+					qbxx(i,ny) = ( qbxc(i,ny)+qbxc(i+1,ny) )*0.5d0
+					qbyy(i,ny) = ( qbyc(i,ny)+qbyc(i+1,ny) )*0.5d0
+				end do
+
+				!$omp do private(i,j)
+				do j = 1, ny-1
+					do i = 1, nx-1
+						qbxx(i,j) = ( qbxc(i,j)+qbxc(i+1,j)+qbxc(i,j+1)+qbxc(i+1,j+1) )*0.25d0
+						qbyy(i,j) = ( qbyc(i,j)+qbyc(i+1,j)+qbyc(i,j+1)+qbyc(i+1,j+1) )*0.25d0
+					end do
+				end do
+
+			end if
+
+			call cross_section_variables
+
+			if( j_mix == 1 ) then
+				call center2grid_4(yck, cc_m, nk)
+			end if
+		
+			call cell2grid( phi, phi_g )
+
+			!$omp barrier
+
+			!$omp single
+
+			if( time>=t_out_start ) then
+				iricmi_dump = 1
+			end if
+
+			qptemp = qp
+			!
+			! ------ CRT Output ------------------------
+
+			if ( time < t_out_start ) then
+				if (j_conf == 0) then		!h101019 conf
+					write(*,'(f10.3,2f10.4,i4)')    time,q_input,hnx,lcount
+				else
+					write(*,'(f10.3,3f10.4,i4)')    time,q_input,q_input_t,hnx,lcount
+				end if
+			else
+				if (j_conf == 0) then		!h101019 conf
+					write(*,'(f10.3,2f10.4,i4,a4)') time,q_input,hnx,lcount,'out'
+				else
+					write(*,'(f10.3,3f10.4,i4,a4)') time,q_input,q_input_t,hnx,lcount,'out'
+				end if
+			end if
+			!$omp end single
+
+		end if
+		!
+		!------- output temporary file for hot start -----------
+		!
+		!$omp single
+
+		! ユーザがGUI上で "STOP" ボタンを押して実行をキャンセルしたか確認
+		call iricmi_check_cancel(istatus, ier)
+		if (istatus == 1) then
+			write(*,*) "Solver is stopped because the STOP button was clicked."
+			stop
+		end if
+
+
+		if (i_re_flag_o == 1 .and. time > opt_tmp(i_tmp_count)) then
+			!
+			tmp_file_o(i_tmp_count)=trim(tmp_pass)//tmp_file_o(i_tmp_count)  !i110419
+			!       write(*,*) 'pastuki',tmp_file_o(i_tmp_count)
+			open(502,file=tmp_file_o(i_tmp_count) &
+				,status='unknown',form='unformatted')
+			!
+			write(502) time,icount,dt
+			write(502) nx,ny
+			!
+			write(502) ((x(i,j),i=0,nx),j=0,ny)
+			write(502) ((y(i,j),i=0,nx),j=0,ny)
+			write(502) ((eta_t(i,j),i=0,nx),j=0,ny)
+			write(502) ((hs(i,j),i=1,nx),j=1,ny)
+			write(502) ((eta(i,j),i=1,nx),j=1,ny)
+			write(502) ((h(i,j),i=1,nx),j=1,ny)
+			write(502) ((ycn(i,j),i=1,nx),j=1,ny)
+			write(502) ((yun(i,j),i=0,nx+1),j=0,ny+1)
+			write(502) ((yvn(i,j),i=0,nx+1),j=0,ny+1)
+			write(502) ((gux(i,j),i=0,nx+1),j=0,ny+1)
+			write(502) ((guy(i,j),i=0,nx+1),j=0,ny+1)
+			write(502) ((gvx(i,j),i=0,nx+1),j=0,ny+1)
+			write(502) ((gvy(i,j),i=0,nx+1),j=0,ny+1)
+			write(502) ((snu(i,j),i=0,nx),j=0,ny)
+			write(502) ((snu_x(i,j),i=0,nx),j=0,ny)
+			write(502) ((ykn(i,j),i=0,nx+1),j=0,ny+1)
+			write(502) ((yepn(i,j),i=0,nx+1),j=0,ny+1)
+			write(502) ((an(i,j),i=0,nx+1),j=0,ny+1)
+			write(502) ((vort(i,j),i=0,nx+1),j=0,ny+1)
+			if(j_mix == 1) then
+				write(502) nk
+				write(502) (((yck(i,j,k),i=0,nx+1),j=0,ny+1),k=1,nk)
+				write(502) ((e_t(i,j),i=1,nx),j=1,ny)
+				write(502) (((p_m(i,j,k),i=1,nx),j=1,ny),k=1,nk)
+				write(502) (((p_t(i,j,k),i=1,nx),j=1,ny),k=1,nk)
+				write(502) ((nb(i,j),i=1,nx),j=1,ny)
+				do i = 1 ,nx
+					do j = 1, ny
+						do n = 1, nb(i,j)
+							do k = 1, nk
+								write(502) p_d(i,j,nb(i,j),k)
+							end do
+						end do
+					end do
+				end do
+			end if
+			!
+			close(502)
+			!
+			i_tmp_count = i_tmp_count + 1
+			!
+			if(i_tmp_count > n_rest) i_re_flag_o = 0
+			!
+		end if
+
+		call sync_and_output_result(iricmi_dump,time,qptemp,im,jm		&
+			,x,y,uxx,uyy,hsxx,z,z0,zb_g,voltex,c_g,dmn,phi_g,fr_g		&
+			,rho, us_g, ts_g,z_ave,z_min,h_ave,qbxx,qbyy,cc_m,nk,j_mix)
+
+		!$omp end single
+		!
+		!-------------------------------------------
+		call vegetation_height
+		call hcal( errmax, err, lcount, alh, qc_ave, hs_ave )
+		if( jrep == 1 ) call hcal_v(     qp, qc_ave, hs_ave )
+		call bound_h( hn, hs, eta )
+		call bound_u( yun )
+		call bound_v( yvn )
+		! -------------------------------------------
+		call diffusion( cw )
+		call bound_u( yun )
+		call newgrd_u(yun, yu, gux, guy, ijobst )
+		call bound_v( yvn )
+		call newgrd_v(yvn, yv, gvx, gvy, ijobst )
+		!------------------------------------------------
+		if( j_cip == 1 ) then
+			call upwind2d_u( yun, gux, guy )
+		else
+			call dcip2d_u( yun, gux, guy )
+		end if
+		call dryck_u( yun, hs, gux, guy )
+		call bound_u( yun )
+		if (jrep == 1) then
+			call gbound( gux )
+			call gbound( guy )
+		end if
+		!-------------------------------------------
+		if(j_cip == 1) then
+			call upwind2d_v( yvn, gvx, gvy )
+		else
+			call dcip2d_v( yvn, gvx, gvy )
+		end if
+		call dryck_v( yvn, hs, gvx, gvy )
+		call bound_v( yvn )
+		if( jrep == 1 ) then
+			call gbound( gvx )
+			call gbound( gvy )
+		end if
+		!-------------------------------------------
+		!$omp single
+		call ndr( hs, hn, eta, ndry )
+		!$omp end single
+		call shift_u( yun, yu )
+		call shift_v( yvn, yv )
+		!--------------------------------------------
+		call uvpcal( yun, yvn, up, vp, hs )
+		call uxuycal( up, vp, ux, uy )
+
+		if( j_mix == 0 ) then
+			call taustacal_uni( snu00 )
+		else
+			call taustacal_mix( snu00 )
+		end if
+
+		call phical
+
+		!--------------------------------------------
+		call ypcal( usta, h0, snu00 ,rho )
+		call phkecal( c_k0, c_e0, c_mu0, c_2e )
+		call bound_phke( strain, ph, pkv, pev )
+		if (j_snu > 0) then
+			call snucal( usta, hs, snu00, snu, snu_x )
+			if (j_snu > 1) call snucal_ke(hs,yk,yep,c_mu0,snu00,snuk,snuk_x)
+		end if
+		if (j_snu == 2) then
+			!$omp do private(i,j)
+			do j=1,ny
+				do i=1,nx
+					snu(i,j) = snuk(i,j)
+					snu_x(i,j) = snuk_x(i,j)
+				end do
+			end do
+
+			call source_k( yk, ykn, yep, hs )
+			call source_e( yep, yepn, yk, hs, c_1e, c_2e )
+			call wall_ke( ykn, yepn, c_mu0, usta )
+			call diffusion_c( ykn, sigma_k )
+			call diffusion_c( yepn, sigma_e )
+			call bound_ke( ykn, yepn )
+			call newgrd_c( ykn, yk, gkx, gky )
+			call newgrd_c( yepn, ye, gex, gey )
+			!if(j_cip == 1) then
+			call upwind2d_c( ykn, gkx, gky )
+			call upwind2d_c( yepn, gex, gey )
+			!else
+			!call dcip2d_c(   ykn, gkx, gky )
+			!call dcip2d_c(   yepn, gex, gey )
+			!end if
+			call dryck_c(  ykn, hs, gkx, gky )
+			call dryck_c(  yepn, hs, gex, gey )
+			call bound_ke( ykn, yepn )
+			if( jrep == 1 ) then
+				call gbound( gkx )
+				call gbound( gky )
+				call gbound( gex )
+				call gbound( gey )
+			end if
+			call shift_ke( ykn, yk )
+			call shift_ke( yepn, yep )
+		end if
+		!--------------------------------------------
+		if (j_qbqs >= 1) then
+			if (j_qbqs >= 2) then
+				if (j_mix == 0) then
+					call qsucal( wf, rsgd )
+					call cbcal(    ycn, ycb, hs, wf,  usta )
+
+					if(j_qbqs == 3) call c_secondary( ycn, up, hs, sr, theta_cx )
+
+					if( jrep == 0 ) call upstream_c( ycn, ycb, wf, qsu, usta )
+
+					call c_transport(wf,dsmt)
+
+					!call diffusion_c( ycn, sigma )
+					call bound_c( ycn )
+
+				else
+					call qsucal_mix( qsuk, tsk, tsck, p_m, tsci0, wfk, ddk, usta, hs, vti, nk )
+					call cbcal_mix( yck, ycbk, wfk, hs, usta, nk )
+					if( jrep == 0 ) call upstream_c_mix( yck, ycbk, wfk, qsuk, usta, nk )
+					call c_transport_mix( dsmt )
+					call bound_c_mix           		
+				end if
+			end if
+			!-------------------------------------------
+			if( j_qbs == 1 ) then
+				call srcal( ux, uy, up, sr, snst )
+
+				if( j_sf == 1 ) call vorticity_eq
+
+				if( time > ster ) then
+					if( j_mix == 0 ) then
+						call qbcal_w    ( ux,uy,hs,gamma,pi_bed,dsmt,tantc,j_bank &
+							,i_erosion_start,i_erosion_end,bheight )
+					else
+						call qbcal_w_mix( ux,uy,hs,gamma_m,dsmt,pi_bed,tantc &
+							,j_bank,i_erosion_start,i_erosion_end,bheight )
+					end if
+
+					if (j_qbqs == 1) then
+						if(j_mix == 0) then
+							call etacal( qb_xi, qb_et, dsmt )
+						else
+							call etacal_mix( dsmt )
+						end if
+					else if(j_qbqs == 2) then
+						if( j_mix==0 ) then
+							call cbcal(    ycn, ycb, hs, wf, usta )
+							call etacal_c( qb_xi, qb_et, dsmt, qsu, wf, ycb )
+						else
+							call etacal_mix_c( dsmt )
+						end if
+					end if
+
+					call phical
+					!$omp single
+					if ( j_collaps == 1 ) then
+						if ( j_mix == 0 ) then
+							call ebank( tantc, dtanmax )
+						else
+							call ebank_mix( tantc, dtanmax )
+						end if
+					end if
+
+					if (j_bank == 1) then
+						call pshift( r_tantc, qb_et, slambda, dermax, j_chunk &
+							,i_erosion_start, i_erosion_end, j_smooth, i_smooth, iier )
+						if (j_fill >= 1 .and. mod(icount-1,ktifill) == 0 ) then
+							call bkfill(j_fill,hdry,bheight,ndeposit,j_smooth,i_smooth)
+							write(*,*) time,ktifill,icount,'bkfill'
+						end if
+						if( j_smg >= 1 .and. mod(icount-1,ktismg) == 0 ) then
+							call schange( mtime, x, y, mave )
+							write(*,*) time, ktismg, icount, 'schange'
+						end if
+					end if
+					!$omp end single
+				end if
+			end if
+		end if
+		!-------------------------------------------
+		call hshift( hn, h )
+
+		!$omp do private(i,j)
+		do j = 1, ny
+			do i = 1, nx
+				if( isnan(h(i,j)) ) then
+					write(*,*) 'Calculation is failure!'
+					stop
+				end if
+			end do
+		end do
+		!-------------------------------------------
+		!if( icount-1 > kend ) goto 3000
+		if(icount > kend ) exit
+
+		!$omp barrier
+
+		!$omp single
+		icount	= icount + 1
+		time		= dble( icount ) * dt
+		!$omp end single
 
 	end do
-!     goto 2000
-!3000 continue
+	!goto 2000
+	!3000 continue
 
-!$omp end parallel
+	!$omp end parallel
 
 	call iricmi_model_terminate(ier)
 
 END PROGRAM Shimizu
-
 
 !--------------------------------------------------------------------------------
 ! synchronize with other model and output result
