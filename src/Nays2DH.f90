@@ -6315,7 +6315,6 @@ end module     snucal_m
 
 module hqtcal_m
 	use common_hh
-	use common_cmhq
 	use common_qhyd
 	use common_cmave
 	use common_cmxy
