@@ -6663,55 +6663,17 @@ contains
 		end do
   end subroutine hqtcal
 
-	subroutine upstream_h( q_main, q_tri, slope, slope_up, slope_up_t, sn_g, h_main, h_tri )
+	! calculate upstream_h from Q for main channel
+	function calc_upstream_h_main(q, slope_up)
 		implicit none
 
-		integer :: i, j
-		real(8), intent(in)		:: q_main, q_tri, slope, slope_up, slope_up_t, sn_g
-		real(8), intent(out)	:: h_main, h_tri
-		real(8) :: qmax, qmin, b_ups, qmax_t, qmin_t, h00, hss, 			&
-						hsmax1, hsmax2, hsmax, hsmax2_t, hsmax2_t2, hmax1, hmin1, 	&
-						hh, qcc, hs1, as, u0, qs, qp_ttl
-		integer :: nnym, nnxm, jss1, jss2
+		real(8) :: calc_upstream_h_main
+		real(8), intent(in) :: q, slope_up
 
-		qmax		= q_main
-		qmax_t	= q_tri
-		qmin		= qmax*0.0001d0
-		qmin_t	= qmax_t*0.0001d0 
-!
-		b_ups = 0.d0
-		do j = 1, ny
-			if(    ijobst( 0,j-1)+ijobst( 0,j) == 0) then
-				b_ups = b_ups+dn( 0,j)
-			elseif(ijobst( 0,j-1)+ijobst( 0,j) == 1) then
-				b_ups = b_ups+dn( 0,j) * 0.5d0
-			end if
-		end do
-!
-!		if( slope<1e-8 ) then
-!			slope = (sn_g*qmax/b_ups/h00**(5.d0/3.d0))**2
-!		end if
-!
-!		if( slope_up<1e-8 ) then
-!			slope_up = (sn_g*qmax/b_ups/h00**(5.d0/3.d0))**2
-!		end if
-    !
-		hsmax1 = (snmm(1,nym)*qmax/(chb(1)*dsqrt(slope)))**0.6d0*100.d0
-		hsmax2 = (snmm(1,nym)*qmax/(chb(1)*dsqrt(slope_up)))**0.6d0*100.d0
-		hsmax  = max(hsmax1,hsmax2)
-!
-		nnym = (j_t2+j_t1)*0.5d0
-		nnxm = (i_t2+i_t1)*0.5d0
-		
-		if( j_conf==1 ) then
-			hsmax2_t = (snmm(1,nnym)*qmax_t/(chb_t(1)*dsqrt(slope_up_t)))**0.6d0*100.d0
-		else if( j_conf>=2 ) then
-			hsmax2_t2 = (snmm(nnxm,j_t2+js2)*qmax_t/(chb_t2(j_t2)*dsqrt(slope_up_t)))**0.6d0*100.d0
-		end if
-!
-	! è„ó¨í[êÖà ÇÃåvéZ
+		integer :: j
+		real(8) :: hmin, hmax
 
-		if( j_conf==0 ) then
+		if (j_conf == 0) then
 			jss1 = 1
 			jss2 = ny
 		else 
@@ -6720,127 +6682,98 @@ contains
 		end if
 		
 		emin(1) = 9999.d0
-		do j=1,ny
+		do j = 1, ny
 			emin(1) = min( emin(1), eta(1,j) )
 		end do
-!
-		if( q_main<=1e-6 ) then
-			h_main = emin(1)
-		else
-		
-			hmax1 = emin(1)+hsmax*100.d0
-			hmin1 = emin(1)
-			
-			do
-				hh    = (hmax1+hmin1)*0.5d0
-				qcc = 0.d0
-			
-				do j=jss1,jss2
-					hs1 = hh - eta(1,j)
-					if( hs1>hmin .and. ijo_in(1,j)==0 ) then
-						as  = hs1 * dn(0,j)
-						u0  = 1.d0 / snmm(1,j) * hs1**(2.d0/3.d0) * dsqrt(slope_up)
-						qs  = as * u0
-						qcc = qcc + qs
-					end if
-				end do
-			
-!				if( dabs(qcc-q_main)<qmin ) exit
-				if( dabs(qcc-q_main)<q_main*0.001d0 ) exit
-			
-				if( qcc>q_main ) then
-					hmax1 = hh
-				else
-					hmin1 = hh
-				end if
-			end do
-			
-			h_main = hh
 
+		if (q <= 1e-6) then
+			calc_upstream_h_main = emin(1)
+			return
 		end if
-!
-	! è„ó¨í[êÖà ÇÃåvéZÅiéxêÏë§Åj
-!
-		if( j_conf==1 ) then
-			
+
+		hmax = 10000
+		hmin = emin(1)
+
+		! use func_q_ups
+		bsearch_func_mode = 1
+		calc_upstream_h_main = bsearch(hmin, hmax, q)
+	end function
+
+	! calculate upstream_h from Q for tributary
+	function calc_upstream_h_tri(q, slope_up)
+		implicit none
+
+		real(8) :: calc_upstream_h_tri
+		real(8), intent(in) :: q, slope_up
+
+		integer :: i, j, j_edge
+		real(8) :: hmin, hmax
+
+		if (j_conf == 1) then
 			emin_t(1) = 99999.d0
-			do j=j_t1+1,j_t2
+			do j = j_t1 + 1, j_t2
 				emin_t(1) = min( emin_t(1), eta(1,j) )
 			end do
 			
-			if( q_tri<=1e-6 ) then
-				h_tri = emin_t(1)
-			else
-				hmax1 = emin_t(1)+hsmax2_t*100.d0
-				hmin1 = emin_t(1)
-				
-				do 
-					hh = (hmax1+hmin1)*.5d0
-					qcc = 0.d0
-					
-					do j=j_t1+1,j_t2
-						hs1 = hh-eta(1,j)
-						if( hs1>hmin .and. ijo_in(1,j)==0 ) then
-							as = hs1*dn(0,j)
-							u0 = 1.d0/snmm(1,j)*hs1**(2.d0/3.d0)*dsqrt(slope_up_t)
-							qs = as*u0
-							qcc = qcc+qs
-						end if
-					end do
-						
-!					if( dabs(qcc-q_tri)<qmin_t ) exit
-					if( dabs(qcc-q_tri)<q_tri*0.001d0 ) exit
-					
-					if( qcc>q_tri ) then
-						hmax1 = hh
-					else
-						hmin1 = hh
-					end if
-				end do
-				
-				h_tri = hh
+			if (q <= 1e-6 ) then
+				calc_upstream_h_tri = emin_t(1)
+				return
 			end if
-!
-		else if( j_conf>=2 ) then
-			
-			emin_t2(j_t2+js2) = 99999.d0
-			do i=i_t1+1,i_t2
-				emin_t2(j_t2+js2) = min( emin_t2(j_t2+js2), eta(i,j_t2+js2) )
+
+			! setup jss1, jss2
+			jss1 = j_t1 + 1
+			jss2 = j_t2
+
+			! copy slope_up
+			l_slope = slope_up
+
+			hmax = 10000
+			hmin = emin_t(1)
+
+			! use func_q_ups
+			bsearch_func_mode = 1
+			calc_upstream_h_tri = bsearch(hmin, hmax, q)
+
+		else if (j_conf >= 2) then
+			j_edge = j_t2 + js2
+			emin_t2(j_edge) = 99999.d0
+			do i = i_t1 + 1, i_t2
+				emin_t2(j_edge) = min(emin_t2(j_edge), eta(i,j_edge) )
 			end do
 		
-			if( q_tri<=1e-6 ) then
-				h_tri = emin_t2(j_t2+js2)
-			else
-				hmax1 = emin_t2(j_t2+js2)+hsmax2_t2*100.d0
-				hmin1 = emin_t2(j_t2+js2)
-								
-				do
-					hh = (hmax1+hmin1)*.5d0
-					qcc = 0.d0
-					
-					do i=i_t1+1,i_t2
-						hs1 = hh-eta(i,j_t2+js2)
-						if( hs1>hmin .and. ijo_in(i,j_t2+js2)==0 ) then
-							as = hs1*dn(i,j_t2+js2)
-							u0 = 1.d0/snmm(i,j_t2+js2)*hs1**(2.d0/3.d0)*dsqrt(slope_up_t)
-							qs = as*u0
-							qcc = qcc+qs
-						end if
-					end do
-					
-!					if( dabs(qcc-q_tri)<qmin_t ) exit
-					if( dabs(qcc-q_tri)<q_tri*0.001d0 ) exit
-					
-					if( qcc>q_tri ) then
-						hmax1 = hh
-					else
-						hmin1 = hh
-					end if
-				end do
-				
-				h_tri = hh
+			if (q <= 1e-6) then
+				calc_upstream_h_tri = emin_t2(j_edge)
+				return
 			end if
+
+			! setup jss1, jss2
+			jss1 = i_t1 + 1
+			jss2 = i_t2
+
+			! copy slope_up
+			l_slope = slope_up
+
+			hmax = 10000
+			hmin = emin_t2(j_edge)
+
+			! use func_q_ups_t
+			bsearch_func_mode = 2
+			calc_upstream_h_tri = bsearch(hmin, hmax, q)
 		end if
+	end function
+
+	subroutine upstream_h(q_main, q_tri, slope_up, slope_up_t, h_main, h_tri)
+		implicit none
+
+		integer :: i, j
+		real(8), intent(in)		:: q_main, q_tri, slope_up, slope_up_t
+		real(8), intent(out)	:: h_main, h_tri
+
+		! è„ó¨í[êÖà ÇÃåvéZ
+		h_main = calc_upstream_h_main(q_main, slope_up)
+
+		! è„ó¨í[êÖà ÇÃåvéZÅiéxêÏë§Åj
+		h_tri = calc_upstream_h_tri(q_tri, slope_up_t)
 
   end subroutine upstream_h
 
@@ -11696,7 +11629,7 @@ Program Shimizu
      !-------------------------------------------
      if( jrep == 0 ) then
         if( j_qbup==1 ) then
-           call upstream_h( q_input, q_input_t, slope, slope_up, slope_up_t, sn_g, h_input, h_input_t )
+           call upstream_h( q_input, q_input_t, slope_up, slope_up_t, h_input, h_input_t )
         end if
         
         call upstream( h_input, h_input_t, q_input, q_input_t, slope_up, slope_up_t, j_upv )
