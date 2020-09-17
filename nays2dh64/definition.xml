@@ -297,14 +297,6 @@
 							</Dependency>
 						</Definition>
 					</Item>
-					<Item name="i_sec_hour" caption="Time unit of discharge/water surface file">
-						<Definition conditionType="constant" valueType="integer" option="true" default="1">
-							<Enumerations>
-								<Enumeration value="1" caption="Second"/>
-								<Enumeration value="2" caption="Hour"/>
-							</Enumerations>
-						</Definition>
-					</Item>
 					<Item name="discharge_waterlevel" caption="Time series of discharge at upstream and water level at downstream">
 						<Definition conditionType="functional">
 							<Parameter name="time" valueType="real" caption="Time"/>
@@ -351,6 +343,12 @@
 		<Tab name="time" caption="Time">
 			<Content>
 				<Items>
+					<Item name="thstart" caption="Calculation start time (sec)">
+						<Definition valueType="real" default="0"/>
+					</Item>
+					<Item name="etime" caption="Calculation end time (sec)">
+						<Definition valueType="real" default="100"/>
+					</Item>
 					<Item name="tuk" caption="Output time interval (sec)">
 						<Definition conditionType="constant" valueType="real" option="false" default="10"/>
 					</Item>
