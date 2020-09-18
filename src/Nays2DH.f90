@@ -151,7 +151,8 @@ end module common_cmxxyy
 !--------------------------------------------------
 module common_qhyd
 	implicit none
-	real(8),dimension(:),allocatable :: t_hyd, q_ups, h_ups, h_dse
+	integer:: j_q ! 0 = const, 1 = time dependent
+	real(8) :: q_ups, h_ups, h_dse
 end module common_qhyd
 
 !--------------------------------------------------
@@ -272,7 +273,8 @@ end module mix
 !--------------------------------------------------
 module common_qhyd_t
 	implicit none
-	real(8),dimension(:),allocatable :: q_ups_t, h_ups_t
+	integer :: j_q_t ! 0 = const, 1 = time dependent
+	real(8) :: q_ups_t, h_ups_t
 end module common_qhyd_t
 
 !--------------------------------------------------
@@ -417,17 +419,6 @@ contains
 	end subroutine alloc_var1
 
 !-----------------------------------------------------------------------
-	subroutine alloc_var2(m)
-		implicit none
-		integer,intent(in) :: m
-
-		allocate( t_hyd(0:m), q_ups(0:m), h_ups(0:m), h_dse(0:m) )
-		allocate( q_ups_t(0:m), h_ups_t(0:m) )
-
-	end subroutine alloc_var2
-
-!
-!-----------------------------------------------------------------------
 	subroutine alloc_var_mix(im, jm, m, n, n_cell)
 		implicit none
 		integer,intent(in) :: im, jm, m, n, n_cell
@@ -539,13 +530,6 @@ contains
 		dex=0.d0; phi=0.d0
 		an = 0.d0; vort = 0.d0
 	end subroutine initial_01
-	!
-	subroutine initial_02
-		implicit none
-
-		t_hyd=0.d0; q_ups=0.d0; h_ups=0.d0; h_dse=0.d0
-		q_ups_t=0.d0; h_ups_t=0.d0		!h101019 conf
-	end subroutine initial_02
 	!
 	subroutine initial_mix
 		implicit none
@@ -6331,7 +6315,6 @@ module hqtcal_m
 	real(8), private :: b_ups, b_dse
 	integer, private:: jss1, jss2
 	real(8), private:: l_slope ! copy of slope_up
-	real(8), private:: l_h_down   ! copy of h_down
 
 contains
 	! function for bsearch
@@ -6375,13 +6358,13 @@ contains
 				v_min2 = bsearch
 			end if
 		end do
-  end function
+	end function
 
 	! Initialization. calculate module variables
-	subroutine hqtcal_init(slope, slope_up, h_down, sn_g, q)
+	subroutine hqtcal_init(slope, slope_up, sn_g)
 		implicit none
 		real(8), intent(inout) :: slope, slope_up
-		real(8), intent(in) :: h_down, sn_g, q
+		real(8), intent(in) :: sn_g
 
 		integer:: j
 		real(8) :: h00
@@ -6408,29 +6391,18 @@ contains
 	
 		! update slope if needed
 		if (slope < 1e-8) then
-			if (h_down > -100.d0) then
-				h00 = h_down   - emin(nx)
-			else 
-				h00 = h_dse(0) - emin(nx)
-			end if
+			h00 = h_dse - emin(nx)
 
 			if (h00 < 1e-4) h00 = 1e-4
-			slope = (sn_g * q / b_ups / h00 ** (5.d0 / 3.d0)) ** 2
+			slope = (sn_g * q_ups / b_ups / h00 ** (5.d0 / 3.d0)) ** 2
 		end if
 
 		! update slope_up if needed
 		if (slope_up < 1e-8) then
-			if (h_down > -100.d0) then
-				h00 = h_down   - emin(nx)
-			else
-				h00 = h_dse(0) - emin(nx)
-			end if
+			h00 = h_dse - emin(nx)
 			if (h00 < 1e-4) h00 = 1e-4
-			slope_up = (sn_g * q / b_ups / h00 ** (5.d0 / 3.d0)) ** 2
+			slope_up = (sn_g * q_ups / b_ups / h00 ** (5.d0 / 3.d0)) ** 2
 		end if
-
-		! copy of h_down
-		l_h_down = h_down
 	end subroutine
 
 	! function to calculate q_ups from h for standard river
@@ -6453,7 +6425,7 @@ contains
 				func_q_ups = func_q_ups + qs
 			end if
 		end do
-  end function
+	end function
 
 	! function to calculate q_ups from h for river with tributary
 	function func_q_ups_t(h)
@@ -6477,7 +6449,7 @@ contains
 				func_q_ups_t = func_q_ups_t + qs
 			end if
 		end do
-  end function
+	end function
 
 	! function to calculate q_dse from h
 	function func_q_dse(h)
@@ -6499,17 +6471,16 @@ contains
 				func_q_dse = func_q_dse + qs
 			end if
 		end do
-  end function
+	end function
 
-	function calc_h_ups(q_ups, slope, slope_up)
+	subroutine calc_h_ups(slope, slope_up)
 		implicit none
-		real(8) :: calc_h_ups
-		real(8), intent(in) :: q_ups, slope, slope_up
+		real(8), intent(in) :: slope, slope_up
 	
 		real(8) :: hmin, hmax
 
 		if (q_ups <= 1e-6) then
-			calc_h_ups = emin(1)
+			h_ups = emin(1)
 			return
 		end if
 
@@ -6530,20 +6501,19 @@ contains
 
 		! use func_q_ups
 		bsearch_func_mode = 1
-		calc_h_ups = bsearch(hmin, hmax, q_ups)
-	end function
+		h_ups = bsearch(hmin, hmax, q_ups)
+	end subroutine
 
-	function calc_h_ups_t(q_ups_t, slope_up_t)
+	subroutine calc_h_ups_t(slope_up_t)
 		implicit none
-		real(8) :: calc_h_ups_t
-		real(8), intent(in) :: q_ups_t, slope_up_t
+		real(8), intent(in) :: slope_up_t
 
 		real(8) :: hmin, hmax
 		integer :: j_edge
 
 		if (j_conf == 1) then
 			if (q_ups_t < 1e-6) then
-				calc_h_ups_t = emin_t(1)
+				h_ups_t = emin_t(1)
 				return
 			end if
 
@@ -6559,11 +6529,11 @@ contains
 
 			! use func_q_ups
 			bsearch_func_mode = 1
-			calc_h_ups_t = bsearch(hmin, hmax, q_ups_t)
+			h_ups_t = bsearch(hmin, hmax, q_ups_t)
 
 		else if (j_conf >= 2) then
 			if (q_ups_t < 1e-6) then
-				calc_h_ups_t = emin_t2(j_edge)
+				h_ups_t = emin_t2(j_edge)
 				return
 			end if
 
@@ -6581,14 +6551,13 @@ contains
 
 			! use func_q_ups_t
 			bsearch_func_mode = 2
-			calc_h_ups_t = bsearch(hmin, hmax, q_ups_t)
+			h_ups_t = bsearch(hmin, hmax, q_ups_t)
 		end if
-  end function
+	end subroutine
 
-	function calc_h_dse(q_ups, q_ups_t, slope, j_wl)
+	subroutine calc_h_dse(h_down, slope, j_wl)
 		implicit none
-		real(8) :: calc_h_dse
-		real(8), intent(in) :: q_ups, q_ups_t, slope
+		real(8), intent(in) :: h_down, slope
 		integer, intent(in) :: j_wl
 
 		real(8) :: q_ups_total
@@ -6596,7 +6565,7 @@ contains
 
 		if (j_wl == 0) then
 			! constant value
-			calc_h_dse = l_h_down
+			h_dse = h_down
 			return
 		else if (j_wl == 1 .or. j_wl == 3) then
 			! uniform flow or free outflow
@@ -6618,7 +6587,7 @@ contains
 				end if
 			end if
 			if (q_ups_total <= 1e-6 ) then
-				calc_h_dse = l_h_down
+				h_dse = h_down
 				return
 			end if
 
@@ -6627,47 +6596,41 @@ contains
 
 			! use func_q_dse
 			bsearch_func_mode = 3
-			calc_h_dse = bsearch(hmin, hmax, q_ups_total)
+			h_dse = bsearch(hmin, hmax, q_ups_total)
 		else
 			! given from time series data
-			! @todo implement this
+			! h_dse value is automatically updated with iricmi_model_sync(), so nothing to do 
 		end if
-	end function
-
+	end subroutine
 
 	!----------------------------------------------------------------
-	subroutine hqtcal(nq, slope, slope_up, slope_up_t, j_wl)
+	subroutine hqtcal(h_down, slope, slope_up, slope_up_t, j_wl)
 		implicit none
 
-		integer, intent(in) :: nq, j_wl
-		real(8), intent(in) :: slope, slope_up, slope_up_t
+		integer, intent(in) :: j_wl
+		real(8), intent(in) :: h_down, slope, slope_up, slope_up_t
 
-		integer :: n
+		! 上流端水位の計算
+		call calc_h_ups(slope, slope_up)
 
-		do n = 0, nq
-			! 上流端水位の計算
-			h_ups(n) = calc_h_ups(q_ups(n), slope, slope_up)
+		! 上流端水位の計算（支川側）
+		call calc_h_ups_t(slope_up_t)
 
-			! 上流端水位の計算（支川側）
-			h_ups_t(n) = calc_h_ups_t(q_ups_t(n), slope_up_t)
-
-			! 下流端水位の計算
-			h_dse(n) = calc_h_dse(q_ups(n), q_ups_t(n), slope, j_wl)
-			if (j_wl /= 1) then
-				if( h_dse(n) <= emin(nx) ) then
-					write(*,*) 'Given Downstream Water Surface is below Bed'
-					stop
-				end if
+		! 下流端水位の計算
+		call calc_h_dse(h_down, slope, j_wl)
+		if (j_wl /= 1) then
+			if( h_dse <= emin(nx) ) then
+				write(*,*) 'Given Downstream Water Surface is below Bed'
+				stop
 			end if
-		end do
-  end subroutine hqtcal
+		end if
+	end subroutine hqtcal
 
-	! calculate upstream_h from Q for main channel
-	function calc_upstream_h_main(q, slope_up)
+	! calculate h_ups from q_ups
+	subroutine calc_upstream_h_main(slope_up)
 		implicit none
 
-		real(8) :: calc_upstream_h_main
-		real(8), intent(in) :: q, slope_up
+		real(8), intent(in) :: slope_up
 
 		integer :: j
 		real(8) :: hmin, hmax
@@ -6685,8 +6648,8 @@ contains
 			emin(1) = min( emin(1), eta(1,j) )
 		end do
 
-		if (q <= 1e-6) then
-			calc_upstream_h_main = emin(1)
+		if (q_ups <= 1e-6) then
+			h_ups = emin(1)
 			return
 		end if
 
@@ -6695,15 +6658,14 @@ contains
 
 		! use func_q_ups
 		bsearch_func_mode = 1
-		calc_upstream_h_main = bsearch(hmin, hmax, q)
-	end function
+		h_ups = bsearch(hmin, hmax, q_ups)
+	end subroutine
 
-	! calculate upstream_h from Q for tributary
-	function calc_upstream_h_tri(q, slope_up)
+	! calculate h_ups_t from q_ups_t
+	subroutine calc_upstream_h_tri(slope_up)
 		implicit none
 
-		real(8) :: calc_upstream_h_tri
-		real(8), intent(in) :: q, slope_up
+		real(8), intent(in) :: slope_up
 
 		integer :: i, j, j_edge
 		real(8) :: hmin, hmax
@@ -6714,8 +6676,8 @@ contains
 				emin_t(1) = min( emin_t(1), eta(1,j) )
 			end do
 			
-			if (q <= 1e-6 ) then
-				calc_upstream_h_tri = emin_t(1)
+			if (q_ups_t <= 1e-6 ) then
+				h_ups_t = emin_t(1)
 				return
 			end if
 
@@ -6731,7 +6693,7 @@ contains
 
 			! use func_q_ups
 			bsearch_func_mode = 1
-			calc_upstream_h_tri = bsearch(hmin, hmax, q)
+			h_ups_t = bsearch(hmin, hmax, q_ups_t)
 
 		else if (j_conf >= 2) then
 			j_edge = j_t2 + js2
@@ -6740,8 +6702,8 @@ contains
 				emin_t2(j_edge) = min(emin_t2(j_edge), eta(i,j_edge) )
 			end do
 		
-			if (q <= 1e-6) then
-				calc_upstream_h_tri = emin_t2(j_edge)
+			if (q_ups_t <= 1e-6) then
+				h_ups_t = emin_t2(j_edge)
 				return
 			end if
 
@@ -6757,26 +6719,25 @@ contains
 
 			! use func_q_ups_t
 			bsearch_func_mode = 2
-			calc_upstream_h_tri = bsearch(hmin, hmax, q)
+			h_ups_t = bsearch(hmin, hmax, q_ups_t)
 		end if
-	end function
+	end subroutine
 
-	subroutine upstream_h(q_main, q_tri, slope_up, slope_up_t, h_main, h_tri)
+	subroutine upstream_h(slope_up, slope_up_t)
 		implicit none
 
 		integer :: i, j
-		real(8), intent(in)		:: q_main, q_tri, slope_up, slope_up_t
-		real(8), intent(out)	:: h_main, h_tri
+		real(8), intent(in)		:: slope_up, slope_up_t
 
 		! 上流端水位の計算
-		h_main = calc_upstream_h_main(q_main, slope_up)
+		call calc_upstream_h_main(slope_up)
 
 		! 上流端水位の計算（支川側）
-		h_tri = calc_upstream_h_tri(q_tri, slope_up_t)
+		call calc_upstream_h_tri(slope_up_t)
 
   end subroutine upstream_h
 
-end module     hqtcal_m
+end module hqtcal_m
 
 !-----------------------------------------------------------------------
 module upstream_m
@@ -10346,14 +10307,14 @@ Program Shimizu
 		, c_1e, c_2e, calculated_slope, calculated_slope_t,bh1, qp_t &
 		, bh2, slope, slope_t, slope_up, slope_up_t, h0, hs_dse, u0, us0, fr0, phi0, ts0, c_f &
 		, errmax,usci, theta_b, tan_tb, cos_tb, gamma, gamma_m, rsgd, snu_0, c_k0, c_e0 &
-		, ye00, yk00, dtanmax, wf, theta_cx, hnx, dt2, h_input, h_input_t &
-		, q_input, q_input_t, sst, err, qc_ave, hs_ave, dermax, sigma, total_budget		&
+		, ye00, yk00, dtanmax, wf, theta_cx, hnx, dt2 &
+		, err, qc_ave, hs_ave, dermax, sigma, total_budget		&
 		, pi_bed, snst
 
 
-	integer :: ii, icount, istatus, i_sec_hour, j_wl, j_slope,j_upv, j_upv_slope 				&
+	integer :: ii, icount, istatus, j_wl, j_slope,j_upv, j_upv_slope 				&
 		, i_flow, j_snu, j_cip, j_bank, i_erosion_start, j_chunk, j_smooth, i_smooth 		&
-		, j_smg, mtime, mave, j_fill,iii, icelck, n, nq, is, kend, kmod, ktismg, ktfill 		&
+		, j_smg, mtime, mave, j_fill,iii, icelck, n, is, kend, kmod, ktismg, ktfill 		&
 		, ktifill, iofrg, ndeposit, ierr_tmp, nx2, ny2, nk2, lcount, ndry, iier, i_erosion_end
 
 	integer :: n_parallel
@@ -10434,12 +10395,9 @@ Program Shimizu
 	call iricmi_read_grid2d_real_cell('roughness_cell', roughness4, ier)
 	call iricmi_read_grid2d_integer_cell('mix_cell', mix_cell, ier)
 
-	call iricmi_read_integer('i_sec_hour', i_sec_hour, ier)
-
 	call iricmi_read_integer('edition', edition, ier)
 
 	! ---- Parameters for Confluence -----
-	!
 
 	call iricmi_read_integer('j_conf', j_conf, ier)
 	!
@@ -10494,9 +10452,14 @@ Program Shimizu
 	!   j_wl = 2 ...下流端水位はファイルから読み込む
 	!   j_wl = 3 ...下流端水位は自由流出
 
-	call iricmi_read_real('h_down', h_down, ier)
+	call iricmi_read_real('h_dse_const', h_down, ier)
+	h_dse = h_down
+	if (j_wl == 2) then
+		! time dependent value is loaded to h_dse
+		call iricmi_rin_real('h_dse', h_dse, ier)
+	end if
 	!
-	!   h_dwown = 下流端水位の値(上記j_wl=0の時のみ有効)
+	!   h_down = 下流端水位の値(上記j_wl=0の時のみ有効)
 
 	call iricmi_read_integer('j_slope', j_slope, ier)
 	!
@@ -10586,6 +10549,10 @@ Program Shimizu
 	!
 	! ---- Parameters on Time Setting -----
 	!
+
+	call iricmi_read_real('thstart', thstart, ier)
+	call iricmi_read_real('etime', etime, ier)
+
 	call iricmi_read_real('tuk', tuk, ier)
 	call iricmi_read_real('dt', dt, ier)
 	call iricmi_read_real('ster', ster, ier)
@@ -10986,60 +10953,26 @@ Program Shimizu
 	!
 	! ------ read boundary condition (discharge, water level) ---------- !
 
-	CALL CG_IRIC_READ_FUNCTIONALSIZE_F('discharge_waterlevel',tmpint,ier)
-
-	allocate(xtmp(tmpint),ytmp(tmpint),ytmp2(tmpint))
-
-	CALL CG_IRIC_READ_FUNCTIONALWITHNAME_F("discharge_waterlevel","time",xtmp,ier)
-	CALL CG_IRIC_READ_FUNCTIONALWITHNAME_F("discharge_waterlevel","discharge",ytmp,ier)
-	CALL CG_IRIC_READ_FUNCTIONALWITHNAME_F("discharge_waterlevel","water_level",ytmp2,ier)
-
-	IF (ier == 0) THEN
-		nq = tmpint-1
-		mm = nq
-		call alloc_var2(mm)
-		call initial_02
-	ENDIF
-	DO I = 0, nq
-		if(i_sec_hour == 1) THEN
-			t_hyd(i) = xtmp(i+1)
-		ELSE
-			t_hyd(i) = xtmp(i+1) * 3600.d0
-		ENDIF
-		q_ups(i) = ytmp(i + 1)
-		h_dse(i) = ytmp2(i + 1)
-	ENDDO
-	DEALLOCATE(xtmp, STAT = ier)
-	DEALLOCATE(ytmp, STAT = ier)
-	DEALLOCATE(ytmp2, STAT = ier)
-
-	if (j_conf /= 0) then
-		CALL CG_IRIC_READ_FUNCTIONALSIZE_F('discharge_t',tmpint,ier)
-
-		if( nq /= tmpint-1 ) then
-			write(*,*) "The number of discharge data for tributary is different from the number of discharge data for main river!"
-			write(*,*) "The number of data and time should be same in both main and tributary rivers"
-			stop
-		end if
-
-		allocate(xtmp(tmpint),ytmp(tmpint))
-		CALL CG_IRIC_READ_functional_f('discharge_t',xtmp,ytmp,ier)
-		DO I= 0,nq
-			q_ups_t(i) = ytmp(i+1)
-		ENDDO
-		DEALLOCATE(xtmp, STAT = ier)
-		DEALLOCATE(ytmp, STAT = ier)
+	call iricmi_read_integer('j_q', j_q, ier)
+	write(*,*) 'j_q = ', j_q
+	call iricmi_read_real('q_ups_const', q_ups, ier)
+	write(*,*) 'q_ups_const = ', q_ups
+	if (j_q == 1) then
+		call iricmi_rin_real('q_ups', q_ups, ier)
 	end if
 
-	thstart = t_hyd(0)
+	if (j_conf /= 0) then
+		call iricmi_read_integer('j_q_t', j_q_t, ier)
+		write(*,*), 'j_q_t = ', j_q_t
+		call iricmi_read_real('q_ups_t_const', q_ups_t, ier)
+		write(*,*), 'q_ups_t_const = ', q_ups_t
+		if (j_q_t == 1) then
+			call iricmi_rin_real('q_ups_t', q_ups_t, ier)
+		end if
+	end if
 
-	do n = 0, nq
-		t_hyd(n) = t_hyd(n) - thstart
-	end do
-
-	qp    = q_ups(0)
-	if (j_conf >= 1) qp_t = q_ups_t(0)		!h101019 conf
-	etime = t_hyd(nq)
+	qp    = q_ups
+	if (j_conf >= 1) qp_t = q_ups_t !h101019 conf
 	if ( ster < 0.) then
 		ster = etime
 		j_qbs = 0
@@ -11363,7 +11296,7 @@ Program Shimizu
 	! ------------------------------------------
 	if( qp < 1e-6 ) then
 		h0     = 0.d0
-		hs_dse = h_dse(0) - eave(nx)
+		hs_dse = h_dse - eave(nx)
 		h0     = max( hs_dse, h0 )
 	else
 		h0 = ( snmm(nx,nym) * qp / ( width * dsqrt(slope) ) )**(3.d0/5.d0)
@@ -11417,10 +11350,10 @@ Program Shimizu
 	!   by uniform flow calculation.
 	!   h101019 conf  &  initl <-> hqtcal
 
-	call hqtcal_init(slope, slope_up, h_down, sn_g, maxval(q_ups))
-	call hqtcal(nq, slope, slope_up, slope_up_t, j_wl)
+	call hqtcal_init(slope, slope_up, sn_g)
+	call hqtcal(h_down, slope, slope_up, slope_up_t, j_wl)
 
-	hnx = h_dse(0)
+	hnx = h_dse
 
 	call initl( qp, qp_t, hnx, us0, snu_0, ye00, yk00, h0 &
 		,i_flow, slope, slope_t, h_slope, h_slope_t, x_bk &
@@ -11549,54 +11482,16 @@ Program Shimizu
 
 		!$omp single
 		!-------------------------------------------
-		if( time <= 0.d0 ) then
-			h_input   = h_ups( 0)
-			h_input_t = h_ups_t( 0)		!h101019 conf
-			q_input   = q_ups( 0)
-			q_input_t = q_ups_t( 0)		!h101019 conf
-		else if( time > t_hyd(nq) ) then
-			h_input   = h_ups(nq)
-			h_input_t = h_ups_t(nq)		!h101019 conf
-			q_input   = q_ups(nq)
-			q_input_t = q_ups_t(nq)		!h101019 conf
-		else
-			do n = 1, nq
-				if(time >= t_hyd(n-1).and.time <= t_hyd(n)) then
-					sst = ( time - t_hyd(n-1) ) / ( t_hyd(n) - t_hyd(n-1) )
-					h_input   = h_ups(n-1) + (h_ups(n)-h_ups(n-1)) * sst
-					h_input_t = h_ups_t(n-1) + (h_ups_t(n)-h_ups_t(n-1)) * sst	!h101019
-					q_input   = q_ups(n-1) + (q_ups(n)-q_ups(n-1)) * sst
-					q_input_t = q_ups_t(n-1) + (q_ups_t(n)-q_ups_t(n-1)) * sst	!h101019
-				end if
-			end do
-		end if
-
-		qp = q_input
-		!-------------------------------------------
-		if( h_down < -100.d0 ) then
-			if( time <= 0.d0 ) then
-				hnx = h_dse( 0)
-			elseif( time > t_hyd(nq) ) then
-				hnx = h_dse(nq)
-			else
-				do n = 1, nq
-					if(time >= t_hyd(n-1).and.time <= t_hyd(n)) then
-						sst = ( time - t_hyd(n-1) ) / ( t_hyd(n) - t_hyd(n-1) )
-						hnx = h_dse(n-1) + ( h_dse(n) - h_dse(n-1) ) * sst
-					end if
-				end do
-			end if
-		else
-			hnx = h_down
-		end if
-		!
+		call hqtcal(h_down, slope, slope_up, slope_up_t, j_wl)
+		qp = q_ups
+		hnx = h_dse
 		!-------------------------------------------
 		if ( jrep == 0 ) then
 			if ( j_qbup == 1 ) then
-				call upstream_h( q_input, q_input_t, slope_up, slope_up_t, h_input, h_input_t )
+				call upstream_h( slope_up, slope_up_t )
 			end if
 
-			call upstream( h_input, h_input_t, q_input, q_input_t, slope_up, slope_up_t, j_upv )
+			call upstream( h_ups, h_ups_t, q_ups, q_ups_t, slope_up, slope_up_t, j_upv )
 			call downstream(j_wl, hnx)
 		end if
 
@@ -11605,7 +11500,7 @@ Program Shimizu
 		end if
 
 		!$omp end single
-	  iricmi_dump = 0
+		iricmi_dump = 0
 
 		!if ( icount == 1.or.mod(icount-1,kmod) == 0 ) then		!h time=0も出力
 		if ( icount == 0 .or. mod(icount,kmod) == 0 ) then		!h time=0も出力
@@ -11723,15 +11618,15 @@ Program Shimizu
 
 			if ( time < t_out_start ) then
 				if (j_conf == 0) then		!h101019 conf
-					write(*,'(f10.3,2f10.4,i4)')    time,q_input,hnx,lcount
+					write(*,'(f10.3,2f10.4,i4)')    time,q_ups,hnx,lcount
 				else
-					write(*,'(f10.3,3f10.4,i4)')    time,q_input,q_input_t,hnx,lcount
+					write(*,'(f10.3,3f10.4,i4)')    time,q_ups,q_ups_t,hnx,lcount
 				end if
 			else
 				if (j_conf == 0) then		!h101019 conf
-					write(*,'(f10.3,2f10.4,i4,a4)') time,q_input,hnx,lcount,'out'
+					write(*,'(f10.3,2f10.4,i4,a4)') time,q_ups,hnx,lcount,'out'
 				else
-					write(*,'(f10.3,3f10.4,i4,a4)') time,q_input,q_input_t,hnx,lcount,'out'
+					write(*,'(f10.3,3f10.4,i4,a4)') time,q_ups,q_ups_t,hnx,lcount,'out'
 				end if
 			end if
 			!$omp end single

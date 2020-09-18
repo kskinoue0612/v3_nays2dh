@@ -209,66 +209,68 @@
 						</Definition>
 					</Item>
 					<GroupBox caption="Discharge at upstream">
-						<GroupBox caption="Main channel">
-							<Item name="j_q" caption="Type">
-								<Definition valueType="integer" option="true" default="0">
-									<Enumerations>
-										<Enumeration value="0" caption="Constant" />
-										<Enumeration value="1" caption="Time dependent" />
-									</Enumerations>
-								</Definition>
-							</Item>
-							<Item name="q_ups_const" caption="Constant value(m3/s)">
-								<SubCaption caption="Initial value(m3/s)">
-									<Condition type="isEqual" target="j_q" value="1" />
-								</SubCaption>
-								<Definition valueType="real" default="1" />
-							</Item>
-							<Item name="q_ups" caption="Time dependent value">
-								<Definition conditionType="functional">
-									<Parameter name="time" valueType="real" caption="Time(sec)"/>
-									<Value name="discharge" valueType="real" caption="Discharge(m3/s)"/>
-									<Dependency>
+						<HBoxLayout>
+							<GroupBox caption="Main channel">
+								<Item name="j_q" caption="Type">
+									<Definition valueType="integer" option="true" default="0">
+										<Enumerations>
+											<Enumeration value="0" caption="Constant" />
+											<Enumeration value="1" caption="Time dependent" />
+										</Enumerations>
+									</Definition>
+								</Item>
+								<Item name="q_ups_const" caption="Constant value(m3/s)">
+									<SubCaption caption="Initial value(m3/s)">
 										<Condition type="isEqual" target="j_q" value="1" />
-									</Dependency>
-								</Definition>
-							</Item>
-						</GroupBox>
-						<GroupBox caption="+ Tributary">
-							<Item name="j_q_t" caption="Type">
-								<Definition valueType="integer" option="true" default="0">
-									<Enumerations>
-										<Enumeration value="0" caption="Constant" />
-										<Enumeration value="1" caption="Time dependent" />
-									</Enumerations>
-									<Dependency>
-										<Condition type="isGreaterEqual" target="j_conf" value="1"/>
-									</Dependency>
-								</Definition>
-							</Item>
-							<Item name="q_ups_t_const" caption="Constant value (m3/s)">
-								<SubCaption caption="Initial value (m3/s)">
-									<Condition type="isEqual" target="j_q_t" value="1" />
-								</SubCaption>
-								<Definition valueType="real" default="1">
-									<Dependency>
-										<Condition type="isGreaterEqual" target="j_conf" value="1"/>
-									</Dependency>
-								</Definition>
-							</Item>
-							<Item name="q_ups_t" caption="Time dependent value">
-								<Definition conditionType="functional">
-									<Parameter valueType="real" caption="Time (sec)"/>
-									<Value valueType="real" caption="Discharge (m3/s)"/>
-									<Dependency>
-										<Condition type="and">
-											<Condition type="isEqual" target="j_q_t" value="1" />
+									</SubCaption>
+									<Definition valueType="real" default="1" />
+								</Item>
+								<Item name="q_ups" caption="Time dependent value">
+									<Definition conditionType="functional">
+										<Parameter name="time" valueType="real" caption="Time(sec)"/>
+										<Value name="discharge" valueType="real" caption="Discharge(m3/s)"/>
+										<Dependency>
+											<Condition type="isEqual" target="j_q" value="1" />
+										</Dependency>
+									</Definition>
+								</Item>
+							</GroupBox>
+							<GroupBox caption="+ Tributary">
+								<Item name="j_q_t" caption="Type">
+									<Definition valueType="integer" option="true" default="0">
+										<Enumerations>
+											<Enumeration value="0" caption="Constant" />
+											<Enumeration value="1" caption="Time dependent" />
+										</Enumerations>
+										<Dependency>
 											<Condition type="isGreaterEqual" target="j_conf" value="1"/>
-										</Condition>
-									</Dependency>
-								</Definition>
-							</Item>
-						</GroupBox>
+										</Dependency>
+									</Definition>
+								</Item>
+								<Item name="q_ups_t_const" caption="Constant value (m3/s)">
+									<SubCaption caption="Initial value (m3/s)">
+										<Condition type="isEqual" target="j_q_t" value="1" />
+									</SubCaption>
+									<Definition valueType="real" default="1">
+										<Dependency>
+											<Condition type="isGreaterEqual" target="j_conf" value="1"/>
+										</Dependency>
+									</Definition>
+								</Item>
+								<Item name="q_ups_t" caption="Time dependent value">
+									<Definition conditionType="functional">
+										<Parameter valueType="real" caption="Time (sec)"/>
+										<Value valueType="real" caption="Discharge (m3/s)"/>
+										<Dependency>
+											<Condition type="and">
+												<Condition type="isEqual" target="j_q_t" value="1" />
+												<Condition type="isGreaterEqual" target="j_conf" value="1"/>
+											</Condition>
+										</Dependency>
+									</Definition>
+								</Item>
+							</GroupBox>
+						</HBoxLayout>
 					</GroupBox>
 					<GroupBox caption="Water surface at downstream">
 						<Item name="j_wl" caption="Type">
