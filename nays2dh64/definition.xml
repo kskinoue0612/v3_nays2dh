@@ -208,134 +208,200 @@
 							</Dependency>
 						</Definition>
 					</Item>
-					<Item name="j_wl" caption="Water surface at downstream">
-						<Definition conditionType="constant" valueType="integer" option="true" default="1">
-							<Enumerations>
-								<Enumeration value="0" caption="Constant value"/>
-								<Enumeration value="1" caption="Uniform flow"/>
-								<Enumeration value="2" caption="Given from time series data"/>
-								<Enumeration value="3" caption="Free Outflow"/>
-							</Enumerations>
-						</Definition>
-					</Item>
-					<Item name="h_down" caption="   Constant value (m)">
-						<Definition conditionType="constant" valueType="real" option="false" default="0">
-							<Dependency>
-								<Condition type="isEqual" target="j_wl" value="0"/>
-								<Action type="enable"/>
-							</Dependency>
-						</Definition>
-					</Item>
-					<Item name="j_slope" caption="   Slope for uniform flow">
-						<Definition conditionType="constant" valueType="integer" option="true" default="0">
-							<Enumerations>
-								<Enumeration value="0" caption="Calculated from geographic data"/>
-								<Enumeration value="1" caption="Constant value"/>
-							</Enumerations>
-							<Dependency>
-								<Condition type="isEqual" target="j_wl" value="1"/>
-								<Action type="enable"/>
-							</Dependency>
-						</Definition>
-					</Item>
-					<Item name="bh_slope" caption="   Slope value at downstream">
-						<Definition conditionType="constant" valueType="real" option="false" default="0.001">
-							<Dependency>
-								<Condition type="and">
+					<GroupBox caption="Discharge at upstream">
+						<GroupBox caption="Main channel">
+							<Item name="j_q" caption="Type">
+								<Definition valueType="integer" option="true" default="0">
+									<Enumerations>
+										<Enumeration value="0" caption="Constant" />
+										<Enumeration value="1" caption="Time dependent" />
+									</Enumerations>
+								</Definition>
+							</Item>
+							<Item name="q_ups_const" caption="Constant value(m3/s)">
+								<SubCaption caption="Initial value(m3/s)">
+									<Condition type="isEqual" target="j_q" value="1" />
+								</SubCaption>
+								<Definition valueType="real" default="1" />
+							</Item>
+							<Item name="q_ups" caption="Time dependent value">
+								<Definition conditionType="functional">
+									<Parameter name="time" valueType="real" caption="Time(sec)"/>
+									<Value name="discharge" valueType="real" caption="Discharge(m3/s)"/>
+									<Dependency>
+										<Condition type="isEqual" target="j_q" value="1" />
+									</Dependency>
+								</Definition>
+							</Item>
+						</GroupBox>
+						<GroupBox caption="+ Tributary">
+							<Item name="j_q_t" caption="Type">
+								<Definition valueType="integer" option="true" default="0">
+									<Enumerations>
+										<Enumeration value="0" caption="Constant" />
+										<Enumeration value="1" caption="Time dependent" />
+									</Enumerations>
+									<Dependency>
+										<Condition type="isGreaterEqual" target="j_conf" value="1"/>
+									</Dependency>
+								</Definition>
+							</Item>
+							<Item name="q_ups_t_const" caption="Constant value (m3/s)">
+								<SubCaption caption="Initial value (m3/s)">
+									<Condition type="isEqual" target="j_q_t" value="1" />
+								</SubCaption>
+								<Definition valueType="real" default="1">
+									<Dependency>
+										<Condition type="isGreaterEqual" target="j_conf" value="1"/>
+									</Dependency>
+								</Definition>
+							</Item>
+							<Item name="q_ups_t" caption="Time dependent value">
+								<Definition conditionType="functional">
+									<Parameter valueType="real" caption="Time (sec)"/>
+									<Value valueType="real" caption="Discharge (m3/s)"/>
+									<Dependency>
+										<Condition type="and">
+											<Condition type="isEqual" target="j_q_t" value="1" />
+											<Condition type="isGreaterEqual" target="j_conf" value="1"/>
+										</Condition>
+									</Dependency>
+								</Definition>
+							</Item>
+						</GroupBox>
+					</GroupBox>
+					<GroupBox caption="Water surface at downstream">
+						<Item name="j_wl" caption="Type">
+							<Definition conditionType="constant" valueType="integer" option="true" default="1">
+								<Enumerations>
+									<Enumeration value="0" caption="Constant" />
+									<Enumeration value="2" caption="Time dependent" />
+									<Enumeration value="1" caption="Uniform flow" />
+									<Enumeration value="3" caption="Free Outflow" />
+								</Enumerations>
+							</Definition>
+						</Item>
+						<Item name="h_dse_const" caption="Constant value (m)">
+							<SubCaption caption="Initial value (m)">
+								<Condition type="isEqual" target="j_wl" value="2"/>
+							</SubCaption>
+							<Definition valueType="real" default="0">
+								<Dependency>
+									<Condition type="or">
+										<Condition type="isEqual" target="j_wl" value="0"/>
+										<Condition type="isEqual" target="j_wl" value="2"/>
+									</Condition>
+								</Dependency>
+							</Definition>
+						</Item>
+						<Item name="h_dse" caption="Time dependent value">
+							<Definition conditionType="functional">
+								<Parameter name="time" valueType="real" caption="Time (sec)"/>
+								<Value name="waterlevel" valueType="real" caption="Water level (m)"/>
+								<Dependency>
+									<Condition type="isEqual" target="j_wl" value="2"/>
+								</Dependency>
+							</Definition>
+						</Item>
+						<Item name="j_slope" caption="Slope for uniform flow">
+							<Definition valueType="integer" option="true" default="0">
+								<Enumerations>
+									<Enumeration value="0" caption="Calculated from geographic data"/>
+									<Enumeration value="1" caption="Constant value"/>
+								</Enumerations>
+								<Dependency>
 									<Condition type="isEqual" target="j_wl" value="1"/>
-									<Condition type="isEqual" target="j_slope" value="1"/>
-								</Condition>
-								<Action type="enable"/>
-							</Dependency>
-						</Definition>
-					</Item>
-					<Item name="j_upv" caption="Velocity at upstream">
-						<Definition conditionType="constant" valueType="integer" option="true" default="1">
-							<Enumerations>
-								<Enumeration value="1" caption="Uniform flow"/>
-								<Enumeration value="2" caption="Calculated from upstream depth"/>
-							</Enumerations>
-							<Dependency>
-								<Condition type="isEqual" target="jrep" value="0"/>
-								<Action type="enable"/>
-							</Dependency>
-						</Definition>
-					</Item>
-					<Item name="j_upv_slope" caption="   Slope for uniform flow">
-						<Definition conditionType="constant" valueType="integer" option="true" default="0">
-							<Enumerations>
-								<Enumeration value="0" caption="Calculated from geographic data"/>
-								<Enumeration value="1" caption="Constant value"/>
-							</Enumerations>
-							<Dependency>
-								<Condition type="and">
+									<Action type="enable"/>
+								</Dependency>
+							</Definition>
+						</Item>
+						<Item name="bh_slope" caption="Slope value at downstream">
+							<Definition valueType="real" option="false" default="0.001">
+								<Dependency>
+									<Condition type="and">
+										<Condition type="isEqual" target="j_wl" value="1" />
+										<Condition type="isEqual" target="j_slope" value="1" />
+									</Condition>
+									<Action type="enable"/>
+								</Dependency>
+							</Definition>
+						</Item>
+					</GroupBox>
+					<GroupBox caption="Velocity at upstream">
+						<Item name="j_upv" caption="Calculation Type">
+							<Definition valueType="integer" option="true" default="1">
+								<Enumerations>
+									<Enumeration value="1" caption="Uniform flow"/>
+									<Enumeration value="2" caption="Calculated from upstream depth"/>
+								</Enumerations>
+								<Dependency>
 									<Condition type="isEqual" target="jrep" value="0"/>
-									<Condition type="isEqual" target="j_upv" value="1"/>
-								</Condition>
-								<Action type="enable"/>
-							</Dependency>
-						</Definition>
-					</Item>
-					<Item name="upv_slope" caption="   Slope value at upstream">
-						<Definition conditionType="constant" valueType="real" option="false" default="0.001">
-							<Dependency>
-								<Condition type="and">
-									<Condition type="isEqual" target="j_upv_slope" value="1"/>
-								</Condition>
-								<Action type="enable"/>
-							</Dependency>
-						</Definition>
-					</Item>
-					<Item name="upv_slope_t" caption="    +Slope value of tributary channel">
-						<Definition conditionType="constant" valueType="real" option="false" default="0.001">
-							<Dependency>
-								<Condition type="and">
-									<Condition type="isEqual" target="j_upv_slope" value="1"/>
-									<Condition type="isGreaterEqual" target="j_conf" value="1"/>
-								</Condition>
-								<Action type="enable"/>
-							</Dependency>
-						</Definition>
-					</Item>
-					<Item name="discharge_waterlevel" caption="Time series of discharge at upstream and water level at downstream">
-						<Definition conditionType="functional">
-							<Parameter name="time" valueType="real" caption="Time"/>
-							<Value name="discharge" valueType="real" caption="Discharge(m3/s)"/>
-							<Value name="water_level" valueType="real" caption="Water level(m)"/>
-						</Definition>
-					</Item>
-					<Item name="discharge_t" caption="   +Discharge time series of tributary channel">
-						<Definition conditionType="functional">
-							<Parameter valueType="real" caption="Time"/>
-							<Value valueType="real" caption="Discharge(m3/s)"/>
-							<Dependency>
-								<Condition type="isGreaterEqual" target="j_conf" value="1"/>
-							</Dependency>
-						</Definition>
-					</Item>
-					<Item name="j_qbup" caption="   +Change the supply rate of sediment from the upstream boundary">
-						<Definition conditionType="constant" valueType="integer" option="true" default="0">
-							<Enumerations>
-								<Enumeration value="0" caption="No"/>
-								<Enumeration value="1" caption="Yes"/>
-							</Enumerations>
-							<Dependency>
-								<Condition type="and">
-								   <Condition type="isEqual" target="edition" value="1"/>
-								   <Condition type="isEqual" target="jrep" value="0"/>
-								</Condition>
-								<Action type="enable"/>
-							</Dependency>
-						</Definition>
-					</Item>
-					<Item name="cse" caption="   +The ratio of supplied sediment transport to an equilibrium sediment transport (%)">
-						<Definition conditionType="constant" valueType="real" option="false" default="100">
-							<Dependency>
-								<Condition type="isEqual" target="j_qbup" value="1"/>
-								<Action type="enable"/>
-							</Dependency>
-						</Definition>
-					</Item>
+									<Action type="enable"/>
+								</Dependency>
+							</Definition>
+						</Item>
+						<Item name="j_upv_slope" caption="Slope for uniform flow">
+							<Definition conditionType="constant" valueType="integer" option="true" default="0">
+								<Enumerations>
+									<Enumeration value="0" caption="Calculated from geographic data"/>
+									<Enumeration value="1" caption="Constant value"/>
+								</Enumerations>
+								<Dependency>
+									<Condition type="and">
+										<Condition type="isEqual" target="jrep" value="0"/>
+										<Condition type="isEqual" target="j_upv" value="1"/>
+									</Condition>
+									<Action type="enable"/>
+								</Dependency>
+							</Definition>
+						</Item>
+						<Item name="upv_slope" caption="   Slope value at upstream">
+							<Definition conditionType="constant" valueType="real" option="false" default="0.001">
+								<Dependency>
+									<Condition type="and">
+										<Condition type="isEqual" target="j_upv_slope" value="1"/>
+									</Condition>
+									<Action type="enable"/>
+								</Dependency>
+							</Definition>
+						</Item>
+						<Item name="upv_slope_t" caption="    +Slope value of tributary channel">
+							<Definition conditionType="constant" valueType="real" option="false" default="0.001">
+								<Dependency>
+									<Condition type="and">
+										<Condition type="isEqual" target="j_upv_slope" value="1"/>
+										<Condition type="isGreaterEqual" target="j_conf" value="1"/>
+									</Condition>
+									<Action type="enable"/>
+								</Dependency>
+							</Definition>
+						</Item>
+					</GroupBox>
+					<GroupBox caption="+ Others">
+						<Item name="j_qbup" caption="Change the supply rate of sediment from the upstream boundary">
+							<Definition conditionType="constant" valueType="integer" option="true" default="0">
+								<Enumerations>
+									<Enumeration value="0" caption="No"/>
+									<Enumeration value="1" caption="Yes"/>
+								</Enumerations>
+								<Dependency>
+									<Condition type="and">
+									<Condition type="isEqual" target="edition" value="1"/>
+									<Condition type="isEqual" target="jrep" value="0"/>
+									</Condition>
+									<Action type="enable"/>
+								</Dependency>
+							</Definition>
+						</Item>
+						<Item name="cse" caption="The ratio of supplied sediment transport to an equilibrium sediment transport (%)">
+							<Definition conditionType="constant" valueType="real" option="false" default="100">
+								<Dependency>
+									<Condition type="isEqual" target="j_qbup" value="1"/>
+									<Action type="enable"/>
+								</Dependency>
+							</Definition>
+						</Item>
+					</GroupBox>
 				</Items>
 			</Content>
 		</Tab>
