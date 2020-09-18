@@ -10954,18 +10954,14 @@ Program Shimizu
 	! ------ read boundary condition (discharge, water level) ---------- !
 
 	call iricmi_read_integer('j_q', j_q, ier)
-	write(*,*) 'j_q = ', j_q
 	call iricmi_read_real('q_ups_const', q_ups, ier)
-	write(*,*) 'q_ups_const = ', q_ups
 	if (j_q == 1) then
 		call iricmi_rin_real('q_ups', q_ups, ier)
 	end if
 
 	if (j_conf /= 0) then
 		call iricmi_read_integer('j_q_t', j_q_t, ier)
-		write(*,*), 'j_q_t = ', j_q_t
 		call iricmi_read_real('q_ups_t_const', q_ups_t, ier)
-		write(*,*), 'q_ups_t_const = ', q_ups_t
 		if (j_q_t == 1) then
 			call iricmi_rin_real('q_ups_t', q_ups_t, ier)
 		end if
