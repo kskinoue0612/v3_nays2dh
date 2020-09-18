@@ -12029,143 +12029,143 @@ END PROGRAM Shimizu
 subroutine sync_and_output_result(dump,time,disch,im,jm,x,y,u,v,hs,z		&
 						,z0,zb,vort,c,dmn,phi,fr &
 						,rho, usta, ts,zave,zmin,have,qbx,qby,cc_m,nk,j_mix)
-  use flag_op
-  use iricmi
+	use flag_op
+	use iricmi
 
-  IMPLICIT NONE
-  integer, intent(in) :: dump
-  REAL(8), INTENT(IN) :: time, disch, rho
-  INTEGER, INTENT(IN) :: im, jm, nk, j_mix
-  real(8),dimension(0:im,0:jm),intent(in) :: u, v, hs, z, z0, zb, vort, qbx, qby
-  real(8),dimension(0:im,0:jm),intent(in) :: x, y, dmn, c, fr, usta, ts, zmin, zave, have, phi
-  real(8),dimension(0:im,0:jm,nk),intent(in) :: cc_m
-  
-  INTEGER :: NX, NY
-  INTEGER :: FID, BID, ZID, IER, iret
-  INTEGER :: i, j, k
-  REAL*8, ALLOCATABLE, DIMENSION(:,:) :: Vdata1, Udata1, Hdata1, Zbdata1, zfixdata, WSE, qbxdata1, qbydata1
-  REAL*8, ALLOCATABLE, DIMENSION(:,:) :: xx, yy, dmn1, ssc
-  REAL*8, ALLOCATABLE, DIMENSION(:,:) :: Dzbdata1, z01, vort1, ts0, ts1, fr1, phi1
-  REAL*8, ALLOCATABLE, DIMENSION(:,:) :: zmin1, zave1, have1
-  INTEGER, ALLOCATABLE, DIMENSION(:,:) :: IBC
-  character(40) :: c_label, cm
-  
-  nx=im
-  ny=jm
-  
-  call iricmi_rout_time(time, ier)
-  CALL iricmi_rout_real('Discharge(m3s-1)', disch, ier)
+	implicit none
+	integer, intent(in) :: dump
+	real(8), intent(in) :: time, disch, rho
+	integer, intent(in) :: im, jm, nk, j_mix
+	real(8),dimension(0:im,0:jm),intent(in) :: u, v, hs, z, z0, zb, vort, qbx, qby
+	real(8),dimension(0:im,0:jm),intent(in) :: x, y, dmn, c, fr, usta, ts, zmin, zave, have, phi
+	real(8),dimension(0:im,0:jm,nk),intent(in) :: cc_m
+	
+	integer :: NX, NY
+	integer :: FID, BID, ZID, IER, iret
+	integer :: i, j, k
+	real(8), allocatable, dimension(:,:) :: Vdata1, Udata1, Hdata1, Zbdata1, zfixdata, WSE, qbxdata1, qbydata1
+	real(8), allocatable, dimension(:,:) :: xx, yy, dmn1, ssc
+	real(8), allocatable, dimension(:,:) :: Dzbdata1, z01, vort1, ts0, ts1, fr1, phi1
+	real(8), allocatable, dimension(:,:) :: zmin1, zave1, have1
+	integer, allocatable, dimension(:,:) :: IBC
+	character(40) :: c_label, cm
+	
+	nx=im
+	ny=jm
+	
+	call iricmi_rout_time(time, ier)
+	call iricmi_rout_real('Discharge(m3s-1)', disch, ier)
 
-  ALLOCATE(xx(nx, ny), STAT=ier)
-  ALLOCATE(yy(nx, ny), STAT=ier)
-  ALLOCATE(Udata1(nx, ny), STAT=ier)
-  ALLOCATE(Vdata1(nx, ny), STAT=ier)
-  ALLOCATE(Hdata1(nx, ny), STAT=ier)
-  ALLOCATE(Zbdata1(nx, ny), STAT=ier)
-  ALLOCATE(zfixdata(nx, ny), STAT=ier)
-  ALLOCATE(Dzbdata1(nx, ny), STAT=ier)
-  ALLOCATE(IBC(nx, ny), STAT=ier)
-  ALLOCATE(WSE(nx, ny), STAT=ier)
-  ALLOCATE(z01(nx, ny), STAT=ier)
-  ALLOCATE(vort1(nx, ny), STAT=ier)
-  ALLOCATE(dmn1(nx, ny), STAT=ier)
-  ALLOCATE(ssc(nx, ny), STAT=ier)
-  ALLOCATE(fr1(nx, ny), STAT=ier)
-  ALLOCATE(phi1(nx, ny), STAT=ier)
-  ALLOCATE(ts1(nx, ny), STAT=ier)
-  ALLOCATE(ts0(nx, ny), STAT=ier)
-  ALLOCATE(zmin1(nx, ny), STAT=ier)
-  ALLOCATE(zave1(nx, ny), STAT=ier)
-  ALLOCATE(have1(nx, ny), STAT=ier)
-  ALLOCATE(qbxdata1(nx, ny), STAT=ier)
-  ALLOCATE(qbydata1(nx, ny), STAT=ier)
+	allocate(xx(nx, ny), stat=ier)
+	allocate(yy(nx, ny), stat=ier)
+	allocate(Udata1(nx, ny), stat=ier)
+	allocate(Vdata1(nx, ny), stat=ier)
+	allocate(Hdata1(nx, ny), stat=ier)
+	allocate(Zbdata1(nx, ny), stat=ier)
+	allocate(zfixdata(nx, ny), stat=ier)
+	allocate(Dzbdata1(nx, ny), stat=ier)
+	allocate(IBC(nx, ny), stat=ier)
+	allocate(WSE(nx, ny), stat=ier)
+	allocate(z01(nx, ny), stat=ier)
+	allocate(vort1(nx, ny), stat=ier)
+	allocate(dmn1(nx, ny), stat=ier)
+	allocate(ssc(nx, ny), stat=ier)
+	allocate(fr1(nx, ny), stat=ier)
+	allocate(phi1(nx, ny), stat=ier)
+	allocate(ts1(nx, ny), stat=ier)
+	allocate(ts0(nx, ny), stat=ier)
+	allocate(zmin1(nx, ny), stat=ier)
+	allocate(zave1(nx, ny), stat=ier)
+	allocate(have1(nx, ny), stat=ier)
+	allocate(qbxdata1(nx, ny), stat=ier)
+	allocate(qbydata1(nx, ny), stat=ier)
 
-  DO j=1,NY
-     DO i=1,NX
-        IBC(i,j) = -1
-        xx(i,j)		= x(i-1,j-1)
-        yy(i,j)		= y(i-1,j-1)
-        Zbdata1(i,j)	= z(i-1,j-1)
-        WSE(i,j)		= z(i-1, j-1) + hs(i-1,j-1)
-        Hdata1(i,j)	= hs(i-1, j-1)
-        Udata1(i,j)	= u(i-1,j-1)
-        Vdata1(i,j)	= v(i-1,j-1)
-        zfixdata(i,j)= zb(i-1,j-1)
-        vort1(i,j)	= vort(i-1, j-1)
-        dmn1(i,j)		= dmn(i-1, j-1)
-        z01(i,j)		= z(i-1,j-1) - z0(i-1,j-1)
-        ssc(i,j)		= c(i-1,j-1)
-        fr1(i,j)		= fr(i-1,j-1)
-        phi1(i,j)		= phi(i-1,j-1)
-        ts1(i,j)		= ts(i-1,j-1)
-		  ts0(i,j)		= rho * usta(i-1,j-1)**2.
-        zmin1(i,j)	= zmin(i-1,j-1)
-        zave1(i,j)	= zave(i-1,j-1)
-        have1(i,j)	= have(i-1,j-1)
-        qbxdata1(i,j)= qbx(i-1,j-1)
-        qbydata1(i,j)= qby(i-1,j-1)
-     ENDDO
-  ENDDO
+	do j = 1, ny
+		do i = 1, nx
+			IBC(i,j)      = -1
+			xx(i,j)       = x(i-1,j-1)
+			yy(i,j)       = y(i-1,j-1)
+			Zbdata1(i,j)  = z(i-1,j-1)
+			WSE(i,j)      = z(i-1, j-1) + hs(i-1,j-1)
+			Hdata1(i,j)   = hs(i-1, j-1)
+			Udata1(i,j)   = u(i-1,j-1)
+			Vdata1(i,j)   = v(i-1,j-1)
+			zfixdata(i,j) = zb(i-1,j-1)
+			vort1(i,j)    = vort(i-1, j-1)
+			dmn1(i,j)     = dmn(i-1, j-1)
+			z01(i,j)      = z(i-1,j-1) - z0(i-1,j-1)
+			ssc(i,j)      = c(i-1,j-1)
+			fr1(i,j)      = fr(i-1,j-1)
+			phi1(i,j)     = phi(i-1,j-1)
+			ts1(i,j)      = ts(i-1,j-1)
+			ts0(i,j)      = rho * usta(i-1,j-1)**2.
+			zmin1(i,j)    = zmin(i-1,j-1)
+			zave1(i,j)    = zave(i-1,j-1)
+			have1(i,j)    = have(i-1,j-1)
+			qbxdata1(i,j) = qbx(i-1,j-1)
+			qbydata1(i,j) = qby(i-1,j-1)
+		end do
+	end do
 
-  !@todo grid change is not supported yet
-  !CALL CG_IRIC_WRITE_SOL_GRIDCOORD2D_F(xx,yy,IER)
-  call iricmi_rout_grid2d_real_node("Velocity(ms-1)X",UData1,IER)
-  call iricmi_rout_grid2d_real_node("Velocity(ms-1)Y",VData1,IER)
-  call iricmi_rout_grid2d_real_node("Depth(m)",HData1,IER)
-  call iricmi_rout_grid2d_real_node("Elevation(m)",Zbdata1,IER)
-  call iricmi_rout_grid2d_real_node("WaterSurfaceElevation(m)",WSE,IER)
-  call iricmi_rout_grid2d_real_node("ShearStress(Nm-2)",ts0,IER)
+	!@todo grid change is not supported yet
+	!call CG_IRIC_WRITE_SOL_GRIDCOORD2D_F(xx,yy,IER)
+	call iricmi_rout_grid2d_real_node("Velocity(ms-1)X",UData1,IER)
+	call iricmi_rout_grid2d_real_node("Velocity(ms-1)Y",VData1,IER)
+	call iricmi_rout_grid2d_real_node("Depth(m)",HData1,IER)
+	call iricmi_rout_grid2d_real_node("Elevation(m)",Zbdata1,IER)
+	call iricmi_rout_grid2d_real_node("WaterSurfaceElevation(m)",WSE,IER)
+	call iricmi_rout_grid2d_real_node("ShearStress(Nm-2)",ts0,IER)
 
-  if( jop_dz  ==0 ) call iricmi_rout_grid2d_real_node("ElevationChange(m)",z01,IER)
-  if( jop_fb  ==0 ) call iricmi_rout_grid2d_real_node("FixedBedElevation(m)",zfixdata,IER)
-  !		call iricmi_rout_grid2d_integer_node("IBC",IBC,IER)
-  if( jop_vort==0 ) CALL iricmi_rout_grid2d_real_node("Vorticity(s-1)",vort1,IER)
-  if( jop_md  ==0 ) CALL iricmi_rout_grid2d_real_node("MeanDiameter(mm)",dmn1,IER)
-  if( jop_fr  ==0 ) CALL iricmi_rout_grid2d_real_node("FroudeNumber",fr1,IER)
-!	  call iricmi_rout_grid2d_real_node("Phi",phi1,IER)
-  if( jop_sh  ==0 ) CALL iricmi_rout_grid2d_real_node("ShieldsNumber",ts1,IER)
-  if( jop_zmin==0 ) CALL iricmi_rout_grid2d_real_node("CrossSectionalMinBedElev(m)",zmin1,IER)
-  if( jop_zave==0 ) CALL iricmi_rout_grid2d_real_node("CrossSectionalAveBedElev(m)",zave1,IER)
-  if( jop_have==0 ) CALL iricmi_rout_grid2d_real_node("CrossSectionalAveWaterLevel(m)",have1,IER)
-  if( jop_qb  ==0 ) then
-  		CALL iricmi_rout_grid2d_real_node("BedloadFlux(m2s-1)X",qbxData1,IER)
-  		CALL iricmi_rout_grid2d_real_node("BedloadFlux(m2s-1)Y",qbyData1,IER)
-  end if
+	if( jop_dz   == 0 ) call iricmi_rout_grid2d_real_node("ElevationChange(m)",z01,IER)
+	if( jop_fb   == 0 ) call iricmi_rout_grid2d_real_node("FixedBedElevation(m)",zfixdata,IER)
+	!call iricmi_rout_grid2d_integer_node("IBC",IBC,IER)
+	if( jop_vort == 0 ) call iricmi_rout_grid2d_real_node("Vorticity(s-1)",vort1,IER)
+	if( jop_md   == 0 ) call iricmi_rout_grid2d_real_node("MeanDiameter(mm)",dmn1,IER)
+	if( jop_fr   == 0 ) call iricmi_rout_grid2d_real_node("FroudeNumber",fr1,IER)
+!	call iricmi_rout_grid2d_real_node("Phi",phi1,IER)
+	if( jop_sh   == 0 ) call iricmi_rout_grid2d_real_node("ShieldsNumber",ts1,IER)
+	if( jop_zmin == 0 ) call iricmi_rout_grid2d_real_node("CrossSectionalMinBedElev(m)",zmin1,IER)
+	if( jop_zave == 0 ) call iricmi_rout_grid2d_real_node("CrossSectionalAveBedElev(m)",zave1,IER)
+	if( jop_have == 0 ) call iricmi_rout_grid2d_real_node("CrossSectionalAveWaterLevel(m)",have1,IER)
+	if( jop_qb   == 0 ) then
+		call iricmi_rout_grid2d_real_node("BedloadFlux(m2s-1)X",qbxData1,IER)
+		call iricmi_rout_grid2d_real_node("BedloadFlux(m2s-1)Y",qbyData1,IER)
+	end if
 
-  if( jop_sc==0 ) then
-	  if( j_mix==0 ) then
-	  	   CALL iricmi_rout_grid2d_real_node("SuspendedSedimentConcentration",ssc,IER)
-	  else
-	!  	do k=1,nk
-	!		write(cm,'(i1)') k
-	!		c_label = 'SuspendedSedimentConcentration'//trim(cm)
-					
-			do j=1,ny
-				do i=1,nx
+	if( jop_sc==0 ) then
+		if( j_mix==0 ) then
+			call iricmi_rout_grid2d_real_node("SuspendedSedimentConcentration",ssc,IER)
+		else
+			!do k = 1, nk
+			!write(cm,'(i1)') k
+			!c_label = 'SuspendedSedimentConcentration'//trim(cm)
+
+			do j = 1, ny
+				do i = 1, nx
 					ssc(i,j) = 0.d0
 				end do
 			end do
-				
-			do j=1,ny
-				do k=1,nk
-					do i=1,nx
+
+			do j = 1, ny
+				do k = 1, nk
+					do i = 1, nx
 						ssc(i,j) = ssc(i,j)+cc_m(i-1,j-1,k)
 					end do
 				end do
 			end do
-					
-	!		call iricmi_rout_grid2d_real_node(c_label,ssc,IER)
-	!	end do
-		
+
+			!call iricmi_rout_grid2d_real_node(c_label,ssc,IER)
+			!end do
+
 		call iricmi_rout_grid2d_real_node("SuspendedSedimentConcentration",ssc,IER)
-		
-	  end if
-  end if
 
-  call iricmi_model_sync(ier)
+		end if
+	end if
 
-  if (dump == 1) then
-	call iricmi_model_dump(ier)
-  end if
+	call iricmi_model_sync(ier)
+
+	if (dump == 1) then
+		call iricmi_model_dump(ier)
+	end if
 
 end subroutine sync_and_output_result
