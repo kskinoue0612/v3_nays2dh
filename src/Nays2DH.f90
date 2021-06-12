@@ -10297,11 +10297,10 @@ Program Shimizu
   use c_transport_m
   use vorticity_eq_m
   use cross_sectional_output
-  
+
+  use iric
 
   implicit none
-  include "cgnslib_f.h"
-  include "iriclib_f.h"
 
   integer :: i,j,k
 
@@ -10385,19 +10384,15 @@ Program Shimizu
      read( 5, *) condFile
   endif
 
-     CALL cg_open_f(condFile, CG_MODE_MODIFY, FID, IER)
+     CALL cg_iric_open(condFile, IRIC_MODE_MODIFY, FID, IER)
      !        CALL cg_open_f(condFile, 0, FID, IER)
-     CALL CG_IRIC_INIT_F(FID, IER)
-     IF(IER .NE. 0) THEN
-        call cg_error_print_f()			
-     ENDIF
 
      ! guiにcgnsファイルを読込みであることを知らせるファイルを生成
-     call iric_initoption_f(IRIC_OPTION_CANCEL, ier)
+     call iric_initoption(IRIC_OPTION_CANCEL, ier)
 
-     call cg_iric_gotogridcoord2d_f(ni4, nj4, ier)
+     call cg_iric_read_grid2d_str_size(fid, ni4, nj4, ier)
      allocate (x8(ni4,nj4), y8(ni4,nj4))
-     call cg_iric_getgridcoord2d_f(x8, y8, ier)
+     call cg_iric_read_grid2d_coords_2d(fid, x8, y8, ier)
 
      allocate (z8(ni4,nj4))
      allocate (zb8(ni4,nj4))
@@ -10410,25 +10405,22 @@ Program Shimizu
      allocate (vegeh     (ni4-1, nj4-1))
      allocate (mix_cell  (ni4-1, nj4-1))
      
-     call cg_iric_read_grid_real_node_f('Elevation', z8, ier)
-     call cg_iric_read_grid_real_node_f('Elevation_zb', zb8, ier)
-     call cg_iric_read_grid_integer_cell_f('Obstacle', obst4, ier)
-     call cg_iric_read_grid_integer_cell_f('Fix_movable', fm4, ier)
-     call cg_iric_read_grid_real_cell_f('vege_density', vege4, ier)
-     call cg_iric_read_grid_real_cell_f('vege_height', vegeh, ier)
-     call cg_iric_read_grid_real_cell_f('roughness_cell', roughness4, ier)
-     call cg_iric_read_grid_integer_cell_f('mix_cell', mix_cell, ier)
+     call cg_iric_read_grid_real_node(fid, 'Elevation', z8, ier)
+     call cg_iric_read_grid_real_node(fid, 'Elevation_zb', zb8, ier)
+     call cg_iric_read_grid_integer_cell(fid, 'Obstacle', obst4, ier)
+     call cg_iric_read_grid_integer_cell(fid, 'Fix_movable', fm4, ier)
+     call cg_iric_read_grid_real_cell(fid, 'vege_density', vege4, ier)
+     call cg_iric_read_grid_real_cell(fid, 'vege_height', vegeh, ier)
+     call cg_iric_read_grid_real_cell(fid, 'roughness_cell', roughness4, ier)
+     call cg_iric_read_grid_integer_cell(fid, 'mix_cell', mix_cell, ier)
      
-     !CALL CG_IRIC_GOTOCC_F(FID, IER)
-
-     CALL CG_IRIC_READ_INTEGER_F('i_sec_hour', i_sec_hour, ier)
-
-     CALL CG_IRIC_READ_INTEGER_F('edition', edition, ier)
+     call cg_iric_read_integer(fid, 'i_sec_hour', i_sec_hour, ier)
+     call cg_iric_read_integer(fid, 'edition', edition, ier)
      
    ! ---- Parameters for Confluence -----
    !
      
-     CALL CG_IRIC_READ_INTEGER_F('j_conf', j_conf, ier)
+     call cg_iric_read_integer(fid, 'j_conf', j_conf, ier)
    !
    !  j_conf = 0 合流点無し
    !  j_conf = 1 合流点あり(タイプA分岐合流)
@@ -10446,12 +10438,12 @@ Program Shimizu
      end if
      !
      if(j_conf.ge.1) then
-        CALL CG_IRIC_READ_INTEGER_F('j_m1', j_m1, ier)
-        CALL CG_IRIC_READ_INTEGER_F('j_m2', j_m2, ier)
-        CALL CG_IRIC_READ_INTEGER_F('j_t1', j_t1, ier)
-        CALL CG_IRIC_READ_INTEGER_F('j_t2', j_t2, ier)
-        CALL CG_IRIC_READ_INTEGER_F('i_t1', i_t1, ier)
-        CALL CG_IRIC_READ_INTEGER_F('i_t2', i_t2, ier)
+        call cg_iric_read_integer(fid, 'j_m1', j_m1, ier)
+        CALL cg_iric_read_integer(fid, 'j_m2', j_m2, ier)
+        CALL cg_iric_read_integer(fid, 'j_t1', j_t1, ier)
+        CALL cg_iric_read_integer(fid, 'j_t2', j_t2, ier)
+        CALL cg_iric_read_integer(fid, 'i_t1', i_t1, ier)
+        CALL cg_iric_read_integer(fid, 'i_t2', i_t2, ier)
         j_m1 = j_m1-1
         j_m2 = j_m2-1
         j_t1 = j_t1-1
@@ -10474,69 +10466,69 @@ Program Shimizu
    !
    ! ---- Parameters for Downstream Water Surface Elevation -----
    !
-     CALL CG_IRIC_READ_INTEGER_F('j_wl', j_wl, ier)
+     CALL cg_iric_read_integer(fid, 'j_wl', j_wl, ier)
    !
    !   j_wl = 0 ...下流端水位一定値を与える(h_down)
    !   j_wl = 1 ...下流端水位は等流計算で求める
    !   j_wl = 2 ...下流端水位はファイルから読み込む
 	!   j_wl = 3 ...下流端水位は自由流出
 
-     CALL cg_iric_read_real_f('h_down', h_down, ier)
+     call cg_iric_read_real(fid, 'h_down', h_down, ier)
    !
    !   h_dwown = 下流端水位の値(上記j_wl=0の時のみ有効)
    
-     CALL CG_IRIC_READ_INTEGER_F('j_slope', j_slope, ier)
+     CALL cg_iric_read_integer(fid, 'j_slope', j_slope, ier)
    !
    !   上記j_wl=1の時等流計算に用いる勾配を
    !   j_slope=0.... 河床データから自動的に計算する
    !   j_slope=1.... 与える→この時は与える値は次のbh_slopeの値
 
-     CALL cg_iric_read_real_f('bh_slope', bh_slope, ier)
+     call cg_iric_read_real(fid, 'bh_slope', bh_slope, ier)
    !
    !   上記j_wl=1でj_slope=1の場合に与える勾配 = bh_slope
    !
    ! ------ Parameters for Upstream Boundary ------
    !
-     CALL CG_IRIC_READ_INTEGER_F('j_upv', j_upv, ier)
+     call cg_iric_read_integer(fid, 'j_upv', j_upv, ier)
    !
    !  j_upv =1 上流端の流速を等流計算で与える
    !  j_upv =2 上流端の流速を、上流端の水深を使って流量から逆算する
    !
-     CALL CG_IRIC_READ_INTEGER_F('j_upv_slope', j_upv_slope, ier)
+     call cg_iric_read_integer(fid, 'j_upv_slope', j_upv_slope, ier)
    !
    !  上記j_upv=1のときの等流計算に使用する勾配の与え方
    !
    !    j_upv_slope=0 .... 河床データから自動的に計算
    !    j_upv_slope=1 .... 値を与える→この場合は次の項目のuvp_slope
    !
-     CALL cg_iric_read_real_f('upv_slope', upv_slope, ier)
-     CALL cg_iric_read_real_f('upv_slope_t', upv_slope_t, ier)
+     call cg_iric_read_real(fid, 'upv_slope', upv_slope, ier)
+     call cg_iric_read_real(fid, 'upv_slope_t', upv_slope_t, ier)
    !                       
    !   上記j_upv=1でj_upv_slope=1の場合に与える勾配 = upv_slope
    !   支川側の勾配 = upv_slope_t
    !
    ! ---- Parameters for Initial Water Surface Profile-----
    !
-     CALL CG_IRIC_READ_INTEGER_F('i_flow', i_flow, ier)
+     call cg_iric_read_integer(fid, 'i_flow', i_flow, ier)
    !
    !   i_flow=0 初期水面形は直線(一定勾配)
    !   i_flow=1 初期水面形は折線(１折点と２直線)
    !   i_flow=2 初期水面形は等流計算
    !   i_flow=3 初期水面形は不等流計算
 
-     CALL cg_iric_read_real_f('h_slope', h_slope, ier)
-     CALL cg_iric_read_real_f('h_slope_t', h_slope_t, ier)
+     call cg_iric_read_real(fid, 'h_slope', h_slope, ier)
+     call cg_iric_read_real(fid, 'h_slope_t', h_slope_t, ier)
    !
    !  上記i_flow=0のときの初期水面勾配  
    !  上記i_flow=0のときの支川の初期水面勾配  
 
-     CALL cg_iric_read_real_f('x_bk', x_bk, ier)
+     call cg_iric_read_real(fid, 'x_bk', x_bk, ier)
    !
    !  上記i_flow=1のときの勾配変化点の下流からの距離 x_bk
    !   
-     CALL cg_iric_read_real_f('h_slope_1', h_slope_1, ier)
-     CALL cg_iric_read_real_f('h_slope_2', h_slope_2, ier)
-     CALL cg_iric_read_real_f('h_slope_12t', h_slope_12t, ier)
+     call cg_iric_read_real(fid, 'h_slope_1', h_slope_1, ier)
+     call cg_iric_read_real(fid, 'h_slope_2', h_slope_2, ier)
+     call cg_iric_read_real(fid, 'h_slope_12t', h_slope_12t, ier)
    !
    !  上記i_flow=1のときの初期水面勾配(下流側)h_slope_1
    !  上記i_flow=1のときの初期水面勾配(上流側)h_slope_2
@@ -10544,9 +10536,9 @@ Program Shimizu
    !
    ! ---- Parameters for Bed Material  -----
    !
-     CALL CG_IRIC_READ_REAL_F('diam', diam, ier)
+     call cg_iric_read_real(fid, 'diam', diam, ier)
      
-     CALL CG_IRIC_READ_REAL_F('tantc', tantc, ier)
+     call cg_iric_read_real(fid, 'tantc', tantc, ier)
 
      diam    = diam/1000.d0
      r_tantc = 1.d0 / tantc
@@ -10562,36 +10554,36 @@ Program Shimizu
    !  j_qb_vec	: How to calculate bedload transport vector at cell boundaries
    !			  0: Watanabe formula, 1: Ashida, Egashira and Liu formula
 
-     CALL CG_IRIC_READ_INTEGER_F('j_qbqs', j_qbqs, ier)
+     call cg_iric_read_integer(fid, 'j_qbqs', j_qbqs, ier)
 
-     CALL CG_IRIC_READ_INTEGER_F('j_bedload', j_bedload, ier)
+     call cg_iric_read_integer(fid, 'j_bedload', j_bedload, ier)
 
-     CALL CG_IRIC_READ_INTEGER_F('j_qb_vec', j_qb_vec, ier)
+     call cg_iric_read_integer(fid, 'j_qb_vec', j_qb_vec, ier)
 
-     CALL CG_IRIC_READ_INTEGER_F('j_qsu', j_qsu, ier)
+     call cg_iric_read_integer(fid, 'j_qsu', j_qsu, ier)
 
-     CALL CG_IRIC_READ_INTEGER_F('j_collaps', j_collaps, ier)
+     call cg_iric_read_integer(fid, 'j_collaps', j_collaps, ier)
 
    !
    ! ---- Parameters on Time Setting -----
    !
-     CALL CG_IRIC_READ_REAL_F('tuk', tuk, ier)
-     CALL CG_IRIC_READ_REAL_F('dt', dt, ier)
-     CALL cg_iric_read_real_f('ster', ster, ier)
-     CALL CG_IRIC_READ_INTEGER_F('j_qbs', j_qbs, ier)
-     CALL cg_iric_read_real_f('t_out_start', t_out_start, ier)
+     call cg_iric_read_real(fid, 'tuk', tuk, ier)
+     call cg_iric_read_real(fid, 'dt', dt, ier)
+     call cg_iric_read_real(fid, 'ster', ster, ier)
+     call cg_iric_read_integer(fid, 'j_qbs', j_qbs, ier)
+     call cg_iric_read_real(fid, 't_out_start', t_out_start, ier)
    !
    ! ---- Parameters for Numerical Calculation -----
    !
-     CALL CG_IRIC_READ_INTEGER_F('jrep', jrep, ier)
-     CALL CG_IRIC_READ_INTEGER_F('j_snu', j_snu, ier)
-     CALL CG_IRIC_READ_INTEGER_F('j_cip', j_cip, ier)
-     CALL cg_iric_read_real_f('snst', snst, ier)
-     call cg_iric_read_integer_f('j_sf', j_sf, ier)
+     call cg_iric_read_integer(fid, 'jrep', jrep, ier)
+     call cg_iric_read_integer(fid, 'j_snu', j_snu, ier)
+     call cg_iric_read_integer(fid, 'j_cip', j_cip, ier)
+     call cg_iric_read_real(fid, 'snst', snst, ier)
+     call cg_iric_read_integer(fid, 'j_sf', j_sf, ier)
      
      if( j_snu==1 ) then
-     	CALL cg_iric_read_real_f('a_snu', a_snu, ier)
-     	CALL cg_iric_read_real_f('b_snu', b_snu, ier)
+		call cg_iric_read_real(fid, 'a_snu', a_snu, ier)
+     	call cg_iric_read_real(fid, 'b_snu', b_snu, ier)
      else
      	a_snu = 1.d0
      	b_snu = 0.d0
@@ -10599,29 +10591,29 @@ Program Shimizu
      
 	! ---- Parameter for parallel computation ----
 
-		CALL CG_IRIC_READ_INTEGER_F('n_parallel', n_parallel, ier)
+		call cg_iric_read_integer(fid, 'n_parallel', n_parallel, ier)
      
     ! n_parallel = 2
      
    !
    ! ------ Parameters for Bank Erosion ------
    !
-     CALL CG_IRIC_READ_INTEGER_F('j_bank', j_bank, ier)
-     CALL CG_IRIC_READ_INTEGER_F &
-          ('i_erosion_start', i_erosion_start, ier)
-     CALL CG_IRIC_READ_INTEGER_F('i_erosion_end', i_erosion_end, ier)
-     CALL cg_iric_read_real_f('bheight', bheight, ier)
+     call cg_iric_read_integer(fid, 'j_bank', j_bank, ier)
+     call cg_iric_read_integer &
+          (fid, 'i_erosion_start', i_erosion_start, ier)
+     call cg_iric_read_integer(fid, 'i_erosion_end', i_erosion_end, ier)
+     call cg_iric_read_real(fid, 'bheight', bheight, ier)
    !
    ! ------ Parameters for Chunk Block ------
    !
      !!     j_chunk = nayslib_get_integerList(condfile, "j_chunk")
-     !      CALL CG_IRIC_READ_INTEGER_F('j_chunk', j_chunk, ier)
+     !      CALL cg_iric_read_integer('j_chunk', j_chunk, ier)
      !!     t_chunk = nayslib_get_real(condfile, "t_chunk")
-     !      CALL cg_iric_read_real_f('t_chunk', t_chunk, ier)
+     !      call cg_iric_read_real('t_chunk', t_chunk, ier)
      !!     d_chunk = nayslib_get_real(condfile, "d_chunk")
-     !      CALL cg_iric_read_real_f('d_chunk', d_chunk, ier)
+     !      call cg_iric_read_real('d_chunk', d_chunk, ier)
      !!     h_chunk = nayslib_get_real(condfile, "h_chunk")
-     !      CALL cg_iric_read_real_f('h_chunk', h_chunk, ier)
+     !      call cg_iric_read_real('h_chunk', h_chunk, ier)
      !!
      j_chunk=0
      t_chunk=10.d0
@@ -10631,19 +10623,19 @@ Program Shimizu
    !
    ! ---- Parameters for Bank Smoothing -----
    !
-     CALL CG_IRIC_READ_INTEGER_F('j_smooth', j_smooth, ier)
-     CALL CG_IRIC_READ_INTEGER_F('i_smooth', i_smooth, ier)
+     call cg_iric_read_integer(fid, 'j_smooth', j_smooth, ier)
+     call cg_iric_read_integer(fid, 'i_smooth', i_smooth, ier)
    !
    ! ----- Parameter for Bank Re-distribution -----
    !
      !!     j_smg  = nayslib_get_integerList(condfile, "j_smg")
-     !      CALL CG_IRIC_READ_INTEGER_F('j_smg', j_smg, ier)
+     !      CALL cg_iric_read_integer('j_smg', j_smg, ier)
      !!     ti_smg = nayslib_get_real(condfile, "ti_smg")
-     !      CALL cg_iric_read_real_f('ti_smg', ti_smg, ier)
+     !      call cg_iric_read_real('ti_smg', ti_smg, ier)
      !!     mtime  = nayslib_get_integer(condfile, "mtime")
-     !      CALL CG_IRIC_READ_INTEGER_F('mtime', mtime, ier)
+     !      CALL cg_iric_read_integer('mtime', mtime, ier)
      !!     mave   = nayslib_get_integer(condfile, "mave")
-     !      CALL CG_IRIC_READ_INTEGER_F('mave', mave, ier)
+     !      CALL cg_iric_read_integer('mave', mave, ier)
      !
      j_smg  = 0
      ti_smg = 100.d0
@@ -10652,19 +10644,19 @@ Program Shimizu
    !
    ! ----- Parameters for Vegatation -----
    !
-     CALL cg_iric_read_real_f('c_tree', c_tree, ier)
+     call cg_iric_read_real(fid, 'c_tree', c_tree, ier)
      
-     CALL cg_iric_read_integer_f('j_vege', j_vege, ier)
+     CALL cg_iric_read_integer(fid, 'j_vege', j_vege, ier)
 
    !
    !! ----- Parameters for Inner Bend Refilling -----
    !!
      !!     j_fill  = nayslib_get_integerList(condfile, "j_fill")
-     !      CALL CG_IRIC_READ_INTEGER_F('j_fill', j_fill, ier)
+     !      CALL cg_iric_read_integer('j_fill', j_fill, ier)
      !!     hdry    = nayslib_get_real(condfile, "hdry")
-     !      CALL cg_iric_read_real_f('hdry', hdry, ier)
+     !      call cg_iric_read_real('hdry', hdry, ier)
      !!     ti_fill = nayslib_get_real(condfile, "ti_fill")
-     !      CALL cg_iric_read_real_f('ti_fill', ti_fill, ier)
+     !      call cg_iric_read_real('ti_fill', ti_fill, ier)
      !!
      j_fill  = 0
      hdry    = 0.01d0
@@ -10673,24 +10665,24 @@ Program Shimizu
    !
    ! --- Other Parameters and Constants -----
    !
-     CALL CG_IRIC_READ_INTEGER_F('lmax', lmax, ier)
-     CALL cg_iric_read_real_f('alh', alh, ier)
-     CALL cg_iric_read_real_f('rho', rho, ier)
-     CALL cg_iric_read_real_f('spec', spec, ier)
-     CALL CG_IRIC_READ_REAL_F('slambda', slambda, ier)
+     call cg_iric_read_integer(fid, 'lmax', lmax, ier)
+     call cg_iric_read_real(fid, 'alh', alh, ier)
+     call cg_iric_read_real(fid, 'rho', rho, ier)
+     call cg_iric_read_real(fid, 'spec', spec, ier)
+     call cg_iric_read_real(fid, 'slambda', slambda, ier)
 
      dsmt = 1.d0/(1.d0-slambda)
    !
    ! --- Parameters for Hot Start ---
    !
-     CALL CG_IRIC_READ_INTEGER_F('write_flag', i_re_flag_o, ier)
-     CALL CG_IRIC_READ_INTEGER_F('read_flag', i_re_flag_i, ier)
-     CALL CG_IRIC_READ_INTEGER_F('n_tempfile', n_rest, ier)
-     CALL CG_IRIC_READ_STRING_F('tmp_readfile', tmp_file_i, ier)
-     CALL CG_IRIC_READ_STRING_F('tmp_pass', tmp_pass, ier)
+     call cg_iric_read_integer(fid, 'write_flag', i_re_flag_o, ier)
+     call cg_iric_read_integer(fid, 'read_flag', i_re_flag_i, ier)
+     call cg_iric_read_integer(fid, 'n_tempfile', n_rest, ier)
+     call cg_iric_read_string(fid, 'tmp_readfile', tmp_file_i, ier)
+     call cg_iric_read_string(fid, 'tmp_pass', tmp_pass, ier)
 
      do ii=0,9
-        CALL CG_IRIC_READ_REAL_F(tmp_caption(ii), opt_tmp(ii), ier)
+        call cg_iric_read_real(fid, tmp_caption(ii), opt_tmp(ii), ier)
      end do
      !
      do iii=1,n_rest
@@ -10710,25 +10702,25 @@ Program Shimizu
      
    ! ----- Parameters for supplying sediment transport rate from the upstream end ------ !
    
-     call CG_IRIC_READ_INTEGER_F('j_qbup', j_qbup, ier)
+     call cg_iric_read_integer(fid, 'j_qbup', j_qbup, ier)
      
      if( j_qbup==0 ) then
         cse = 1.d0
      else
-        call CG_IRIC_READ_REAL_F('cse', cse, ier)
+        call cg_iric_read_real(fid, 'cse', cse, ier)
         cse = cse*0.01d0
      end if
    
    !
    ! ----- Parameters for mixture model -----
    !
-     call CG_IRIC_READ_INTEGER_F('j_mix', j_mix, ier)
-     call CG_IRIC_READ_INTEGER_F('j_mix_dis', j_mix_dis, ier)
-     call CG_IRIC_READ_INTEGER_F('j_mix_dis_dep', j_mix_dis_dep, ier)
-     call CG_IRIC_READ_REAL_F('e_m', e_m, ier)
-     call CG_IRIC_READ_REAL_F('e_d', e_d, ier)
-     call CG_IRIC_READ_REAL_F('e_thick', e_thick, ier)
-     call CG_IRIC_READ_INTEGER_F('nm', nm, ier)
+     call cg_iric_read_integer(fid, 'j_mix', j_mix, ier)
+     call cg_iric_read_integer(fid, 'j_mix_dis', j_mix_dis, ier)
+     call cg_iric_read_integer(fid, 'j_mix_dis_dep', j_mix_dis_dep, ier)
+     call cg_iric_read_real(fid, 'e_m', e_m, ier)
+     call cg_iric_read_real(fid, 'e_d', e_d, ier)
+     call cg_iric_read_real(fid, 'e_thick', e_thick, ier)
+     call cg_iric_read_integer(fid, 'nm', nm, ier)
      
      if( j_qbs==0 ) then
      	j_mix = 0
@@ -10748,7 +10740,7 @@ Program Shimizu
      if( edition==0 ) then
         csm = 1.d0
      else
-        call CG_IRIC_READ_REAL_F('csm', csm, ier)
+        call cg_iric_read_real(fid, 'csm', csm, ier)
      end if
 
 	! ------ flag parameter for output variables ------ !
@@ -10788,11 +10780,11 @@ Program Shimizu
 		
 	else
 	
-		call CG_IRIC_READ_INTEGER_F('jop_vort', jop_vort, ier)
-		call CG_IRIC_READ_INTEGER_F('jop_fr'  , jop_fr  , ier)
-		call CG_IRIC_READ_INTEGER_F('jop_zmin', jop_zmin, ier)
-		call CG_IRIC_READ_INTEGER_F('jop_zave', jop_zave, ier)
-		call CG_IRIC_READ_INTEGER_F('jop_have', jop_have, ier)
+		call cg_iric_read_integer(fid, 'jop_vort', jop_vort, ier)
+		call cg_iric_read_integer(fid, 'jop_fr'  , jop_fr  , ier)
+		call cg_iric_read_integer(fid, 'jop_zmin', jop_zmin, ier)
+		call cg_iric_read_integer(fid, 'jop_zave', jop_zave, ier)
+		call cg_iric_read_integer(fid, 'jop_have', jop_have, ier)
 		
 		if( j_qbs==0 ) then
 			jop_dz = 1
@@ -10804,27 +10796,27 @@ Program Shimizu
 		else
 			jop_dz = 0
 			
-			call CG_IRIC_READ_INTEGER_F('jop_fb', jop_fb, ier)
-			call CG_IRIC_READ_INTEGER_F('jop_sh', jop_sh, ier)
-			call CG_IRIC_READ_INTEGER_F('jop_qb', jop_qb, ier)
+			call cg_iric_read_integer(fid, 'jop_fb', jop_fb, ier)
+			call cg_iric_read_integer(fid, 'jop_sh', jop_sh, ier)
+			call cg_iric_read_integer(fid, 'jop_qb', jop_qb, ier)
 			
 			if( j_qbqs==0 ) then
 				jop_sc = 1
 			else
-				call CG_IRIC_READ_INTEGER_F('jop_sc', jop_sc, ier)
+				call cg_iric_read_integer(fid, 'jop_sc', jop_sc, ier)
 			end if
 
 			if( j_mix==0 ) then
 				jop_md = 1
 			else
-				call CG_IRIC_READ_INTEGER_F('jop_md', jop_md, ier)
+				call cg_iric_read_integer(fid, 'jop_md', jop_md, ier)
 			end if
 			
 		end if
 	
 	end if
 
-     call CG_IRIC_READ_INTEGER_F('j_zb', j_zb, ier)
+     call cg_iric_read_integer(fid, 'j_zb', j_zb, ier)
      
      if( j_zb==0 ) then
      	do j=1,nj4
@@ -10990,13 +10982,13 @@ Program Shimizu
     !
   ! ------ read boundary condition (discharge, water level) ---------- !
 
-       CALL CG_IRIC_READ_FUNCTIONALSIZE_F('discharge_waterlevel',tmpint,ier)
+       call cg_iric_read_functionalsize(fid, 'discharge_waterlevel', tmpint, ier)
 
        allocate(xtmp(tmpint),ytmp(tmpint),ytmp2(tmpint))
 
-       CALL CG_IRIC_READ_FUNCTIONALWITHNAME_F("discharge_waterlevel","time",xtmp,ier)
-       CALL CG_IRIC_READ_FUNCTIONALWITHNAME_F("discharge_waterlevel","discharge",ytmp,ier)
-       CALL CG_IRIC_READ_FUNCTIONALWITHNAME_F("discharge_waterlevel","water_level",ytmp2,ier)
+       call cg_iric_read_functionalwithname(fid, "discharge_waterlevel","time",xtmp,ier)
+       CALL cg_iric_read_functionalwithname(fid, "discharge_waterlevel","discharge",ytmp,ier)
+       CALL cg_iric_read_functionalwithname(fid, "discharge_waterlevel","water_level",ytmp2,ier)
 
        IF(ier.eq.0) THEN
           nq = tmpint-1
@@ -11018,7 +11010,7 @@ Program Shimizu
        DEALLOCATE(ytmp2, STAT = ier)
        
        if(j_conf/=0) then
-          CALL CG_IRIC_READ_FUNCTIONALSIZE_F('discharge_t',tmpint,ier)
+          call cg_iric_read_functionalsize(fid, 'discharge_t', tmpint, ier)
 
           if( nq/=tmpint-1 ) then
             write(*,*) "The number of discharge data for tributary is different from the number of discharge data for main river!"
@@ -11027,9 +11019,8 @@ Program Shimizu
           end if
 
           allocate(xtmp(tmpint),ytmp(tmpint))
-          CALL CG_IRIC_READ_functional_f('discharge_t',xtmp,ytmp,ier)
+          call cg_iric_read_functional(fid, 'discharge_t', xtmp, ytmp, ier)
           DO I= 0,nq
-             
              q_ups_t(i) = ytmp(i+1)
           ENDDO
           DEALLOCATE(xtmp, STAT = ier)
@@ -11065,7 +11056,7 @@ Program Shimizu
        
        if( j_mix_dis==0 ) then
     
-          CALL CG_IRIC_READ_FUNCTIONALSIZE_F('mixfile_pp',tmpint,ier)
+          call cg_iric_read_functionalsize(fid, 'mixfile_pp', tmpint, ier)
           allocate(xtmp(tmpint),ytmp(tmpint))
 !         CALL CG_IRIC_READ_FUNCTIONAL_f('mixfile_pp',xtmp,ytmp,ier)
 
@@ -11076,7 +11067,7 @@ Program Shimizu
              call initial_mix
           ENDIF
 
-          call cg_iric_read_functionalwithname_f('mixfile_pp', 'diameter_k', xtmp, ier)
+          call cg_iric_read_functionalwithname(fid, 'mixfile_pp', 'diameter_k', xtmp, ier)
        
           do k=0,nk
              ddist_mm(k) = xtmp(k+1)
@@ -11086,7 +11077,7 @@ Program Shimizu
              write(cm,'(i1)') n
              mix_label = 'pp'//trim(cm)
           
-             call cg_iric_read_functionalwithname_f('mixfile_pp', mix_label, ytmp, ier)
+             call cg_iric_read_functionalwithname(fid, 'mixfile_pp', mix_label, ytmp, ier)
           
              do k=0,nk
                 pdist_m_100(k,n) = ytmp(k+1)
@@ -11099,7 +11090,7 @@ Program Shimizu
           
           if( j_mix_dis_dep==1 ) then
              
-             CALL CG_IRIC_READ_FUNCTIONALSIZE_F('mixfile_pp_d',tmpint,ier)
+             CALL cg_iric_read_functionalsize(fid, 'mixfile_pp_d', tmpint, ier)
              allocate(xtmp(tmpint),ytmp(tmpint))
 
              if( tmpint-1/=nk ) then
@@ -11112,7 +11103,7 @@ Program Shimizu
                 write(cm,'(i1)') n
                 mix_label = 'pp'//trim(cm)
           
-                call cg_iric_read_functionalwithname_f('mixfile_pp_d', mix_label, ytmp, ier)
+                call cg_iric_read_functionalwithname(fid, 'mixfile_pp_d', mix_label, ytmp, ier)
           
                 do k=0,nk
                    pdist_d_100(k,n) = ytmp(k+1)
@@ -11127,7 +11118,7 @@ Program Shimizu
           
        else
        
-          CALL CG_IRIC_READ_FUNCTIONALSIZE_F('mixfile_fr',tmpint,ier)
+          call cg_iric_read_functionalsize(fid, 'mixfile_fr', tmpint, ier)
           allocate(xtmp(tmpint),ytmp(tmpint))
 !         CALL CG_IRIC_READ_FUNCTIONAL_f('mixfile_fr',xtmp,ytmp,ier)
 
@@ -11138,7 +11129,7 @@ Program Shimizu
              call initial_mix
           ENDIF
 
-          call cg_iric_read_functionalwithname_f('mixfile_fr', 'diameter_k', xtmp, ier)
+          call cg_iric_read_functionalwithname(fid, 'mixfile_fr', 'diameter_k', xtmp, ier)
        
           do k=1,nk
              ddist_mm(k) = xtmp(k)
@@ -11148,7 +11139,7 @@ Program Shimizu
              write(cm,'(i1)') n
              mix_label = 'fraction'//trim(cm)
           
-             call cg_iric_read_functionalwithname_f('mixfile_fr', mix_label, ytmp, ier)
+             call cg_iric_read_functionalwithname(fid, 'mixfile_fr', mix_label, ytmp, ier)
           
              do k=1,nk
                 pdist_m_100(k,n) = ytmp(k)
@@ -11161,7 +11152,7 @@ Program Shimizu
 
           if( j_mix_dis_dep==1 ) then
              
-             CALL CG_IRIC_READ_FUNCTIONALSIZE_F('mixfile_fr_d',tmpint,ier)
+             call cg_iric_read_functionalsize(fid, 'mixfile_fr_d', tmpint, ier)
              allocate(xtmp(tmpint),ytmp(tmpint))
 
              if( tmpint/=nk ) then
@@ -11174,7 +11165,7 @@ Program Shimizu
                 write(cm,'(i1)') n
                 mix_label = 'fraction'//trim(cm)
           
-                call cg_iric_read_functionalwithname_f('mixfile_fr_d', mix_label, ytmp, ier)
+                call cg_iric_read_functionalwithname(fid, 'mixfile_fr_d', mix_label, ytmp, ier)
           
                 do k=0,nk
                    pdist_d_100(k,n) = ytmp(k)
@@ -11727,25 +11718,11 @@ Program Shimizu
 !$omp single
 
          if( time>=t_out_start ) then
-
-             !guiがcgnsファイルを読込中か否かを判定
-	        do
-	            call iric_check_lock_f(condfile, istatus)
-	            if(istatus == 1) then
-	                call sleep(1)
-	            elseif(istatus == 0)then  !読込中でなければdoループを抜ける
-	                exit
-	            end if
-	        end do
-        
-        	   qptemp = qp
-            call iric_write_sol_start_f(condFile, ier)   
-        	   CALL Write_CGNS(condFile,time,qptemp,im,jm		&
+       	    qptemp = qp
+            call Write_CGNS(fid,time,qptemp,im,jm		&
             		,x,y,uxx,uyy,hsxx,z,z0,zb_g,voltex,c_g,dmn,phi_g,fr_g		&
               		, rho, us_g, ts_g,z_ave,z_min,h_ave,qbxx,qbyy,cc_m,nk,j_mix)
-            call cg_iric_flush_f(condFile, fid, ier)
-            call iric_write_sol_end_f(condFile, ier)
-            
+            call cg_iric_flush(fid, ier)
          end if
         
          !
@@ -11775,12 +11752,11 @@ Program Shimizu
 !$omp single
 
         ! ユーザがGUI上で "STOP" ボタンを押して実行をキャンセルしたか確認
-     call iric_check_cancel_f(istatus)
+     call iric_check_cancel(istatus)
      if(istatus == 1) then
         write(*,*) "Solver is stopped because the STOP button was clicked."
         stop
      end if
-
 
      if(i_re_flag_o == 1 .and. time > opt_tmp(i_tmp_count)) then
         !
@@ -12047,7 +12023,7 @@ Program Shimizu
 
 !$omp end parallel
 
-     call cg_close_f(fid,ier)
+     call cg_iric_close(fid, ier)
 
 END PROGRAM Shimizu
 
@@ -12055,13 +12031,13 @@ END PROGRAM Shimizu
 !--------------------------------------------------------------------------------
 ! output for cgns file
 !--------------------------------------------------------------------------------  
-subroutine write_cgns(InputFile,time,disch,im,jm,x,y,u,v,hs,z		&
+subroutine write_cgns(fid,time,disch,im,jm,x,y,u,v,hs,z		&
 						,z0,zb,vort,c,dmn,phi,fr &
 						,rho, usta, ts,zave,zmin,have,qbx,qby,cc_m,nk,j_mix)
   use flag_op
+  use iric
   IMPLICIT NONE
-  INCLUDE "cgnslib_f.h"
-  CHARACTER(*), INTENT(IN) :: InputFile
+  INTEGER, INTENT(IN) :: fid
   REAL(8), INTENT(IN) :: time, disch, rho
   INTEGER, INTENT(IN) :: im, jm, nk, j_mix
   real(8),dimension(0:im,0:jm),intent(in) :: u, v, hs, z, z0, zb, vort, qbx, qby
@@ -12069,7 +12045,7 @@ subroutine write_cgns(InputFile,time,disch,im,jm,x,y,u,v,hs,z		&
   real(8),dimension(0:im,0:jm,nk),intent(in) :: cc_m
   
   INTEGER :: NX, NY
-  INTEGER :: FID, BID, ZID, IER, iret
+  INTEGER :: IER
   INTEGER :: i, j, k
   REAL*8, ALLOCATABLE, DIMENSION(:,:) :: Vdata1, Udata1, Hdata1, Zbdata1, zfixdata, WSE, qbxdata1, qbydata1
   REAL*8, ALLOCATABLE, DIMENSION(:,:) :: xx, yy, dmn1, ssc
@@ -12081,8 +12057,8 @@ subroutine write_cgns(InputFile,time,disch,im,jm,x,y,u,v,hs,z		&
   nx=im
   ny=jm
   
-  CALL CG_IRIC_WRITE_SOL_TIME_F(time, IER)
-  CALL CG_IRIC_WRITE_SOL_BASEITERATIVE_REAL_F('Discharge(m3s-1)', disch, IER)
+  call cg_iric_write_sol_time(fid, time, IER)
+  call cg_iric_write_sol_baseiterative_real(fid, 'Discharge(m3s-1)', disch, IER)
 
   ALLOCATE(xx(nx, ny), STAT=ier)
   ALLOCATE(yy(nx, ny), STAT=ier)
@@ -12135,33 +12111,33 @@ subroutine write_cgns(InputFile,time,disch,im,jm,x,y,u,v,hs,z		&
      ENDDO
   ENDDO
 
-  CALL CG_IRIC_WRITE_SOL_GRIDCOORD2D_F(xx,yy,IER)
-  CALL CG_IRIC_WRITE_SOL_REAL_F("Velocity(ms-1)X",UData1,IER)
-  CALL CG_IRIC_WRITE_SOL_REAL_F("Velocity(ms-1)Y",VData1,IER)
-  CALL CG_IRIC_WRITE_SOL_REAL_F("Depth(m)",HData1,IER)
-  CALL CG_IRIC_WRITE_SOL_REAL_F("Elevation(m)",Zbdata1,IER)
-  CALL CG_IRIC_WRITE_SOL_REAL_F("WaterSurfaceElevation(m)",WSE,IER)
-  CALL CG_IRIC_WRITE_SOL_REAL_F("ShearStress(Nm-2)",ts0,IER)
+  call cg_iric_write_sol_grid2d_coords(fid, xx, yy, IER)
+  call cg_iric_write_sol_node_real(fid, "Velocity(ms-1)X", UData1, IER)
+  call cg_iric_write_sol_node_real(fid, "Velocity(ms-1)Y", VData1, IER)
+  call cg_iric_write_sol_node_real(fid, "Depth(m)", HData1, IER)
+  call cg_iric_write_sol_node_real(fid, "Elevation(m)", Zbdata1, IER)
+  call cg_iric_write_sol_node_real(fid, "WaterSurfaceElevation(m)", WSE, IER)
+  call cg_iric_write_sol_node_real(fid, "ShearStress(Nm-2)", ts0, IER)
 
-  if( jop_dz  ==0 ) CALL CG_IRIC_WRITE_SOL_REAL_F("ElevationChange(m)",z01,IER)
-  if( jop_fb  ==0 ) CALL CG_IRIC_WRITE_SOL_REAL_F("FixedBedElevation(m)",zfixdata,IER)
+  if( jop_dz  ==0 ) call cg_iric_write_sol_node_real(fid, "ElevationChange(m)", z01, IER)
+  if( jop_fb  ==0 ) call cg_iric_write_sol_node_real(fid, "FixedBedElevation(m)", zfixdata, IER)
   !		CALL CG_IRIC_WRITE_SOL_INTEGER_F("IBC",IBC,IER)
-  if( jop_vort==0 ) CALL CG_IRIC_WRITE_SOL_REAL_F("Vorticity(s-1)",vort1,IER)
-  if( jop_md  ==0 ) CALL CG_IRIC_WRITE_SOL_REAL_F("MeanDiameter(mm)",dmn1,IER)
-  if( jop_fr  ==0 ) CALL CG_IRIC_WRITE_SOL_REAL_F("FroudeNumber",fr1,IER)
-!	  CALL CG_IRIC_WRITE_SOL_REAL_F("Phi",phi1,IER)
-  if( jop_sh  ==0 ) CALL CG_IRIC_WRITE_SOL_REAL_F("ShieldsNumber",ts1,IER)
-  if( jop_zmin==0 ) CALL CG_IRIC_WRITE_SOL_REAL_F("CrossSectionalMinBedElev(m)",zmin1,IER)
-  if( jop_zave==0 ) CALL CG_IRIC_WRITE_SOL_REAL_F("CrossSectionalAveBedElev(m)",zave1,IER)
-  if( jop_have==0 ) CALL CG_IRIC_WRITE_SOL_REAL_F("CrossSectionalAveWaterLevel(m)",have1,IER)
+  if( jop_vort==0 ) call cg_iric_write_sol_node_real(fid, "Vorticity(s-1)", vort1, IER)
+  if( jop_md  ==0 ) call cg_iric_write_sol_node_real(fid, "MeanDiameter(mm)", dmn1, IER)
+  if( jop_fr  ==0 ) call cg_iric_write_sol_node_real(fid, "FroudeNumber", fr1, IER)
+!	  CALL cg_iric_write_sol_node_real(fid, "Phi",phi1,IER)
+  if( jop_sh  ==0 ) call cg_iric_write_sol_node_real(fid, "ShieldsNumber", ts1, IER)
+  if( jop_zmin==0 ) call cg_iric_write_sol_node_real(fid, "CrossSectionalMinBedElev(m)", zmin1, IER)
+  if( jop_zave==0 ) call cg_iric_write_sol_node_real(fid, "CrossSectionalAveBedElev(m)", zave1, IER)
+  if( jop_have==0 ) call cg_iric_write_sol_node_real(fid, "CrossSectionalAveWaterLevel(m)", have1, IER)
   if( jop_qb  ==0 ) then
-  		CALL CG_IRIC_WRITE_SOL_REAL_F("BedloadFlux(m2s-1)X",qbxData1,IER)
-  		CALL CG_IRIC_WRITE_SOL_REAL_F("BedloadFlux(m2s-1)Y",qbyData1,IER)
+	call cg_iric_write_sol_node_real(fid, "BedloadFlux(m2s-1)X", qbxData1, IER)
+	call cg_iric_write_sol_node_real(fid, "BedloadFlux(m2s-1)Y", qbyData1, IER)
   end if
 
   if( jop_sc==0 ) then
 	  if( j_mix==0 ) then
-	  	   CALL CG_IRIC_WRITE_SOL_REAL_F("SuspendedSedimentConcentration",ssc,IER)
+		call cg_iric_write_sol_node_real(fid, "SuspendedSedimentConcentration", ssc, IER)
 	  else
 	!  	do k=1,nk
 	!		write(cm,'(i1)') k
@@ -12181,10 +12157,10 @@ subroutine write_cgns(InputFile,time,disch,im,jm,x,y,u,v,hs,z		&
 				end do
 			end do
 					
-	!		CALL CG_IRIC_WRITE_SOL_REAL_F(c_label,ssc,IER)
+	!		CALL cg_iric_write_sol_node_real(fid, c_label,ssc,IER)
 	!	end do
 		
-		CALL CG_IRIC_WRITE_SOL_REAL_F("SuspendedSedimentConcentration",ssc,IER)
+		call cg_iric_write_sol_node_real(fid, "SuspendedSedimentConcentration", ssc, IER)
 		
 	  end if
   end if

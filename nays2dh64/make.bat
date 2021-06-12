@@ -1,8 +1,3 @@
-ifort 	..\libs\cgnsdll.lib^
-	..\libs\iriclib.lib ^
-	..\src\Nays2DH.f90 /Qopenmp /nostandard-realloc-lhs /MD -o nays2dh.exe
-	
-
-del *.obj 
-del *.mod 
-
+ifort ..\src\iric.f90 /Qopenmp /nostandard-realloc-lhs /MD /c
+ifort ..\src\Nays2DH.f90 /Qopenmp /nostandard-realloc-lhs /MD /c
+ifort *.obj ..\libs\iriclib.lib -o nays2dh.exe
