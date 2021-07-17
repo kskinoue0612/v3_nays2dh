@@ -3,12 +3,11 @@ name: build
 on:
   push:
     branches:
-      - main
-      - master
+      - v4_bat
 
 env:
   # online_update directory
-  PACKAGE_DIR: <PACKAGE_DIR>
+  PACKAGE_DIR: solver.nays2dh
 
   # online_update src directory
   ONLINE_UPDATE_SRC_DIR: online_update\yasu_src                   # @todo simplify
