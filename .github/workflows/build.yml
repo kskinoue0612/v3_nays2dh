@@ -1,0 +1,167 @@
+name: build
+
+on:
+  push:
+    branches:
+      - main
+      - master
+
+env:
+  # online_update directory
+  PACKAGE_DATA_DIR: <PACKAGE_DIR>
+
+  # online_update src directory
+  ONLINE_UPDATE_SRC_DIR: online_update\yasu_src                   # @todo simplify
+  ONLINE_UPDATE_SRC_DIR_DEFAULT: online_update\dev_src            # @todo simplify
+
+  # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
+  BUILD_TYPE: RelWithDebInfo
+
+  # CMAKE directories
+  SOURCE_DIR: SOURCE
+  BUILD_DIR: BUILD
+  INSTALL_DIR: INSTALL
+
+  # Repos
+  ONLINE_UPDATE_REPO: i-RIC/online_update
+
+  # github API url
+  IRICLIB_API_URL: ${{github.api_url}}/repos/i-RIC/iriclib_v4
+  IFW_API_URL: ${{github.api_url}}/repos/scharlton2/ifw
+
+  # oneAPI
+  # Based on https://github.com/oneapi-src/oneapi-ci/blob/master/.github/workflows/build_all.yml
+  WINDOWS_HPCKIT_URL: https://registrationcenter-download.intel.com/akdlm/irc_nas/17762/w_HPCKit_p_2021.2.0.2901.exe
+  WINDOWS_HPCKIT_FILE: hpckit.exe
+  WINDOWS_HPCKIT_COMPONENTS: intel.oneapi.win.ifort-compiler
+
+jobs:
+  build:
+    # The CMake configure and build commands are platform agnostic and should work equally
+    # well on Windows or Mac.  You can convert this to a matrix build if you need
+    # cross-platform coverage.
+    # See: https://docs.github.com/en/free-pro-team@latest/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix
+    runs-on: windows-latest
+
+    steps:
+
+    - uses: actions/checkout@v2
+      with:
+        path: ${{env.SOURCE_DIR}}
+
+    - name: Checkout online_update repo
+      uses: actions/checkout@v2
+      with:
+        repository: i-RIC/online_update
+        persist-credentials: false                # required to commit with a Personal access token
+        path: online_update
+
+    - name: Download latest iricsdk
+      shell: pwsh
+      run: |
+        # GET /repos/{owner}/{repo}/releases/latest
+        # see https://docs.github.com/en/rest/reference/repos#get-the-latest-release
+        # see https://docs.github.com/ja/rest/reference/repos#get-the-latest-release
+        $latest = (Invoke-WebRequest -Uri $env:IRICLIB_API_URL/releases/latest -Method GET).Content | ConvertFrom-Json
+        $url = ($latest.assets | Where-Object {$_.name -match "^iricsdk-(?<major>0|[1-9]\d*)\.(?<minor>[0|1-9]\d*)\.(?<patch>[0|1-9]\d*)\.7z$"}).browser_download_url
+        curl -LO $url
+        $7zfile = $matches[0]
+        7z x $7zfile
+        del $7zfile
+        # export environment variable IRICLIB_VERSION for later steps
+        Write-Output "IRICLIB_VERSION=$($matches.major).$($matches.minor).$($matches.patch)" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
+    - name: Install oneAPI Fortran
+      shell: cmd
+      run: |
+        curl -fSLo %WINDOWS_HPCKIT_FILE% %WINDOWS_HPCKIT_URL%
+        start /b /wait %WINDOWS_HPCKIT_FILE% -s -x -f hpckit_extracted --log hpckit_extracted.log
+        hpckit_extracted\bootstrapper.exe -s --action install --components=%WINDOWS_HPCKIT_COMPONENTS% --eula=accept --continue-with-optional-error=yes -p=NEED_VS2017_INTEGRATION=0 -p=NEED_VS2019_INTEGRATION=1 --log-dir=.
+
+    - name: Configure CMake
+      # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
+      # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
+      run: cmake -S ${{github.workspace}}\${{env.SOURCE_DIR}} -B ${{github.workspace}}\${{env.BUILD_DIR}} -DCMAKE_PREFIX_PATH=${{github.workspace}}\iricsdk\iriclib-${{env.IRICLIB_VERSION}}\lib\cmake\iriclib -DCMAKE_INSTALL_PREFIX=${{github.workspace}}\${{env.INSTALL_DIR}}
+
+    - name: Build
+      # Build your program with the given configuration
+      run: cmake --build ${{github.workspace}}\${{env.BUILD_DIR}} --config ${{env.BUILD_TYPE}}
+
+    # @todo
+    # - name: Test
+    #   working-directory: ${{github.workspace}}/${{env.BUILD_DIR}}
+    #   # Execute tests defined by the CMake configuration.
+    #   # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
+    #   # set paths for dlls
+    #   run: |
+    #     C:\iricdev\lib\setvars.bat  @todo
+    #     "C:\Program Files (x86)\Intel\oneAPI\setvars.bat" intel64 vs2019
+    #     ctest -C ${{env.BUILD_TYPE}}
+
+    - name: Install
+      # Build your program with the given configuration
+      run: cmake --build ${{github.workspace}}\${{env.BUILD_DIR}} --config ${{env.BUILD_TYPE}} --target install
+
+    - name: Prepare solver package directories
+      shell: pwsh
+      run: |
+        if (-Not (Test-Path .\${{env.ONLINE_UPDATE_SRC_DIR}}\packages\${{env.PACKAGE_DIR}}\data)) {
+          New-Item -Type Directory .\${{env.ONLINE_UPDATE_SRC_DIR}}\packages\${{env.PACKAGE_DIR}}\data
+        }
+        if (-Not (Test-Path .\${{env.ONLINE_UPDATE_SRC_DIR}}\packages\${{env.PACKAGE_DIR}}\meta)) {
+          New-Item -Type Directory .\${{env.ONLINE_UPDATE_SRC_DIR}}\packages\${{env.PACKAGE_DIR}}\meta
+        }
+        if (-Not (Test-Path -Path .\${{env.ONLINE_UPDATE_SRC_DIR}}\packages\${{env.PACKAGE_DIR}}\meta\package.xml)) {
+          Copy-Item .\${{env.ONLINE_UPDATE_SRC_DIR_DEFAULT}}\packages\${{env.PACKAGE_DIR}}\meta\package.xml .\${{env.ONLINE_UPDATE_SRC_DIR}}\packages\${{env.PACKAGE_DIR}}\meta\.
+        }
+        if (-Not (Test-Path -Path .\${{env.ONLINE_UPDATE_SRC_DIR}}\packages\${{env.PACKAGE_DIR}}\meta\installscript.qs)) {
+          Copy-Item .\${{env.ONLINE_UPDATE_SRC_DIR_DEFAULT}}\packages\${{env.PACKAGE_DIR}}\meta\installscript.qs .\${{env.ONLINE_UPDATE_SRC_DIR}}\packages\${{env.PACKAGE_DIR}}\meta\.
+        }
+
+    - name: Copy to package data directory
+      shell: pwsh
+      run: |
+        Copy-Item .\${{env.INSTALL_DIR}}\bin\* .\${{env.ONLINE_UPDATE_SRC_DIR}}\packages\${{env.PACKAGE_DIR}}\data\.
+        Set-Location online_update
+        git status
+
+    - name: Run copy_release_and_version.py
+      shell: pwsh
+      run: |
+        Set-Location .\${{env.ONLINE_UPDATE_SRC_DIR}}\. && python .\copy_release_and_version.py
+        Set-Location ..
+        git status
+
+    - name: Download QtInstallerFramework
+      shell: pwsh
+      run: |
+        # GET /repos/{owner}/{repo}/releases/latest
+        # see https://docs.github.com/en/rest/reference/repos#get-the-latest-release
+        # see https://docs.github.com/ja/rest/reference/repos#get-the-latest-release
+        $latest = (Invoke-WebRequest -Uri $env:IFW_API_URL/releases/latest -Method GET).Content | ConvertFrom-Json
+        $url = ($latest.assets | Where-Object {$_.name -match "^ifw-(?<major>0|[1-9]\d*)\.(?<minor>[0|1-9]\d*)\.7z$"}).browser_download_url
+        curl -LO $url
+        mkdir c:\Qt\Tools\QtInstallerFramework
+        $7zfile = $matches[0]
+        7z x -oc:\Qt\Tools\QtInstallerFramework $7zfile
+        del $7zfile
+        # export environment variable IFW_VERSION for later steps
+        Write-Output "IFW_VERSION=$($matches.major).$($matches.minor)" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
+    - name: Run build_update_repository.py
+      shell: pwsh
+      run: |
+        Set-Location .\${{env.ONLINE_UPDATE_SRC_DIR}}\.
+        Write-Output "QT_IFW_PATH = 'C:\\Qt\\Tools\\QtInstallerFramework\\$env:IFW_VERSION'" > qt_ifw_path.py
+        python .\build_update_repository.py
+        Set-Location ..
+        git add -A
+        git status
+
+    - name: Commit and push branch
+      uses: actions-js/push@master
+      with:
+        github_token: ${{secrets.ONLINE_UPDATE_TOKEN}}
+        repository: ${{env.ONLINE_UPDATE_REPO}}
+        directory: online_update
+        branch: __${{github.event.repository.name}}_${{github.run_number}}        # @todo remove branch
