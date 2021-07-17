@@ -3,19 +3,18 @@ name: build
 on:
   push:
     branches:
-      - main
-      - master
+      - v4
 
 env:
   # online_update directory
-  PACKAGE_DATA_DIR: <PACKAGE_DIR>
+  PACKAGE_DIR: solver.nays2dh
 
   # online_update src directory
   ONLINE_UPDATE_SRC_DIR: online_update\yasu_src                   # @todo simplify
   ONLINE_UPDATE_SRC_DIR_DEFAULT: online_update\dev_src            # @todo simplify
 
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
-  BUILD_TYPE: RelWithDebInfo
+  BUILD_TYPE: Release
 
   # CMAKE directories
   SOURCE_DIR: SOURCE
@@ -110,12 +109,6 @@ jobs:
         }
         if (-Not (Test-Path .\${{env.ONLINE_UPDATE_SRC_DIR}}\packages\${{env.PACKAGE_DIR}}\meta)) {
           New-Item -Type Directory .\${{env.ONLINE_UPDATE_SRC_DIR}}\packages\${{env.PACKAGE_DIR}}\meta
-        }
-        if (-Not (Test-Path -Path .\${{env.ONLINE_UPDATE_SRC_DIR}}\packages\${{env.PACKAGE_DIR}}\meta\package.xml)) {
-          Copy-Item .\${{env.ONLINE_UPDATE_SRC_DIR_DEFAULT}}\packages\${{env.PACKAGE_DIR}}\meta\package.xml .\${{env.ONLINE_UPDATE_SRC_DIR}}\packages\${{env.PACKAGE_DIR}}\meta\.
-        }
-        if (-Not (Test-Path -Path .\${{env.ONLINE_UPDATE_SRC_DIR}}\packages\${{env.PACKAGE_DIR}}\meta\installscript.qs)) {
-          Copy-Item .\${{env.ONLINE_UPDATE_SRC_DIR_DEFAULT}}\packages\${{env.PACKAGE_DIR}}\meta\installscript.qs .\${{env.ONLINE_UPDATE_SRC_DIR}}\packages\${{env.PACKAGE_DIR}}\meta\.
         }
 
     - name: Copy to package data directory
