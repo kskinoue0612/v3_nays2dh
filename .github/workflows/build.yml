@@ -79,7 +79,8 @@ jobs:
 
     - name: Build
       # Build your program with the given configuration
-      run: build.bat
+      shell: cmd
+      run: .\build.bat
 
     # @todo
     # - name: Test
