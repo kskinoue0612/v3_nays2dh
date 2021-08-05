@@ -19,6 +19,10 @@ add_executable(nays2dh
   src/Nays2DH.f90
 )
 
+if(CMAKE_Fortran_COMPILER_ID STREQUAL Intel)
+  target_compile_options(nays2dh PRIVATE /nostandard-realloc-lhs)
+endif()
+
 target_link_libraries(nays2dh PRIVATE iriclib::iriclib)
 
 if(IRIC_SOLVER_USE_OPENMP AND OpenMP_Fortran_FOUND)
