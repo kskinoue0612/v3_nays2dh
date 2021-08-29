@@ -1,4 +1,7 @@
-mkdir bin
+call "C:\Program Files (x86)\Intel\oneAPI\setvars.bat" intel64 vs2019
+
+mkdir ..\INSTALL
+mkdir ..\INSTALL\bin
 
 rem build nays2dh.exe
 
@@ -8,10 +11,10 @@ ifort *.obj libs\iriclib.lib -o nays2dh.exe
 
 rem copy nays2dh.exe to bin folder
 
-copy nays2dh.exe bin\nays2dh.exe
+copy nays2dh.exe ..\INSTALL\bin\nays2dh.exe
 
 rem copy files to bundle to installer
 rem ---------------------------------
 
-copy nays2dh64\definition.xml bin\definition.xml
-copy nays2dh64\translation_ja_JP.ts bin\translation_ja_JP.ts
+copy nays2dh64\definition.xml ..\INSTALL\bin\definition.xml
+copy nays2dh64\translation_ja_JP.ts ..\INSTALL\bin\translation_ja_JP.ts
