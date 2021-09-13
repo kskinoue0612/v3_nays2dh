@@ -19,7 +19,6 @@ env:
   # CMAKE directories
   SOURCE_DIR: SOURCE
   BUILD_DIR: BUILD
-  INSTALL_DIR: INSTALL
 
   # Repos
   ONLINE_UPDATE_REPO: i-RIC/online_update
@@ -114,7 +113,7 @@ jobs:
     - name: Copy to package data directory
       shell: pwsh
       run: |
-        Copy-Item .\${{env.INSTALL_DIR}}\bin\* .\${{env.ONLINE_UPDATE_SRC_DIR}}\packages\${{env.PACKAGE_DIR}}\data\.
+        Copy-Item .\${{env.SOURCE_DIR}}\INSTALL\* .\${{env.ONLINE_UPDATE_SRC_DIR}}\packages\${{env.PACKAGE_DIR}}\data\.
         Set-Location online_update
         git status
 
