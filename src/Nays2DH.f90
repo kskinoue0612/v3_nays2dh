@@ -11719,10 +11719,11 @@ Program Shimizu
 
          if( time>=t_out_start ) then
        	    qptemp = qp
+            call cg_iric_write_sol_start(fid, ier)
             call Write_CGNS(fid,time,qptemp,im,jm		&
             		,x,y,uxx,uyy,hsxx,z,z0,zb_g,voltex,c_g,dmn,phi_g,fr_g		&
               		, rho, us_g, ts_g,z_ave,z_min,h_ave,qbxx,qbyy,cc_m,nk,j_mix)
-            call cg_iric_flush(fid, ier)
+            call cg_iric_write_sol_end(fid, ier)
          end if
         
          !
