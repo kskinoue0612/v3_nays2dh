@@ -3,7 +3,7 @@ name: build
 on:
   push:
     branches:
-      - v4_bat
+      - v4
 
 env:
   # online_update directory
