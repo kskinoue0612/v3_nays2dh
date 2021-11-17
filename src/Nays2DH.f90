@@ -11725,6 +11725,8 @@ Program Shimizu
               		, rho, us_g, ts_g,z_ave,z_min,h_ave,qbxx,qbyy,cc_m,nk,j_mix)
             call cg_iric_write_sol_end(fid, ier)
          end if
+
+         call cg_iric_flush(fid, ier)
         
          !
          ! ------ CRT Output ------------------------
