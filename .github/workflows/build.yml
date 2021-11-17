@@ -25,7 +25,9 @@ env:
 
   # github API url
   IRICLIB_API_URL: ${{github.api_url}}/repos/i-RIC/iriclib_v4
-  IFW_API_URL: ${{github.api_url}}/repos/scharlton2/ifw
+
+  # QtInstallerFramework version
+  IFW_VERSION: 4.2
 
   # oneAPI
   # Based on https://github.com/oneapi-src/oneapi-ci/blob/master/.github/workflows/build_all.yml
@@ -80,6 +82,9 @@ jobs:
       # Build your program with the given configuration
       shell: cmd
       run: |
+        @REM Copy latest versions of iriclib
+        copy /Y iricsdk\iriclib-${{env.IRICLIB_VERSION}}\src\iric.f90    ${{env.SOURCE_DIR}}\src\.
+        copy /Y iricsdk\iriclib-${{env.IRICLIB_VERSION}}\lib\iriclib.lib ${{env.SOURCE_DIR}}\libs\.
         cd ${{env.SOURCE_DIR}}
         .\build.bat
 
@@ -124,36 +129,34 @@ jobs:
         Set-Location ..
         git status
 
-    - name: Download QtInstallerFramework
-      shell: pwsh
-      run: |
-        # GET /repos/{owner}/{repo}/releases/latest
-        # see https://docs.github.com/en/rest/reference/repos#get-the-latest-release
-        # see https://docs.github.com/ja/rest/reference/repos#get-the-latest-release
-        $latest = (Invoke-WebRequest -Uri $env:IFW_API_URL/releases/latest -Method GET).Content | ConvertFrom-Json
-        $url = ($latest.assets | Where-Object {$_.name -match "^ifw-(?<major>0|[1-9]\d*)\.(?<minor>[0|1-9]\d*)\.7z$"}).browser_download_url
-        curl -LO $url
-        mkdir c:\Qt\Tools\QtInstallerFramework
-        $7zfile = $matches[0]
-        7z x -oc:\Qt\Tools\QtInstallerFramework $7zfile
-        del $7zfile
-        # export environment variable IFW_VERSION for later steps
-        Write-Output "IFW_VERSION=$($matches.major).$($matches.minor)" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+    - name: Cache QtInstallerFramework 4.2
+      id: cache-qtif
+      uses: actions/cache@v2
+      with:
+        path: C:\Qt
+        key: ${{runner.os}}-qtif-${{env.IFW_VERSION}}
 
-    - name: Run build_update_repository.py
+    - name: Download QtInstallerFramework 4.2
+      if: steps.cache-qtif.outputs.cache-hit != 'true'
+      shell: pwsh
+      run: ${{env.SOURCE_DIR}}\.github\workflows\install_qt_fast_windows.ps1
+
+    - name: Run repogen.exe
       shell: pwsh
       run: |
         Set-Location .\${{env.ONLINE_UPDATE_SRC_DIR}}\.
-        Write-Output "QT_IFW_PATH = 'C:\\Qt\\Tools\\QtInstallerFramework\\$env:IFW_VERSION'" > qt_ifw_path.py
-        python .\build_update_repository.py
+        &C:\Qt\Tools\QtInstallerFramework\${{env.IFW_VERSION}}\bin\repogen.exe -p packages --update --include ${{env.PACKAGE_DIR}} ..\yasu
         Set-Location ..
         git add -A
         git status
 
+    # The secrets.ONLINE_UPDATE_TOKEN is a repository secret (REPO/settings/secrets/actions)
+    # which is a copy of a personal access token (settings/tokens) from someone who has write
+    # access to the online_update repository
     - name: Commit and push branch
       uses: actions-js/push@master
       with:
         github_token: ${{secrets.ONLINE_UPDATE_TOKEN}}
         repository: ${{env.ONLINE_UPDATE_REPO}}
         directory: online_update
-        branch: __${{github.event.repository.name}}_${{github.run_number}}        # @todo remove branch
+        branch: __${{github.event.repository.name}}_${{github.run_number}}        # @todo change to master after testing
