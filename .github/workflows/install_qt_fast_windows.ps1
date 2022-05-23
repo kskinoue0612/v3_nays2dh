@@ -7,7 +7,7 @@ $installDir = "C:\Qt"
 $component_groups += @(
     @{
         components = @(
-            "qt.tools.ifw.42"
+            "qt.tools.ifw.43"
         )
     }
 )

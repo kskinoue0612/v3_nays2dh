@@ -27,7 +27,7 @@ env:
   IRICLIB_API_URL: ${{github.api_url}}/repos/i-RIC/iriclib_v4
 
   # QtInstallerFramework version
-  IFW_VERSION: 4.2
+  IFW_VERSION: 4.3
 
   # oneAPI
   # Based on https://github.com/oneapi-src/oneapi-ci/blob/master/.github/workflows/build_all.yml
@@ -41,7 +41,7 @@ jobs:
     # well on Windows or Mac.  You can convert this to a matrix build if you need
     # cross-platform coverage.
     # See: https://docs.github.com/en/free-pro-team@latest/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix
-    runs-on: windows-latest
+    runs-on: windows-2019
 
     steps:
 
