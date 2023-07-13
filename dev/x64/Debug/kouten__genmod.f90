@@ -1,4 +1,6 @@
-        !COMPILER-GENERATED INTERFACE MODULE: Thu Jun 25 15:18:11 2015
+        !COMPILER-GENERATED INTERFACE MODULE: Thu Jul 13 12:37:18 2023
+        ! This source file is for reference only and may not completely
+        ! represent the generated interface used by the compiler.
         MODULE KOUTEN__genmod
           INTERFACE 
             SUBROUTINE KOUTEN(X1,Y1,R1,COST1,SINT1,X2,Y2,R2,COST2,SINT2,&

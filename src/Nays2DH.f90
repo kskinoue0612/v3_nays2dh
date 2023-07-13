@@ -10386,14 +10386,14 @@ Program Shimizu
 	allocate (vegeh     (ni4-1, nj4-1))
 	allocate (mix_cell  (ni4-1, nj4-1))
 
-	call iricmi_read_grid2d_real_node('Elevation', z8, ier)
-	call iricmi_read_grid2d_real_node('Elevation_zb', zb8, ier)
-	call iricmi_read_grid2d_integer_cell('Obstacle', obst4, ier)
-	call iricmi_read_grid2d_integer_cell('Fix_movable', fm4, ier)
-	call iricmi_read_grid2d_real_cell('vege_density', vege4, ier)
-	call iricmi_read_grid2d_real_cell('vege_height', vegeh, ier)
-	call iricmi_read_grid2d_real_cell('roughness_cell', roughness4, ier)
-	call iricmi_read_grid2d_integer_cell('mix_cell', mix_cell, ier)
+	call iricmi_read_grid_real_node('Elevation', z8, ier)
+	call iricmi_read_grid_real_node('Elevation_zb', zb8, ier)
+	call iricmi_read_grid_integer_cell('Obstacle', obst4, ier)
+	call iricmi_read_grid_integer_cell('Fix_movable', fm4, ier)
+	call iricmi_read_grid_real_cell('vege_density', vege4, ier)
+	call iricmi_read_grid_real_cell('vege_height', vegeh, ier)
+	call iricmi_read_grid_real_cell('roughness_cell', roughness4, ier)
+	call iricmi_read_grid_integer_cell('mix_cell', mix_cell, ier)
 
 	call iricmi_read_integer('edition', edition, ier)
 
@@ -10987,7 +10987,7 @@ Program Shimizu
 	if( j_mix == 1) then
 		if( j_mix_dis == 0 ) then
 
-			call iricmi_read_functional_size('mixfile_pp',tmpint,ier)
+			call iricmi_read_functionalsize('mixfile_pp',tmpint,ier)
 			allocate(xtmp(tmpint),ytmp(tmpint))
 			!call iricmi_read_functional_vals('mixfile_pp',xtmp,ytmp,ier)
 
@@ -10998,7 +10998,7 @@ Program Shimizu
 				call initial_mix
 			ENDIF
 
-			call iricmi_read_functional_valwithname('mixfile_pp', 'diameter_k', xtmp, ier)
+			call iricmi_read_functionalwithname('mixfile_pp', 'diameter_k', xtmp, ier)
 
 			do k = 0, nk
 				ddist_mm(k) = xtmp(k+1)
@@ -11008,7 +11008,7 @@ Program Shimizu
 				write(cm,'(i1)') n
 				mix_label = 'pp'//trim(cm)
 
-				call iricmi_read_functional_valwithname('mixfile_pp', mix_label, ytmp, ier)
+				call iricmi_read_functionalwithname('mixfile_pp', mix_label, ytmp, ier)
           
 				do k = 0, nk
 					pdist_m_100(k,n) = ytmp(k+1)
@@ -11020,7 +11020,7 @@ Program Shimizu
 
 			if ( j_mix_dis_dep == 1 ) then
 
-				call iricmi_read_functional_size('mixfile_pp_d',tmpint,ier)
+				call iricmi_read_functionalsize('mixfile_pp_d',tmpint,ier)
 				allocate(xtmp(tmpint),ytmp(tmpint))
 
 				if( tmpint-1 /= nk ) then
@@ -11033,7 +11033,7 @@ Program Shimizu
 					write(cm,'(i1)') n
 					mix_label = 'pp'//trim(cm)
 
-					call iricmi_read_functional_valwithname('mixfile_pp_d', mix_label, ytmp, ier)
+					call iricmi_read_functionalwithname('mixfile_pp_d', mix_label, ytmp, ier)
 
 					do k = 0, nk
 						pdist_d_100(k,n) = ytmp(k+1)
@@ -11046,7 +11046,7 @@ Program Shimizu
 			end if
 		else
 
-			call iricmi_read_functional_size('mixfile_fr',tmpint,ier)
+			call iricmi_read_functionalsize('mixfile_fr',tmpint,ier)
 			allocate(xtmp(tmpint),ytmp(tmpint))
 			!call iricmi_read_functional_vals('mixfile_fr',xtmp,ytmp,ier)
 
@@ -11057,7 +11057,7 @@ Program Shimizu
 				call initial_mix
 			ENDIF
 
-			call iricmi_read_functional_valwithname('mixfile_fr', 'diameter_k', xtmp, ier)
+			call iricmi_read_functionalwithname('mixfile_fr', 'diameter_k', xtmp, ier)
 
 			do k = 1, nk
 				ddist_mm(k) = xtmp(k)
@@ -11067,7 +11067,7 @@ Program Shimizu
 				write(cm,'(i1)') n
 				mix_label = 'fraction'//trim(cm)
 
-				call iricmi_read_functional_valwithname('mixfile_fr', mix_label, ytmp, ier)
+				call iricmi_read_functionalwithname('mixfile_fr', mix_label, ytmp, ier)
 
 				do k = 1, nk
 					pdist_m_100(k,n) = ytmp(k)
@@ -11079,7 +11079,7 @@ Program Shimizu
 
 			if ( j_mix_dis_dep == 1 ) then
              
-				call iricmi_read_functional_size('mixfile_fr_d',tmpint,ier)
+				call iricmi_read_functionalsize('mixfile_fr_d',tmpint,ier)
 				allocate(xtmp(tmpint),ytmp(tmpint))
 
 				if( tmpint /= nk ) then
@@ -11092,7 +11092,7 @@ Program Shimizu
 					write(cm,'(i1)') n
 					mix_label = 'fraction'//trim(cm)
 
-					call iricmi_read_functional_valwithname('mixfile_fr_d', mix_label, ytmp, ier)
+					call iricmi_read_functionalwithname('mixfile_fr_d', mix_label, ytmp, ier)
 
 					do k = 0, nk
 						pdist_d_100(k,n) = ytmp(k)
@@ -11634,7 +11634,7 @@ Program Shimizu
 		!$omp single
 
 		! ユーザがGUI上で "STOP" ボタンを押して実行をキャンセルしたか確認
-		call iricmi_check_cancel(istatus, ier)
+		call iricmi_check_cancel(istatus)
 		if (istatus == 1) then
 			write(*,*) "Solver is stopped because the STOP button was clicked."
 			stop
@@ -12000,32 +12000,32 @@ subroutine sync_and_output_result(dump,time,disch,im,jm,x,y,u,v,hs,z		&
 
 	!@todo grid change is not supported yet
 	!call CG_IRIC_WRITE_SOL_GRIDCOORD2D_F(xx,yy,IER)
-	call iricmi_rout_grid2d_real_node("Velocity(ms-1)X",UData1,IER)
-	call iricmi_rout_grid2d_real_node("Velocity(ms-1)Y",VData1,IER)
-	call iricmi_rout_grid2d_real_node("Depth(m)",HData1,IER)
-	call iricmi_rout_grid2d_real_node("Elevation(m)",Zbdata1,IER)
-	call iricmi_rout_grid2d_real_node("WaterSurfaceElevation(m)",WSE,IER)
-	call iricmi_rout_grid2d_real_node("ShearStress(Nm-2)",ts0,IER)
+	call iricmi_rout_grid_node_real("Velocity(ms-1)X",UData1,IER)
+	call iricmi_rout_grid_node_real("Velocity(ms-1)Y",VData1,IER)
+	call iricmi_rout_grid_node_real("Depth(m)",HData1,IER)
+	call iricmi_rout_grid_node_real("Elevation(m)",Zbdata1,IER)
+	call iricmi_rout_grid_node_real("WaterSurfaceElevation(m)",WSE,IER)
+	call iricmi_rout_grid_node_real("ShearStress(Nm-2)",ts0,IER)
 
-	if( jop_dz   == 0 ) call iricmi_rout_grid2d_real_node("ElevationChange(m)",z01,IER)
-	if( jop_fb   == 0 ) call iricmi_rout_grid2d_real_node("FixedBedElevation(m)",zfixdata,IER)
+	if( jop_dz   == 0 ) call iricmi_rout_grid_node_real("ElevationChange(m)",z01,IER)
+	if( jop_fb   == 0 ) call iricmi_rout_grid_node_real("FixedBedElevation(m)",zfixdata,IER)
 	!call iricmi_rout_grid2d_integer_node("IBC",IBC,IER)
-	if( jop_vort == 0 ) call iricmi_rout_grid2d_real_node("Vorticity(s-1)",vort1,IER)
-	if( jop_md   == 0 ) call iricmi_rout_grid2d_real_node("MeanDiameter(mm)",dmn1,IER)
-	if( jop_fr   == 0 ) call iricmi_rout_grid2d_real_node("FroudeNumber",fr1,IER)
-!	call iricmi_rout_grid2d_real_node("Phi",phi1,IER)
-	if( jop_sh   == 0 ) call iricmi_rout_grid2d_real_node("ShieldsNumber",ts1,IER)
-	if( jop_zmin == 0 ) call iricmi_rout_grid2d_real_node("CrossSectionalMinBedElev(m)",zmin1,IER)
-	if( jop_zave == 0 ) call iricmi_rout_grid2d_real_node("CrossSectionalAveBedElev(m)",zave1,IER)
-	if( jop_have == 0 ) call iricmi_rout_grid2d_real_node("CrossSectionalAveWaterLevel(m)",have1,IER)
+	if( jop_vort == 0 ) call iricmi_rout_grid_node_real("Vorticity(s-1)",vort1,IER)
+	if( jop_md   == 0 ) call iricmi_rout_grid_node_real("MeanDiameter(mm)",dmn1,IER)
+	if( jop_fr   == 0 ) call iricmi_rout_grid_node_real("FroudeNumber",fr1,IER)
+!	call iricmi_rout_grid_node_real("Phi",phi1,IER)
+	if( jop_sh   == 0 ) call iricmi_rout_grid_node_real("ShieldsNumber",ts1,IER)
+	if( jop_zmin == 0 ) call iricmi_rout_grid_node_real("CrossSectionalMinBedElev(m)",zmin1,IER)
+	if( jop_zave == 0 ) call iricmi_rout_grid_node_real("CrossSectionalAveBedElev(m)",zave1,IER)
+	if( jop_have == 0 ) call iricmi_rout_grid_node_real("CrossSectionalAveWaterLevel(m)",have1,IER)
 	if( jop_qb   == 0 ) then
-		call iricmi_rout_grid2d_real_node("BedloadFlux(m2s-1)X",qbxData1,IER)
-		call iricmi_rout_grid2d_real_node("BedloadFlux(m2s-1)Y",qbyData1,IER)
+		call iricmi_rout_grid_node_real("BedloadFlux(m2s-1)X",qbxData1,IER)
+		call iricmi_rout_grid_node_real("BedloadFlux(m2s-1)Y",qbyData1,IER)
 	end if
 
 	if( jop_sc==0 ) then
 		if( j_mix==0 ) then
-			call iricmi_rout_grid2d_real_node("SuspendedSedimentConcentration",ssc,IER)
+			call iricmi_rout_grid_node_real("SuspendedSedimentConcentration",ssc,IER)
 		else
 			!do k = 1, nk
 			!write(cm,'(i1)') k
@@ -12045,10 +12045,10 @@ subroutine sync_and_output_result(dump,time,disch,im,jm,x,y,u,v,hs,z		&
 				end do
 			end do
 
-			!call iricmi_rout_grid2d_real_node(c_label,ssc,IER)
+			!call iricmi_rout_grid_node_real(c_label,ssc,IER)
 			!end do
 
-		call iricmi_rout_grid2d_real_node("SuspendedSedimentConcentration",ssc,IER)
+		call iricmi_rout_grid_node_real("SuspendedSedimentConcentration",ssc,IER)
 
 		end if
 	end if
